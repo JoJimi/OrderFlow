@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.apply
-
 plugins {
 	java
 	id("org.springframework.boot") version "4.0.0" apply false
@@ -26,7 +24,7 @@ subprojects {
 
 	java {
 		toolchain {
-			languageVersion = JavaLanguageVersion.of(17)
+			languageVersion = JavaLanguageVersion.of(21)
 		}
 	}
 
