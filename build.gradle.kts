@@ -1,12 +1,11 @@
 plugins {
 	java
-	id("org.springframework.boot") version "4.0.0" apply false
-	id("io.spring.dependency-management") version "1.1.7"
+	id("org.springframework.boot") version "3.2.0" apply false
+	id("io.spring.dependency-management") version "1.1.4"
 }
 
 group = "org.example"
 version = "0.0.1-SNAPSHOT"
-description = "OrderFlow - MSA Platform"
 
 allprojects {
 	repositories {
