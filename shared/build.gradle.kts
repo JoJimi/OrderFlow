@@ -1,4 +1,6 @@
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
     // shared는 최소 의존성만
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
