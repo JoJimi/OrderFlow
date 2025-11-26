@@ -1,7 +1,18 @@
+// bootJar 태스크 비활성화 (shared는 실행 가능한 jar가 아님)
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    enabled = false
+}
+
+// 일반 jar 태스크 활성화
+tasks.named<Jar>("jar") {
+    enabled = true
+}
+
 dependencies {
+    // shared는 최소 의존성만
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    // shared는 최소 의존성만
+    // lombok
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

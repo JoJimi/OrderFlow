@@ -37,7 +37,6 @@ subprojects {
 		// 공통 의존성
 		implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 		implementation("org.springframework.boot:spring-boot-starter-validation")
-		implementation("org.springframework.boot:spring-boot-starter-webmvc")
 
 		// Lombok
 		compileOnly("org.projectlombok:lombok")
