@@ -1,0 +1,10 @@
+package org.example.shared.exception.inventory;
+
+import org.example.shared.exception.BusinessException;
+import org.example.shared.exception.ErrorCode;
+
+public class NegativeStockNotAllowedException extends BusinessException {
+    public NegativeStockNotAllowedException(ErrorCode errorCode) {
+        super(ErrorCode.NEGATIVE_STOCK_NOT_ALLOWED);
+    }
+}
