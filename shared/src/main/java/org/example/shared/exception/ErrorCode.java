@@ -1,4 +1,4 @@
-package org.example.exception;
+package org.example.shared.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

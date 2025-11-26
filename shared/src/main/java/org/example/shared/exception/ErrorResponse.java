@@ -1,4 +1,4 @@
-package org.example.exception;
+package org.example.shared.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
