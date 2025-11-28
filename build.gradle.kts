@@ -79,6 +79,9 @@ listOf(
 
 			// Spring Boot 포함
 			implementation("org.springframework.boot:spring-boot-starter-web")
+
+			// actuator 추가
+			implementation("org.springframework.boot:spring-boot-starter-actuator")
 		}
 	}
 }

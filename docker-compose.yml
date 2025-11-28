@@ -28,6 +28,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - orderFlow-network
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -152,5 +154,5 @@ volumes:
     driver: local
 
 networks:
-  orderflow-network:
+  orderFlow-network:
     driver: bridge
