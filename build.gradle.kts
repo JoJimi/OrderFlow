@@ -34,18 +34,9 @@ subprojects {
 	}
 
 	dependencies {
-		// 공통 의존성
-		implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-		implementation("org.springframework.boot:spring-boot-starter-validation")
-
-		// Lombok
 		compileOnly("org.projectlombok:lombok")
 		annotationProcessor("org.projectlombok:lombok")
 
-		// PostgreSQL
-		runtimeOnly("org.postgresql:postgresql")
-
-		// 테스트
 		testImplementation("org.springframework.boot:spring-boot-starter-test")
 		testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	}
@@ -60,7 +51,7 @@ project(":shared") {
 	apply(plugin = "java-library")
 }
 
-// 마이크로서비스들
+// ⭐ JPA가 필요한 마이크로서비스들 (DB 사용)
 listOf(
 		"user-service",
 		"product-service",
@@ -69,19 +60,19 @@ listOf(
 		"inventory-service",
 		"shipping-service",
 		"notification-service",
-		"event-logging-service",
-		"api-gateway"
+		"event-logging-service"
 ).forEach { service ->
 	project(":$service") {
 		dependencies {
 			// shared 라이브러리 의존
 			implementation(project(":shared"))
 
-			// Spring Boot 포함
 			implementation("org.springframework.boot:spring-boot-starter-web")
-
-			// actuator 추가
+			implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+			implementation("org.springframework.boot:spring-boot-starter-validation")
 			implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+			runtimeOnly("org.postgresql:postgresql")
 		}
 	}
 }

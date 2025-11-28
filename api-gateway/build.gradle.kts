@@ -1,6 +1,23 @@
 dependencies {
+    implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    testImplementation("io.projectreactor:reactor-test")
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
-    mainClass.set("org.example.api.ApiGatewayServiceApplication")
+    mainClass.set("org.example.api.ApiGatewayApplication")
+}
+
+// Spring Cloud 버전 관리 추가
+ext {
+    set("springCloudVersion", "2023.0.3")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+    }
 }
