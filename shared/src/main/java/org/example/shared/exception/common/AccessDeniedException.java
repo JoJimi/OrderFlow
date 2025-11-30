@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class AccessDeniedException extends BusinessException {
-    public AccessDeniedException(ErrorCode errorCode) {
+    public AccessDeniedException() {
         super(ErrorCode.ACCESS_DENIED);
     }
 }

@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class InvalidRecipientException extends BusinessException {
-    public InvalidRecipientException(ErrorCode errorCode) {
+    public InvalidRecipientException() {
         super(ErrorCode.INVALID_RECIPIENT);
     }
 }

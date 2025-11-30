@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class OrderAlreadyCancelledException extends BusinessException {
-    public OrderAlreadyCancelledException(ErrorCode errorCode) {
+    public OrderAlreadyCancelledException() {
         super(ErrorCode.ORDER_ALREADY_CANCELLED);
     }
 }

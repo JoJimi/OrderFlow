@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class InvalidPaymentMethodException extends BusinessException {
-    public InvalidPaymentMethodException(ErrorCode errorCode) {
+    public InvalidPaymentMethodException() {
         super(ErrorCode.INVALID_PAYMENT_METHOD);
     }
 }

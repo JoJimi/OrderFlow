@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class MissingParameterException extends BusinessException {
-    public MissingParameterException(ErrorCode errorCode) {
+    public MissingParameterException() {
         super(ErrorCode.MISSING_REQUEST_PARAMETER);
     }
 }

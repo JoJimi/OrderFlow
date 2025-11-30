@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class ProductOutOfStockException extends BusinessException {
-    public ProductOutOfStockException(ErrorCode errorCode) {
+    public ProductOutOfStockException() {
         super(ErrorCode.PRODUCT_OUT_OF_STOCK);
     }
 }

@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class InactiveUserException extends BusinessException {
-    public InactiveUserException(ErrorCode errorCode) {
+    public InactiveUserException() {
         super(ErrorCode.INACTIVE_USER);
     }
 }

@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class PaymentCancelledException extends BusinessException {
-    public PaymentCancelledException(ErrorCode errorCode) {
+    public PaymentCancelledException() {
         super(ErrorCode.PAYMENT_CANCELLED);
     }
 }

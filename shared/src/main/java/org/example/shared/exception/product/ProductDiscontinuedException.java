@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class ProductDiscontinuedException extends BusinessException {
-    public ProductDiscontinuedException(ErrorCode errorCode) {
+    public ProductDiscontinuedException() {
         super(ErrorCode.PRODUCT_DISCONTINUED);
     }
 }

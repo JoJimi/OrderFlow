@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class InvalidNotificationTemplateException extends BusinessException {
-    public InvalidNotificationTemplateException(ErrorCode errorCode) {
+    public InvalidNotificationTemplateException() {
         super(ErrorCode.INVALID_NOTIFICATION_TEMPLATE);
     }
 }

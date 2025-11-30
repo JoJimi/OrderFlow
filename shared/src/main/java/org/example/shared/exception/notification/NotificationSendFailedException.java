@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class NotificationSendFailedException extends BusinessException {
-    public NotificationSendFailedException(ErrorCode errorCode) {
+    public NotificationSendFailedException() {
         super(ErrorCode.NOTIFICATION_SEND_FAILED);
     }
 }

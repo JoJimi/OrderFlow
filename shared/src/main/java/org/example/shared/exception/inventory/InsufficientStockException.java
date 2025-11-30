@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class InsufficientStockException extends BusinessException {
-    public InsufficientStockException(ErrorCode errorCode) {
+    public InsufficientStockException() {
         super(ErrorCode.INSUFFICIENT_STOCK);
     }
 }

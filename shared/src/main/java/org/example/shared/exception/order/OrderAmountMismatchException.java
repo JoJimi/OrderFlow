@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class OrderAmountMismatchException extends BusinessException {
-    public OrderAmountMismatchException(ErrorCode errorCode) {
+    public OrderAmountMismatchException() {
         super(ErrorCode.ORDER_AMOUNT_MISMATCH);
     }
 }

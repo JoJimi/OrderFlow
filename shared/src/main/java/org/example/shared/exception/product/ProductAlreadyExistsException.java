@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class ProductAlreadyExistsException extends BusinessException {
-    public ProductAlreadyExistsException(ErrorCode errorCode) {
+    public ProductAlreadyExistsException() {
         super(ErrorCode.PRODUCT_ALREADY_EXISTS);
     }
 }

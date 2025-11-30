@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class NegativeStockNotAllowedException extends BusinessException {
-    public NegativeStockNotAllowedException(ErrorCode errorCode) {
+    public NegativeStockNotAllowedException() {
         super(ErrorCode.NEGATIVE_STOCK_NOT_ALLOWED);
     }
 }

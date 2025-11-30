@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class InsufficientBalanceException extends BusinessException {
-    public InsufficientBalanceException(ErrorCode errorCode) {
+    public InsufficientBalanceException() {
         super(ErrorCode.INSUFFICIENT_BALANCE);
     }
 }

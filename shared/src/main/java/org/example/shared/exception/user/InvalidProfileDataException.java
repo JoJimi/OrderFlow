@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class InvalidProfileDataException extends BusinessException {
-    public InvalidProfileDataException(ErrorCode errorCode) {
+    public InvalidProfileDataException() {
         super(ErrorCode.INVALID_PROFILE_DATA);
     }
 }

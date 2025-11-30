@@ -4,7 +4,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 
 public class ShippingAlreadyStartedException extends BusinessException {
-    public ShippingAlreadyStartedException(ErrorCode errorCode) {
+    public ShippingAlreadyStartedException() {
         super(ErrorCode.SHIPPING_ALREADY_STARTED);
     }
 }
