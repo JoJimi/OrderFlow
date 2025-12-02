@@ -137,7 +137,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8081:8081"
+      - "8090:8081"
     environment:
       REDIS_HOSTS: local:redis:6379
     networks:
