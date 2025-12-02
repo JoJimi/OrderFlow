@@ -34,5 +34,7 @@ logging:
     org.example.user: DEBUG
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
+    org.springframework.security.oauth2: TRACE
+    org.springframework.web.client.RestTemplate: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
