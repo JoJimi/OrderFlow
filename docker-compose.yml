@@ -143,6 +143,34 @@ services:
     networks:
       - orderFlow-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: orderFlow-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - orderFlow-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: orderFlow-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - orderFlow-network
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
     driver: local
@@ -152,6 +180,8 @@ volumes:
     driver: local
   pgadmin_data:
     driver: local
+  prometheus_data:
+  grafana_data:
 
 networks:
   orderFlow-network:

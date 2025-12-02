@@ -57,6 +57,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_ALLOWLIST).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                        .requestMatchers("/api/performance/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/auth/logout").hasAuthority(RoleType.ROLE_USER.name())
                         .requestMatchers("/admin/**").hasAuthority(RoleType.ROLE_ADMIN.name())
                         .requestMatchers("/api/**").hasAuthority(RoleType.ROLE_USER.name())
