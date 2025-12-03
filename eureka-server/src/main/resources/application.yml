@@ -1,0 +1,29 @@
+# eureka-server? application.yml
+spring:
+  application:
+    name: eureka-server
+
+  profiles:
+    active: dev
+
+server:
+  port: 8761
+
+# ? ?? ??? (???? ??)
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  server:
+    port: 8761
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
