@@ -1,0 +1,21 @@
+# eureka-server의 application-dev.yml
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    enable-self-preservation: false  # 개발 시 빠른 장애 감지
+    eviction-interval-timer-in-ms: 10000  # 10초마다 체크
+
+management:
+  endpoint:
+    health:
+      show-details: always  # 개발 시 상세 정보 표시
+
+logging:
+  level:
+    root: INFO
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO

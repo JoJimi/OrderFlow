@@ -1,4 +1,24 @@
+# root의 docker-compose-nginx-gateway.yml
 services:
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: orderFlow-eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    networks:
+      - orderFlow-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
   nginx:
     build:
       context: ./nginx
@@ -29,12 +49,15 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-api-gateway-1
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       redis:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -51,12 +74,15 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-api-gateway-2
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       redis:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -73,12 +99,15 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-api-gateway-3
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       redis:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -144,7 +173,7 @@ services:
     networks:
       - orderFlow-network
     healthcheck:
-      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1" ]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -161,25 +190,55 @@ services:
         /etc/confluent/docker/run
       "
 
+  postgres:
+    container_name: orderFlow-postgres
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: orderflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - orderFlow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   user-service:
     build:
       context: ./user-service
       dockerfile: Dockerfile
     container_name: orderFlow-user-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+      FRONT_BASE_URL: ${FRONT_BASE_URL}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -196,19 +255,22 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-product-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -225,19 +287,22 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-order-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -254,19 +319,22 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-payment-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -283,19 +351,22 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-inventory-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -312,19 +383,22 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-shipping-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -341,19 +415,22 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-notification-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -370,19 +447,22 @@ services:
       dockerfile: Dockerfile
     container_name: orderFlow-event-logging-service
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - orderFlow-network
@@ -395,6 +475,10 @@ services:
 
 volumes:
   redis_data:
+    driver: local
+  kafka_data:
+    driver: local
+  postgres_data:
     driver: local
   nginx_logs:
     driver: local

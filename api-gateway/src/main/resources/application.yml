@@ -1,7 +1,8 @@
+# api-gateway의 application.yml
 spring:
   application:
     name: api-gateway
-  
+
   profiles:
     active: dev
 
@@ -30,10 +31,16 @@ spring:
             allow-credentials: true
             max-age: 3600
 
+      # Eureka 기반 동적 라우팅
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
       routes:
         # User Service
         - id: user-service
-          uri: http://user-service:8081
+          uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
           filters:
@@ -49,7 +56,7 @@ spring:
 
         # Product Service
         - id: product-service
-          uri: http://product-service:8082
+          uri: lb://product-service
           predicates:
             - Path=/api/v1/products/**
           filters:
@@ -65,7 +72,7 @@ spring:
 
         # Order Service
         - id: order-service
-          uri: http://order-service:8083
+          uri: lb://order-service
           predicates:
             - Path=/api/v1/orders/**
           filters:
@@ -81,7 +88,7 @@ spring:
 
         # Payment Service
         - id: payment-service
-          uri: http://payment-service:8084
+          uri: lb://payment-service
           predicates:
             - Path=/api/v1/payments/**
           filters:
@@ -97,7 +104,7 @@ spring:
 
         # Inventory Service
         - id: inventory-service
-          uri: http://inventory-service:8085
+          uri: lb://inventory-service
           predicates:
             - Path=/api/v1/inventory/**
           filters:
@@ -113,7 +120,7 @@ spring:
 
         # Shipping Service
         - id: shipping-service
-          uri: http://shipping-service:8086
+          uri: lb://shipping-service
           predicates:
             - Path=/api/v1/shipping/**
           filters:
@@ -129,7 +136,7 @@ spring:
 
         # Notification Service
         - id: notification-service
-          uri: http://notification-service:8087
+          uri: lb://notification-service
           predicates:
             - Path=/api/v1/notifications/**
           filters:
@@ -145,7 +152,7 @@ spring:
 
         # Event Logging Service
         - id: event-logging-service
-          uri: http://event-logging-service:8088
+          uri: lb://event-logging-service
           predicates:
             - Path=/api/v1/events/**
           filters:
@@ -172,6 +179,16 @@ server:
   port: 8080
   shutdown: graceful
 
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
 management:
   server:
     port: 9080
@@ -179,7 +196,7 @@ management:
     web:
       base-path: /actuator
       exposure:
-        include: health,info,gateway,circuitbreakers,metrics
+        include: health,info,gateway,circuitbreakers,metrics,eureka
   endpoint:
     health:
       show-details: always
@@ -231,3 +248,4 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web.reactive: DEBUG
     reactor.netty: INFO
+    com.netflix.discovery: INFO

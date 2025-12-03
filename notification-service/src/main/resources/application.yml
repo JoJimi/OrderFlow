@@ -48,6 +48,18 @@ server:
       enabled: true
   shutdown: graceful
 
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+    metadata-map:
+      management.port: ${management.server.port}
+
 management:
   server:
     port: 9087

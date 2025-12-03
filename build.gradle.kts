@@ -1,3 +1,4 @@
+// root의 build.gradle.kts
 plugins {
 	java
 	id("org.springframework.boot") version "3.2.0" apply false
@@ -6,6 +7,8 @@ plugins {
 
 group = "org.example"
 version = "0.0.1-SNAPSHOT"
+
+extra["springCloudVersion"] = "2023.0.3"
 
 allprojects {
 	repositories {
@@ -41,6 +44,12 @@ subprojects {
 		testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	}
 
+	the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
+		imports {
+			mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+		}
+	}
+
 	tasks.withType<Test> {
 		useJUnitPlatform()
 	}
@@ -67,10 +76,14 @@ listOf(
 			// shared 라이브러리 의존
 			implementation(project(":shared"))
 
+			// Spring Boot 기본
 			implementation("org.springframework.boot:spring-boot-starter-web")
 			implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 			implementation("org.springframework.boot:spring-boot-starter-validation")
 			implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+			// Eureka Client
+			implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
 			runtimeOnly("org.postgresql:postgresql")
 		}

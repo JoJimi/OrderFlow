@@ -1,7 +1,9 @@
+// root의 settings.gradle.kts
 rootProject.name = "OrderFlow"
 
 include(
     "shared",
+    "eureka-server",
     "user-service",
     "product-service",
     "order-service",
