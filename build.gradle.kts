@@ -1,4 +1,3 @@
-// root의 build.gradle.kts
 plugins {
 	java
 	id("org.springframework.boot") version "3.2.0" apply false
@@ -9,6 +8,7 @@ group = "org.example"
 version = "0.0.1-SNAPSHOT"
 
 extra["springCloudVersion"] = "2023.0.3"
+extra["springdocVersion"] = "2.3.0"
 
 allprojects {
 	repositories {
@@ -84,6 +84,9 @@ listOf(
 
 			// Eureka Client
 			implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
+			// Swagger/OpenAPI
+			implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${property("springdocVersion")}")
 
 			runtimeOnly("org.postgresql:postgresql")
 		}

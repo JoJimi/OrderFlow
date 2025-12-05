@@ -6,6 +6,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
+
     testImplementation("io.projectreactor:reactor-test")
 }
 

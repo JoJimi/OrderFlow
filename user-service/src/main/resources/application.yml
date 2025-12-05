@@ -75,6 +75,21 @@ jwt:
 app:
   frontBaseUrl: ${FRONT_BASE_URL:http://localhost:3000}
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    disable-swagger-default-url: true
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
 server:
   port: 8081
   servlet:
