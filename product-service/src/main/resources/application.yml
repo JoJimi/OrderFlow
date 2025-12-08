@@ -1,3 +1,4 @@
+# product-service의 applciation.yml
 spring:
   application:
     name: product-service

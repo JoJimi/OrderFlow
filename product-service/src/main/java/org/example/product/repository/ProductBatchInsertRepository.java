@@ -15,6 +15,7 @@ import java.util.List;
 
 /**
  * JDBC Batch Insert를 사용한 고성능 대량 삽입
+ * JPA보다 2-3배 빠른 성능 제공
  */
 @Repository
 @RequiredArgsConstructor
@@ -25,9 +26,15 @@ public class ProductBatchInsertRepository {
 
     /**
      * JDBC Batch Insert로 대량 데이터 삽입
-     * JPA보다 2-3배 빠름
+     *
+     * @param products 저장할 상품 목록
+     * @return 각 배치 작업의 영향받은 행 수 배열
      */
     public int[] batchInsert(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            return new int[0];
+        }
+
         String sql = """
             INSERT INTO products 
             (product_id, product_name, description, price, category, 
@@ -35,7 +42,7 @@ public class ProductBatchInsertRepository {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-        return jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+        int[] results = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 Product product = products.get(i);
@@ -56,5 +63,40 @@ public class ProductBatchInsertRepository {
                 return products.size();
             }
         });
+
+        log.debug("JDBC Batch Insert 완료 - {} 개 상품 저장", products.size());
+        return results;
+    }
+
+    /**
+     * 배치 크기를 지정한 대량 삽입
+     * 메모리 효율성을 위해 큰 데이터셋을 작은 배치로 나누어 처리
+     *
+     * @param products 저장할 상품 목록
+     * @param batchSize 배치 크기
+     */
+    public void batchInsertWithSize(List<Product> products, int batchSize) {
+        if (products == null || products.isEmpty()) {
+            return;
+        }
+
+        int totalSize = products.size();
+        int processedCount = 0;
+
+        for (int i = 0; i < totalSize; i += batchSize) {
+            int endIndex = Math.min(i + batchSize, totalSize);
+            List<Product> batch = products.subList(i, endIndex);
+
+            batchInsert(batch);
+
+            processedCount += batch.size();
+
+            if ((i / batchSize + 1) % 10 == 0) {
+                log.debug("JDBC Batch Insert 진행 중 - {} / {} ({} %)",
+                        processedCount, totalSize, (processedCount * 100 / totalSize));
+            }
+        }
+
+        log.info("JDBC Batch Insert 완료 - 총 {} 개 상품 저장", totalSize);
     }
 }

@@ -1,3 +1,4 @@
+// product-service의 build.gradle.kts
 dependencies {
     // Spring Data Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")

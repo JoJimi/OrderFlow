@@ -10,6 +10,7 @@ import org.example.product.dto.response.ProductBulkInitResponse;
 import org.example.product.dto.response.ProductResponse;
 import org.example.product.repository.ProductBatchInsertRepository;
 import org.example.product.repository.ProductRepository;
+import org.example.shared.dto.ProductEvent;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductCacheService cacheService;
     private final ProductBatchInsertRepository batchInsertRepository;
+    private final ProductEventProducer eventProducer;
 
     private static final String[] CATEGORIES = {"ELECTRONICS", "CLOTHING", "BOOKS", "HOME", "SPORTS"};
     private static final int MIN_PRICE = 1000;
@@ -116,7 +118,16 @@ public class ProductService {
         // 캐시에 저장
         cacheService.cacheProduct(productId, response);
 
-        // TODO: Kafka 이벤트 발행 (상품 등록 이벤트)
+        // Kafka 이벤트 발행 (상품 등록 이벤트)
+        ProductEvent event = ProductEvent.created(
+                savedProduct.getProductId(),
+                savedProduct.getProductName(),
+                savedProduct.getDescription(),
+                savedProduct.getPrice(),
+                savedProduct.getCategory()
+        );
+        eventProducer.publishProductCreatedEvent(event);
+
         log.info("상품 등록 완료 - 상품 ID: {}", productId);
 
         return response;
@@ -147,7 +158,16 @@ public class ProductService {
         cacheService.evictProduct(productId);
         cacheService.cacheProduct(productId, response);
 
-        // TODO: Kafka 이벤트 발행 (상품 수정 이벤트)
+        // Kafka 이벤트 발행 (상품 수정 이벤트)
+        ProductEvent event = ProductEvent.updated(
+                updatedProduct.getProductId(),
+                updatedProduct.getProductName(),
+                updatedProduct.getDescription(),
+                updatedProduct.getPrice(),
+                updatedProduct.getCategory()
+        );
+        eventProducer.publishProductUpdatedEvent(event);
+
         log.info("상품 수정 완료 - 상품 ID: {}", productId);
 
         return response;
@@ -169,7 +189,10 @@ public class ProductService {
         // 캐시에서 삭제
         cacheService.evictProduct(productId);
 
-        // TODO: Kafka 이벤트 발행 (상품 삭제 이벤트)
+        // Kafka 이벤트 발행 (상품 삭제 이벤트)
+        ProductEvent event = ProductEvent.deleted(productId);
+        eventProducer.publishProductDeletedEvent(event);
+
         log.info("상품 삭제 완료 - 상품 ID: {}", productId);
     }
 
@@ -218,6 +241,10 @@ public class ProductService {
         long processingTime = endTime - startTime;
 
         int totalCreated = totalCount - (failedBatches * batchSize);
+
+        // Kafka 이벤트 발행 (상품 대량 생성 이벤트)
+        ProductEvent event = ProductEvent.bulkCreated(totalCreated);
+        eventProducer.publishProductBulkCreatedEvent(event);
 
         log.info("상품 대량 추가 완료 - 총 생성: {} 개, 소요 시간: {} ms ({} 초)",
                 totalCreated, processingTime, processingTime / 1000.0);
