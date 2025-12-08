@@ -20,6 +20,12 @@ spring:
       ddl-auto: update
     show-sql: true
 
+app:
+  admin:
+    emails:
+      - duddnddnfl@naver.com
+      - admin@orderflow.com
+
 eureka:
   client:
     service-url:

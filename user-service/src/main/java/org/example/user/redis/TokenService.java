@@ -1,7 +1,7 @@
 package org.example.user.redis;
 
 import lombok.RequiredArgsConstructor;
-import org.example.user.security.jwt.JwtProperties;
+import org.example.shared.security.jwt.JwtProperties;
 import org.springframework.stereotype.Service;
 
 @Service

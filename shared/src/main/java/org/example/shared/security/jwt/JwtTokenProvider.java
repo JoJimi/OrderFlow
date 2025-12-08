@@ -1,4 +1,4 @@
-package org.example.user.security.jwt;
+package org.example.shared.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -9,7 +9,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.*;
+import java.util.Date;
+import java.util.HexFormat;
+import java.util.UUID;
 
 @Slf4j
 @Component

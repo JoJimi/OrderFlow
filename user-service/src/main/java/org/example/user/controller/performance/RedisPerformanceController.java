@@ -6,8 +6,7 @@ import org.example.user.dto.performance.ComparisonResult;
 import org.example.user.service.performance.PerformanceTestService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RestController

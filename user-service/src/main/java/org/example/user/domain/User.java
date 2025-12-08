@@ -2,10 +2,12 @@ package org.example.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.example.shared.entity.BaseEntity;
 import org.example.shared.type.LoginType;
 import org.example.shared.type.RoleType;
 
+@Slf4j
 @Entity
 @Table(name = "users",
         uniqueConstraints = {
@@ -13,7 +15,8 @@ import org.example.shared.type.RoleType;
                         columnNames = {"login_type", "provider_id"})
         },
         indexes = {
-                @Index(name = "idx_email", columnList = "email")
+                @Index(name = "idx_email", columnList = "email"),
+                @Index(name = "idx_role", columnList = "role_type")
         }
 )
 @Getter
@@ -62,5 +65,19 @@ public class User extends BaseEntity {
         }
 
         return changed;
+    }
+
+    /**
+     * 사용자 역할 변경
+     */
+    public void updateRole(RoleType newRole) {
+        if (newRole == null) {
+            throw new IllegalArgumentException("역할은 null일 수 없습니다.");
+        }
+
+        log.info("사용자 역할 변경: userId={}, oldRole={}, newRole={}",
+                this.id, this.role, newRole);
+
+        this.role = newRole;
     }
 }

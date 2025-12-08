@@ -1,10 +1,10 @@
 package org.example.user.config;
 
 import lombok.RequiredArgsConstructor;
+import org.example.shared.security.filter.JwtAuthenticationFilter;
+import org.example.shared.security.handler.JwtAccessDeniedHandler;
+import org.example.shared.security.handler.JwtAuthenticationEntryPoint;
 import org.example.shared.type.RoleType;
-import org.example.user.security.jwt.JwtAuthenticationFilter;
-import org.example.user.security.jwt.handler.JwtAccessDeniedHandler;
-import org.example.user.security.jwt.handler.JwtAuthenticationEntryPoint;
 import org.example.user.security.oauth2.CustomOAuth2UserService;
 import org.example.user.security.oauth2.CustomOidcUserService;
 import org.example.user.security.oauth2.OAuth2AuthenticationSuccessHandler;

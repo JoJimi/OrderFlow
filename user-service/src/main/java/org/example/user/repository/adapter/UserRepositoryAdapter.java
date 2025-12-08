@@ -1,11 +1,13 @@
 package org.example.user.repository.adapter;
 
 import lombok.RequiredArgsConstructor;
-
 import org.example.shared.type.LoginType;
+import org.example.shared.type.RoleType;
 import org.example.user.domain.User;
 import org.example.user.repository.SpringDataUserRepository;
 import org.example.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -24,6 +26,21 @@ public class UserRepositoryAdapter implements UserRepository {
     @Override
     public Optional<User> findByLoginTypeAndProviderId(LoginType loginType, String providerId) {
         return springDataUserRepository.findByLoginTypeAndProviderId(loginType, providerId);
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return springDataUserRepository.findByEmail(email);
+    }
+
+    @Override
+    public Page<User> findAll(Pageable pageable) {
+        return springDataUserRepository.findAll(pageable);
+    }
+
+    @Override
+    public long countByRole(RoleType role) {
+        return springDataUserRepository.countByRole(role);
     }
 
     @Override

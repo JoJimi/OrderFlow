@@ -1,4 +1,4 @@
-package org.example.user.security.jwt;
+package org.example.shared.security.jwt;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

@@ -74,6 +74,8 @@ jwt:
 
 app:
   frontBaseUrl: ${FRONT_BASE_URL:http://localhost:3000}
+  admin:
+    emails: ${ADMIN_EMAILS:}
 
 springdoc:
   api-docs:

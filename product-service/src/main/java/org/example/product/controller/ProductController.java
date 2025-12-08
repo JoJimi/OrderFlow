@@ -1,10 +1,6 @@
 package org.example.product.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -75,12 +72,14 @@ public class ProductController {
 
     @Operation(summary = "상품 등록 (관리자)")
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(request));
     }
 
     @Operation(summary = "상품 수정 (관리자)")
     @PutMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable String productId,
             @Valid @RequestBody ProductUpdateRequest request
@@ -90,6 +89,7 @@ public class ProductController {
 
     @Operation(summary = "상품 삭제 (관리자)")
     @DeleteMapping("/{productId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable String productId) {
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
@@ -97,6 +97,7 @@ public class ProductController {
 
     @Operation(summary = "상품 대량 추가 (테스트용)")
     @PostMapping("/bulk-init")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductBulkInitResponse> bulkInitProducts(
             @Valid @RequestBody(required = false) ProductBulkInitRequest request
     ) {

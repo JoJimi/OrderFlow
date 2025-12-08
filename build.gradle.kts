@@ -75,6 +75,7 @@ listOf(
 		dependencies {
 			// shared 라이브러리 의존
 			implementation(project(":shared"))
+			implementation("org.springframework.boot:spring-boot-starter-security")
 
 			// Spring Boot 기본
 			implementation("org.springframework.boot:spring-boot-starter-web")
