@@ -15,15 +15,19 @@ import org.example.shared.exception.ErrorResponse;
 import org.example.shared.security.jwt.JwtClaims;
 import org.example.shared.security.jwt.JwtTokenValidator;
 import org.example.shared.security.service.TokenBlacklistChecker;
+import org.example.shared.security.service.UserDetailsLoader;
 import org.example.shared.security.userdetails.SecurityUser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,13 +40,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String ACCESS_TOKEN_COOKIE = "access_token";
 
     private final JwtTokenValidator tokenValidator;
-    private final TokenBlacklistChecker blacklistChecker;
+    private final TokenBlacklistChecker blacklistChecker;  // nullable
     private final ObjectMapper objectMapper;
+    private final UserDetailsLoader userDetailsLoader;  // nullable
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        String requestUri = request.getRequestURI();
+        log.debug("=== JWT Filter 시작: {} ===", requestUri);
 
         if (isOptionsRequest(request)) {
             filterChain.doFilter(request, response);
@@ -52,6 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token)) {
+            log.debug("토큰 발견: {}...", token.substring(0, Math.min(20, token.length())));
             try {
                 authenticateWithToken(token);
             } catch (ExpiredJwtException e) {
@@ -67,6 +76,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 sendErrorResponse(response, ErrorCode.INTERNAL_SERVER_ERROR);
                 return;
             }
+        } else {
+            log.debug("토큰 없음 - 익명 요청");
         }
 
         filterChain.doFilter(request, response);
@@ -77,33 +88,87 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void authenticateWithToken(String token) {
+        log.debug(">>> authenticateWithToken 시작");
+
+        // 1. 토큰 검증
         if (!tokenValidator.validateAccessToken(token)) {
+            log.warn("토큰 검증 실패");
             return;
         }
+        log.debug("✓ 토큰 검증 성공");
 
+        // 2. Claims 추출
         JwtClaims claims = tokenValidator.extractClaims(token);
+        log.info("===== JWT Claims =====");
+        log.info("userId: {}", claims.userId());
+        log.info("role: {}", claims.role());
+        log.info("familyId: {}", claims.familyId());
+        log.info("jti: {}", claims.jti());
+        log.info("=====================");
 
-        // 블랙리스트 확인 (선택적)
+        // 3. 블랙리스트 확인 (user-service만 해당)
         if (blacklistChecker != null &&
                 blacklistChecker.isBlacklisted(claims.jti(), claims.familyId())) {
             log.warn("블랙리스트된 토큰 사용 시도: jti={}, familyId={}",
                     claims.jti(), claims.familyId());
             return;
         }
+        log.debug("✓ 블랙리스트 검증 통과");
 
+        // 4. 이미 인증되어 있는지 확인
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            log.debug("이미 인증됨 - 스킵");
             return;
         }
 
-        SecurityUser user = SecurityUser.from(claims);
+        // 5. UserDetails 생성
+        UserDetails userDetails = createUserDetails(claims);
+
+        log.info("===== UserDetails 로드 완료 =====");
+        log.info("username: {}", userDetails.getUsername());
+        log.info("authorities: {}", userDetails.getAuthorities());
+        userDetails.getAuthorities().forEach(auth ->
+                log.info("  - Authority: {}", auth.getAuthority())
+        );
+        log.info("================================");
+
+        // 6. Authentication 생성
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
-                        user,
+                        userDetails,
                         null,
-                        user.getAuthorities()
+                        userDetails.getAuthorities()
                 );
 
+        log.info("===== Authentication 생성 =====");
+        log.info("Principal: {}", authentication.getPrincipal());
+        log.info("Authorities: {}", authentication.getAuthorities());
+        log.info("==============================");
+
+        // 7. SecurityContext에 설정
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.info("✓✓✓ SecurityContext에 인증 정보 설정 완료 ✓✓✓");
+    }
+
+    /**
+     * UserDetails 생성
+     * - userDetailsLoader가 있으면 DB에서 조회 (user-service)
+     * - userDetailsLoader가 없으면 SecurityUser 생성 (다른 서비스)
+     */
+    private UserDetails createUserDetails(JwtClaims claims) {
+        if (userDetailsLoader != null) {
+            // user-service: DB에서 실제 사용자 정보 조회
+            log.debug("DB에서 사용자 정보 조회 (userDetailsLoader 사용)");
+            return userDetailsLoader.loadUserByUserId(claims.userId());
+        } else {
+            // 다른 서비스: 경량 SecurityUser 생성
+            log.debug("경량 SecurityUser 생성 (DB 조회 없음)");
+            return new SecurityUser(
+                    claims.userId(),
+                    claims.role(),
+                    Collections.singletonList(new SimpleGrantedAuthority(claims.role()))
+            );
+        }
     }
 
     private void sendErrorResponse(HttpServletResponse response, ErrorCode code) throws IOException {

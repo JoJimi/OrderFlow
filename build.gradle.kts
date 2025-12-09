@@ -76,6 +76,7 @@ listOf(
 			// shared 라이브러리 의존
 			implementation(project(":shared"))
 			implementation("org.springframework.boot:spring-boot-starter-security")
+			implementation("me.paulschwarz:spring-dotenv:4.0.0")
 
 			// Spring Boot 기본
 			implementation("org.springframework.boot:spring-boot-starter-web")

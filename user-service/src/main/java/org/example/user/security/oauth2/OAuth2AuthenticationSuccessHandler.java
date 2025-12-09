@@ -43,20 +43,22 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         CustomOAuth2User oAuthUser = extractCustomOAuth2User(principal);
 
         String userId = oAuthUser.getUser().getId().toString();
+        String role = oAuthUser.getUser().getRole().name();  // ← role 추출
+
+        log.info("OAuth2 로그인 성공 - userId: {}, email: {}, role: {}",
+                userId, oAuthUser.getUser().getEmail(), role);
 
         // 신규 세션군(family) 생성
         String familyId = tokenProvider.newFamilyId();
 
-        // 토큰 발급
-        String accessToken = tokenProvider.generateAccessToken(userId, familyId);
-        String refreshToken = tokenProvider.generateRefreshToken(userId, familyId);
+        // 토큰 발급 (role 포함!)
+        String accessToken = tokenProvider.generateAccessToken(userId, familyId, role);
+        String refreshToken = tokenProvider.generateRefreshToken(userId, familyId, role);
 
         // Redis 세션 초기화
         String jti = tokenProvider.getJti(refreshToken);
         tokenService.initSession(userId, familyId, jti);
 
-        // 보안 강화: HttpOnly 쿠키 또는 일회용 토큰 방식 권장
-        // 현재는 쿼리스트링 방식 유지 (프론트엔드 호환성)
         redirectWithTokens(request, response, accessToken, refreshToken);
     }
 

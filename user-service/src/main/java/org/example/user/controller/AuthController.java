@@ -44,6 +44,7 @@ public class AuthController {
         // 2. 토큰에서 클레임 추출
         Claims claims = extractClaims(refreshToken);
         String userId = claims.getSubject();
+        String role = jwtProvider.getRole(refreshToken);
         String fam = jwtProvider.getFamilyId(refreshToken);
         String jti = jwtProvider.getJti(refreshToken);
         Date exp = claims.getExpiration();
@@ -64,7 +65,7 @@ public class AuthController {
         }
 
         // 7. 정상 회전: 새 토큰 발급 및 세션 업데이트
-        return ResponseEntity.ok(rotateTokens(userId, fam, jti, remainTtlMs));
+        return ResponseEntity.ok(rotateTokens(userId, fam, role, jti, remainTtlMs));  // ← role 전달
     }
 
     /**
@@ -161,10 +162,12 @@ public class AuthController {
     /**
      * 정상 토큰 회전: 새 토큰 발급 및 세션 업데이트
      */
-    private TokenResponse rotateTokens(String userId, String fam, String oldJti, long oldTtlMs) {
+    private TokenResponse rotateTokens(String userId, String fam, String role, String oldJti, long oldTtlMs) {  // ← role 파라미터 추가
+        log.debug("토큰 회전 - userId: {}, role: {}, oldJti: {}", userId, role, oldJti);
+
         // 새 토큰 발급
-        String newAccessToken = jwtProvider.generateAccessToken(userId, fam);
-        String newRefreshToken = jwtProvider.generateRefreshToken(userId, fam);
+        String newAccessToken = jwtProvider.generateAccessToken(userId, fam, role);
+        String newRefreshToken = jwtProvider.generateRefreshToken(userId, fam, role);
         String newJti = jwtProvider.getJti(newRefreshToken);
 
         // 새 토큰의 TTL 계산
@@ -172,6 +175,8 @@ public class AuthController {
 
         // 세션 회전: 이전 jti 블랙리스트 + 새 jti로 세션 갱신
         tokenService.rotate(userId, fam, oldJti, newJti, oldTtlMs, newTtlMs);
+
+        log.info("토큰 회전 완료 - userId: {}, role: {}, newJti: {}", userId, role, newJti);
 
         return new TokenResponse(newAccessToken, newRefreshToken);
     }

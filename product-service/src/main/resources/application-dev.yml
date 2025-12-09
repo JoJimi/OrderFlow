@@ -25,6 +25,12 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${random.value}
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration:
+    accessToken: 900000
+    refreshToken: 604800000
+
 management:
   endpoints:
     web:

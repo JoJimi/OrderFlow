@@ -32,15 +32,15 @@ public class AuthPerformanceController {
     public Map<String, Object> compareAuthMethods() {
         log.info("Starting authentication methods comparison");
 
-        // 테스트용 JWT 토큰 생성 (Family ID 필요)
+        // 테스트용 JWT 토큰 생성 (Family ID + Role 필요)
         String familyId = jwtTokenProvider.newFamilyId();
-        String testToken = jwtTokenProvider.generateAccessToken("1", familyId);
+        String testToken = jwtTokenProvider.generateAccessToken("1", familyId, "ROLE_USER");  // ← role 추가
 
         // JWT 검증 시간 측정 (10회 평균)
         List<Long> jwtTimes = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             long start = System.nanoTime();
-            jwtTokenProvider.validateAccessToken(testToken);  // ✅ validateAccessToken 사용
+            jwtTokenProvider.validateAccessToken(testToken);
             Claims claims = jwtTokenProvider.parseClaims(testToken);
             long end = System.nanoTime();
             jwtTimes.add((end - start) / 1_000_000); // 나노초 → 밀리초
@@ -72,7 +72,7 @@ public class AuthPerformanceController {
         result.put("speedup", comparison.speedup());
         result.put("description", "JWT validation is in-memory, session requires DB lookup");
 
-        log.info("Comparison result - JWT: {}ms, Session(DB): {}ms, Speedup: {}",
+        log.info("Comparison result - JWT: {}ms, Session(DB): {}ms, Speedup: {}x",
                 jwtAvg, sessionAvg, comparison.speedup());
 
         return result;
@@ -87,7 +87,7 @@ public class AuthPerformanceController {
         log.info("Measuring JWT validation overhead");
 
         String familyId = jwtTokenProvider.newFamilyId();
-        String testToken = jwtTokenProvider.generateAccessToken("1", familyId);
+        String testToken = jwtTokenProvider.generateAccessToken("1", familyId, "ROLE_USER");  // ← role 추가
 
         // 토큰 검증 없이 단순 연산 (1000회)
         long withoutValidation = 0;
@@ -103,7 +103,7 @@ public class AuthPerformanceController {
         long withValidation = 0;
         for (int i = 0; i < 1000; i++) {
             long start = System.nanoTime();
-            jwtTokenProvider.validateAccessToken(testToken);  // ✅ validateAccessToken 사용
+            jwtTokenProvider.validateAccessToken(testToken);
             int sum = 0;
             for (int j = 0; j < 10; j++) sum += j;
             withValidation += (System.nanoTime() - start);
@@ -118,6 +118,9 @@ public class AuthPerformanceController {
         result.put("with_validation_microseconds", withAvg);
         result.put("overhead_microseconds", withAvg - withoutAvg);
         result.put("overhead_percentage", String.format("%.2f%%", overhead));
+
+        log.info("JWT overhead - Without: {}μs, With: {}μs, Overhead: {:.2f}%",
+                withoutAvg, withAvg, overhead);
 
         return result;
     }

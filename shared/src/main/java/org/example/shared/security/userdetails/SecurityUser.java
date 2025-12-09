@@ -9,26 +9,23 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 
-/**
- * 공통 UserDetails 구현체
- * - 모든 서비스에서 사용 가능
- */
 @Getter
 @RequiredArgsConstructor
 public class SecurityUser implements UserDetails {
 
     private final String userId;
-    private final RoleType role;
+    private final String role;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public static SecurityUser from(JwtClaims claims) {
-        RoleType role = RoleType.valueOf(claims.role());
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(claims.role());
+
         return new SecurityUser(
                 claims.userId(),
-                role,
-                List.of(new SimpleGrantedAuthority(role.name()))
+                claims.role(),
+                Collections.singletonList(authority)
         );
     }
 

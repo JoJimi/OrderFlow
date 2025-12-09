@@ -1,7 +1,5 @@
 dependencies {
     // Spring Security
-    implementation("me.paulschwarz:spring-dotenv:4.0.0")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
     // JWT

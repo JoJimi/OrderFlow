@@ -21,6 +21,7 @@ public class JwtTokenProvider implements InitializingBean {
     private static final String TOKEN_TYPE_CLAIM = "token_type";
     private static final String FAMILY_ID_CLAIM = "fam";
     private static final String JTI_CLAIM = "jti";
+    private static final String ROLE_CLAIM = "role";
     private static final String ACCESS_TOKEN_TYPE = "accessToken";
     private static final String REFRESH_TOKEN_TYPE = "refreshToken";
 
@@ -42,16 +43,19 @@ public class JwtTokenProvider implements InitializingBean {
     /**
      * Access Token 생성
      * - 유효기간: 15분
-     * - 포함 클레임: userId(subject), token_type, familyId
+     * - 포함 클레임: userId(subject), token_type, familyId, role
      */
-    public String generateAccessToken(String userId, String familyId) {
+    public String generateAccessToken(String userId, String familyId, String role) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + jwtProperties.getAccessTokenExpirationMs());
+
+        log.debug("Access Token 생성 - userId: {}, role: {}, familyId: {}", userId, role, familyId);
 
         return Jwts.builder()
                 .setSubject(userId)
                 .claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN_TYPE)
                 .claim(FAMILY_ID_CLAIM, familyId)
+                .claim(ROLE_CLAIM, role)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -61,9 +65,9 @@ public class JwtTokenProvider implements InitializingBean {
     /**
      * Refresh Token 생성
      * - 유효기간: 7일
-     * - 포함 클레임: userId(subject), token_type, familyId, jti(토큰 고유 ID)
+     * - 포함 클레임: userId(subject), token_type, familyId, jti, role
      */
-    public String generateRefreshToken(String userId, String familyId) {
+    public String generateRefreshToken(String userId, String familyId, String role) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + jwtProperties.getRefreshTokenExpirationMs());
 
@@ -72,6 +76,7 @@ public class JwtTokenProvider implements InitializingBean {
                 .claim(TOKEN_TYPE_CLAIM, REFRESH_TOKEN_TYPE)
                 .claim(FAMILY_ID_CLAIM, familyId)
                 .claim(JTI_CLAIM, UUID.randomUUID().toString())
+                .claim(ROLE_CLAIM, role)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -94,9 +99,6 @@ public class JwtTokenProvider implements InitializingBean {
 
     /**
      * 토큰 검증 공통 로직
-     * - 서명 검증
-     * - 만료 확인
-     * - 토큰 타입 확인
      */
     private boolean validateToken(String token, String expectedType) {
         try {
@@ -137,6 +139,13 @@ public class JwtTokenProvider implements InitializingBean {
     }
 
     /**
+     * 토큰에서 Role 추출
+     */
+    public String getRole(String token) {  // ← 추가
+        return parseClaims(token).get(ROLE_CLAIM, String.class);
+    }
+
+    /**
      * 토큰에서 JTI(JWT ID) 추출
      */
     public String getJti(String token) {
@@ -158,9 +167,7 @@ public class JwtTokenProvider implements InitializingBean {
     }
 
     /**
-     * JWT 파싱 (public으로 변경)
-     * - 서명 검증 + Claims 추출
-     * - 실패 시 예외 발생
+     * JWT 파싱
      */
     public Claims parseClaims(String token) {
         return Jwts.parserBuilder()

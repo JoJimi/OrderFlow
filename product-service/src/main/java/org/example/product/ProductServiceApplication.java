@@ -14,6 +14,17 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class ProductServiceApplication {
 
     public static void main(String[] args) {
+        // ========== 디버깅 코드 시작 ==========
+        System.out.println("================================");
+        System.out.println("환경 변수 확인:");
+        System.out.println("JWT_SECRET: " + System.getenv("JWT_SECRET"));
+        System.out.println("DB_HOST: " + System.getenv("DB_HOST"));
+        System.out.println("POSTGRES_USER: " + System.getenv("POSTGRES_USER"));
+        System.out.println("REDIS_HOST: " + System.getenv("REDIS_HOST"));
+        System.out.println("KAFKA_BOOTSTRAP_SERVERS: " + System.getenv("KAFKA_BOOTSTRAP_SERVERS"));
+        System.out.println("================================");
+        // ========== 디버깅 코드 끝 ==========
+
         SpringApplication.run(ProductServiceApplication.class, args);
     }
 
