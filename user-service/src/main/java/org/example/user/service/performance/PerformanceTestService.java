@@ -57,7 +57,7 @@ public class PerformanceTestService {
             long start = System.nanoTime();
             userRepository.findById(userId);
             long end = System.nanoTime();
-            latencies.add((end - start) / 1_000_000); // 나노초 → 밀리초
+            latencies.add((end - start) / 1_000_000);
         }
 
         return latencies.stream()

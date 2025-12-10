@@ -67,7 +67,7 @@ public class MetricsCollectionService {
             performSimpleOperation();
             withoutMetricsTotal += (System.nanoTime() - start);
         }
-        long withoutMetricsAvg = withoutMetricsTotal / iterations / 1000; // 마이크로초
+        long withoutMetricsAvg = withoutMetricsTotal / iterations / 1000;
 
         // 메트릭 수집하면서 실행
         long withMetricsTotal = 0;
@@ -80,7 +80,7 @@ public class MetricsCollectionService {
                     .register(meterRegistry));
             withMetricsTotal += duration;
         }
-        long withMetricsAvg = withMetricsTotal / iterations / 1000; // 마이크로초
+        long withMetricsAvg = withMetricsTotal / iterations / 1000;
 
         double overheadPercentage = ((withMetricsAvg - withoutMetricsAvg) / (double) withoutMetricsAvg) * 100;
 

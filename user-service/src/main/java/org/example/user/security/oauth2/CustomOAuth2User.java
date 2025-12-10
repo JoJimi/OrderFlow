@@ -12,13 +12,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CustomOAuth2User implements OAuth2User {
 
-    private final User user;                             // 우리 서비스의 사용자 엔티티
-    private final Map<String, Object> attributes;        // OAuth2 attributes
+    private final User user;                                            // 우리 서비스의 사용자 엔티티
+    private final Map<String, Object> attributes;                       // OAuth2 attributes
     private final Collection<? extends GrantedAuthority> authorities;
 
     @Override
     public String getName() {
-        // Authentication의 principal 식별자 - 여기서는 이메일 또는 "provider|id" 등을 사용할 수 있음
         return user.getEmail();
     }
 

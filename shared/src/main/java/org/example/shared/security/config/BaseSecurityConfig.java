@@ -46,15 +46,12 @@ public class BaseSecurityConfig {
      * 공통 인증 제외 경로
      */
     public static final String[] COMMON_ALLOWLIST = {
-            // Swagger UI
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/v3/**",
             "/swagger-resources/**",
             "/webjars/**",
-
-            // Actuator
             "/actuator/**",
             "/actuator/health/**"
     };
@@ -110,10 +107,8 @@ public class BaseSecurityConfig {
             .csrf(CsrfConfigurer::disable)
             .httpBasic(HttpBasicConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
-            // 세션 비활성화 (JWT 사용)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // SecurityContext를 세션에 저장하지 않음
-            .securityContext(context -> context.securityContextRepository(nullSecurityContextRepository()))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 세션 비활성화 (JWT 사용)
+            .securityContext(context -> context.securityContextRepository(nullSecurityContextRepository())) // SecurityContext를 세션에 저장하지 않음
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(x -> {
                 x.authenticationEntryPoint(jwtAuthenticationEntryPoint);

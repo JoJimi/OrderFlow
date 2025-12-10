@@ -24,9 +24,6 @@ import java.io.IOException;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private static final int COOKIE_MAX_AGE = 180; // 3분 (토큰 교환용)
-    private static final String TEMP_TOKEN_COOKIE_NAME = "temp_auth_token";
-
     private final JwtTokenProvider tokenProvider;
     private final TokenService tokenService;
     private final OAuth2UserRegistration registration;
@@ -43,7 +40,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         CustomOAuth2User oAuthUser = extractCustomOAuth2User(principal);
 
         String userId = oAuthUser.getUser().getId().toString();
-        String role = oAuthUser.getUser().getRole().name();  // ← role 추출
+        String role = oAuthUser.getUser().getRole().name();
 
         log.info("OAuth2 로그인 성공 - userId: {}, email: {}, role: {}",
                 userId, oAuthUser.getUser().getEmail(), role);
@@ -125,8 +122,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                           String accessToken,
                                           String refreshToken) throws IOException {
         // Access Token을 HttpOnly 쿠키로 설정
-        Cookie accessCookie = createSecureCookie("access_token", accessToken, 15 * 60); // 15분
-        Cookie refreshCookie = createSecureCookie("refresh_token", refreshToken, 7 * 24 * 60 * 60); // 7일
+        Cookie accessCookie = createSecureCookie("access_token", accessToken, 15 * 60);
+        Cookie refreshCookie = createSecureCookie("refresh_token", refreshToken, 7 * 24 * 60 * 60);
 
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);

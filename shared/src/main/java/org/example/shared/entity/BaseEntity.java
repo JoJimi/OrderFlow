@@ -28,6 +28,5 @@ public abstract class BaseEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // soft delete 플래그
-    private boolean deleted = false;
+    private boolean deleted = false;    // soft delete 플래그
 }

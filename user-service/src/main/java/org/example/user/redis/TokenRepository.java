@@ -27,20 +27,15 @@ public class TokenRepository {
     private static final String FIELD_ROTATED_AT = "rotatedAt";
 
     // === 키 생성 헬퍼 메서드 ===
-
     private String keySession(String userId) {
         return SESSION_PREFIX + userId;
     }
-
     private String keyRtBlacklist(String jti) {
         return BL_RT_PREFIX + jti;
     }
-
     private String keyFamBlacklist(String fam) {
         return BL_FAM_PREFIX + fam;
     }
-
-    // === 타입 가드 ===
 
     /**
      * 키가 HASH 타입이 아니면 삭제
@@ -56,8 +51,6 @@ public class TokenRepository {
             redisTemplate.delete(key);
         }
     }
-
-    // === 세션 관리 (HASH 타입) ===
 
     /**
      * 세션 저장
@@ -130,8 +123,6 @@ public class TokenRepository {
     public void deleteSession(String userId) {
         redisTemplate.delete(keySession(userId));
     }
-
-    // === 블랙리스트 관리 (String 타입) ===
 
     /**
      * JTI 블랙리스트 추가

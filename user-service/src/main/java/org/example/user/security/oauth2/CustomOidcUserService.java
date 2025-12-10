@@ -16,8 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CustomOidcUserService
-        extends OidcUserService {  // DefaultOidcUserService 상속
+public class CustomOidcUserService extends OidcUserService {
 
     private final OAuth2UserRegistration registration;
 
@@ -37,5 +36,6 @@ public class CustomOidcUserService
         OidcUserInfo userInfo        = new OidcUserInfo(oidcUser.getAttributes());
         String userNameAttributeName = "sub";
 
-        return new DefaultOidcUser(auths, request.getIdToken(), userInfo, userNameAttributeName);}
+        return new DefaultOidcUser(auths, request.getIdToken(), userInfo, userNameAttributeName);
+    }
 }

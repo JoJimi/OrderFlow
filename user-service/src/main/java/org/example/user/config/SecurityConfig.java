@@ -34,41 +34,24 @@ public class SecurityConfig {
         // User Service 전용 설정
         return http
                 .authorizeHttpRequests(auth -> auth
-                        // 공통 인증 제외 경로
-                        .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()
+                        .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()       // 공통 인증 제외 경로
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()      // OAuth2 경로
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()    // 토큰 갱신
+                        .requestMatchers("/api/performance/**").permitAll()                   // 성능 테스트
 
-                        // OAuth2 경로
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-
-                        // 토큰 갱신
-                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
-
-                        // 성능 테스트
-                        .requestMatchers("/api/performance/**").permitAll()
-
-                        // ROLE_USER 권한 필요 (ROLE_ADMIN은 역할 계층으로 자동 포함)
                         .requestMatchers(HttpMethod.DELETE, "/api/auth/logout")
-                        .hasAuthority(RoleType.ROLE_USER.name())
-
-                        // ROLE_ADMIN만 접근 가능
+                        .hasAuthority(RoleType.ROLE_USER.name())    // ROLE_USER 권한 필요 (ROLE_ADMIN은 역할 계층으로 자동 포함)
                         .requestMatchers("/admin/**")
-                        .hasAuthority(RoleType.ROLE_ADMIN.name())
-
-                        // ROLE_USER 권한 필요
+                        .hasAuthority(RoleType.ROLE_ADMIN.name())   // ROLE_ADMIN만 접근 가능
                         .requestMatchers("/api/**")
-                        .hasAuthority(RoleType.ROLE_USER.name())
-
+                        .hasAuthority(RoleType.ROLE_USER.name())    // ROLE_USER 권한 필요
                         .anyRequest().authenticated())
 
-                // OAuth2 로그인 설정 (user-service만)
-                .oauth2Login(oauth2 -> oauth2
+                .oauth2Login(oauth2 -> oauth2                       // OAuth2 로그인 설정 (user-service만)
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oauth2Service)
                                 .oidcUserService(oidcService)
-                        )
-                        .successHandler(oAuth2LoginSuccessHandler)
-                )
-                .build();
+                        ).successHandler(oAuth2LoginSuccessHandler)).build();
     }
 
     @Bean

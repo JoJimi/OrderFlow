@@ -123,12 +123,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     )
             );
         }
-
-        // 이메일 추출
-        String email = extractEmail(kakaoAccount);
-
-        // 닉네임 추출
-        String nickname = extractNickname(kakaoAccount);
+        String email = extractEmail(kakaoAccount);  // 이메일 추출
+        String nickname = extractNickname(kakaoAccount);    // 닉네임 추출
 
         return new KakaoUserInfo(email, nickname);
     }

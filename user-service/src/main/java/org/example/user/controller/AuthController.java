@@ -65,7 +65,7 @@ public class AuthController {
         }
 
         // 7. 정상 회전: 새 토큰 발급 및 세션 업데이트
-        return ResponseEntity.ok(rotateTokens(userId, fam, role, jti, remainTtlMs));  // ← role 전달
+        return ResponseEntity.ok(rotateTokens(userId, fam, role, jti, remainTtlMs));
     }
 
     /**

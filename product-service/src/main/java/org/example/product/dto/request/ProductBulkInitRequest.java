@@ -17,7 +17,6 @@ public record ProductBulkInitRequest(
         Integer batchSize
 ) {
     public ProductBulkInitRequest {
-        // compact constructor - 기본값 설정
         if (count == null) {
             count = 100000;
         }

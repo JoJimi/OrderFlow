@@ -25,14 +25,9 @@ public class SecurityConfig {
         // Product Service 전용 권한 설정
         return http
                 .authorizeHttpRequests(auth -> auth
-                        // 공통 인증 제외 경로
-                        .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()
-
-                        // 상품 조회는 누구나 가능
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-
-                        // 상품 등록/수정/삭제는 ADMIN만
-                        .requestMatchers(HttpMethod.POST, "/api/products/**")
+                        .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()     // 공통 인증 제외 경로
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()    // 상품 조회는 누구나 가능
+                        .requestMatchers(HttpMethod.POST, "/api/products/**")               // 상품 등록/수정/삭제는 ADMIN만
                         .hasAuthority(RoleType.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, "/api/products/**")
                         .hasAuthority(RoleType.ROLE_ADMIN.name())
@@ -40,8 +35,6 @@ public class SecurityConfig {
                         .hasAuthority(RoleType.ROLE_ADMIN.name())
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**")
                         .hasAuthority(RoleType.ROLE_ADMIN.name())
-
-                        .anyRequest().authenticated())
-                .build();
+                        .anyRequest().authenticated()).build();
     }
 }
