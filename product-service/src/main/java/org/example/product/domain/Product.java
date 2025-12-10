@@ -2,6 +2,7 @@ package org.example.product.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.shared.type.CategoryType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.Persistable;
@@ -34,8 +35,9 @@ public class Product implements Persistable<String> {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false, length = 50)
-    private String category;
+    private CategoryType category;
 
     @Column(name = "is_deleted", nullable = false)
     @Builder.Default
@@ -49,10 +51,6 @@ public class Product implements Persistable<String> {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    /**
-     * Persistable 구현 - JPA가 새 엔티티인지 판단
-     * createdAt이 null이면 새 엔티티로 판단
-     */
     @Override
     public String getId() {
         return productId;
@@ -71,16 +69,16 @@ public class Product implements Persistable<String> {
     }
 
     /**
-     * 상품 정보를 업데이트합니다.
+     * 상품 정보를 업데이트합니다 (부분 수정 지원).
      */
-    public void updateInfo(String productName, String description, BigDecimal price, String category) {
-        if (productName != null) {
+    public void updateInfo(String productName, String description, BigDecimal price, CategoryType category) {
+        if (productName != null && !productName.isBlank()) {
             this.productName = productName;
         }
         if (description != null) {
             this.description = description;
         }
-        if (price != null) {
+        if (price != null && price.compareTo(BigDecimal.ZERO) > 0) {
             this.price = price;
         }
         if (category != null) {

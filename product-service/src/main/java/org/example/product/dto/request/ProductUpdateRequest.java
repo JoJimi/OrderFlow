@@ -2,6 +2,7 @@ package org.example.product.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import org.example.shared.type.CategoryType;
 
 import java.math.BigDecimal;
 
@@ -20,10 +21,8 @@ public record ProductUpdateRequest(
         @Schema(description = "상품 가격", example = "1199000.00")
         BigDecimal price,
 
-        @Pattern(regexp = "^(ELECTRONICS|CLOTHING|BOOKS|HOME|SPORTS)$",
-                message = "카테고리는 ELECTRONICS, CLOTHING, BOOKS, HOME, SPORTS 중 하나여야 합니다.")
         @Schema(description = "상품 카테고리", example = "ELECTRONICS",
                 allowableValues = {"ELECTRONICS", "CLOTHING", "BOOKS", "HOME", "SPORTS"})
-        String category
+        CategoryType category
 ) {
 }

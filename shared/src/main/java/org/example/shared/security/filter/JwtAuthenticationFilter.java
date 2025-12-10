@@ -15,7 +15,6 @@ import org.example.shared.exception.ErrorResponse;
 import org.example.shared.security.jwt.JwtClaims;
 import org.example.shared.security.jwt.JwtTokenValidator;
 import org.example.shared.security.service.TokenBlacklistChecker;
-import org.example.shared.security.service.UserDetailsLoader;
 import org.example.shared.security.userdetails.SecurityUser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -40,23 +40,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String ACCESS_TOKEN_COOKIE = "access_token";
 
     private final JwtTokenValidator tokenValidator;
-    private final TokenBlacklistChecker blacklistChecker;  // nullable
+    private final TokenBlacklistChecker blacklistChecker;
     private final ObjectMapper objectMapper;
-    private final UserDetailsLoader userDetailsLoader;  // nullable
+    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String requestUri = request.getRequestURI();
-        log.debug("=== JWT Filter 시작: {} ===", requestUri);
-
         if (isOptionsRequest(request)) {
             filterChain.doFilter(request, response);
             return;
         }
-
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token)) {
@@ -99,18 +95,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2. Claims 추출
         JwtClaims claims = tokenValidator.extractClaims(token);
-        log.info("===== JWT Claims =====");
-        log.info("userId: {}", claims.userId());
-        log.info("role: {}", claims.role());
-        log.info("familyId: {}", claims.familyId());
-        log.info("jti: {}", claims.jti());
-        log.info("=====================");
 
         // 3. 블랙리스트 확인 (user-service만 해당)
-        if (blacklistChecker != null &&
-                blacklistChecker.isBlacklisted(claims.jti(), claims.familyId())) {
-            log.warn("블랙리스트된 토큰 사용 시도: jti={}, familyId={}",
-                    claims.jti(), claims.familyId());
+        if (blacklistChecker != null && blacklistChecker.isBlacklisted(claims.jti(), claims.familyId())) {
+            log.warn("블랙리스트된 토큰 사용 시도: jti={}, familyId={}", claims.jti(), claims.familyId());
             return;
         }
         log.debug("✓ 블랙리스트 검증 통과");
@@ -123,31 +111,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 5. UserDetails 생성
         UserDetails userDetails = createUserDetails(claims);
-
-        log.info("===== UserDetails 로드 완료 =====");
-        log.info("username: {}", userDetails.getUsername());
-        log.info("authorities: {}", userDetails.getAuthorities());
-        userDetails.getAuthorities().forEach(auth ->
-                log.info("  - Authority: {}", auth.getAuthority())
-        );
-        log.info("================================");
+        userDetails.getAuthorities().forEach(auth -> log.info("  - Authority: {}", auth.getAuthority()));
 
         // 6. Authentication 생성
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-
-        log.info("===== Authentication 생성 =====");
-        log.info("Principal: {}", authentication.getPrincipal());
-        log.info("Authorities: {}", authentication.getAuthorities());
-        log.info("==============================");
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         // 7. SecurityContext에 설정
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        log.info("✓✓✓ SecurityContext에 인증 정보 설정 완료 ✓✓✓");
     }
 
     /**
@@ -156,10 +127,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * - userDetailsLoader가 없으면 SecurityUser 생성 (다른 서비스)
      */
     private UserDetails createUserDetails(JwtClaims claims) {
-        if (userDetailsLoader != null) {
+        if (userDetailsService != null) {
             // user-service: DB에서 실제 사용자 정보 조회
             log.debug("DB에서 사용자 정보 조회 (userDetailsLoader 사용)");
-            return userDetailsLoader.loadUserByUserId(claims.userId());
+            return userDetailsService.loadUserByUsername(claims.userId());
         } else {
             // 다른 서비스: 경량 SecurityUser 생성
             log.debug("경량 SecurityUser 생성 (DB 조회 없음)");

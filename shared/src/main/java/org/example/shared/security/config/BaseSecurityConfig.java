@@ -7,7 +7,6 @@ import org.example.shared.security.handler.JwtAccessDeniedHandler;
 import org.example.shared.security.handler.JwtAuthenticationEntryPoint;
 import org.example.shared.security.jwt.JwtTokenValidator;
 import org.example.shared.security.service.TokenBlacklistChecker;
-import org.example.shared.security.service.UserDetailsLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +18,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -67,13 +67,13 @@ public class BaseSecurityConfig {
     @Bean
     @ConditionalOnMissingBean
     public JwtAuthenticationFilter jwtAuthenticationFilter(
-            @Autowired(required = false) TokenBlacklistChecker blacklistChecker,  // ← required = false 추가
-            @Autowired(required = false) UserDetailsLoader userDetailsLoader) {    // ← required = false 추가
+            @Autowired(required = false) TokenBlacklistChecker blacklistChecker,
+            @Autowired(required = false) UserDetailsService userDetailsService) {
         return new JwtAuthenticationFilter(
                 jwtTokenValidator,
                 blacklistChecker,
                 objectMapper,
-                userDetailsLoader
+                userDetailsService
         );
     }
 
@@ -86,9 +86,6 @@ public class BaseSecurityConfig {
         return new NullSecurityContextRepository();
     }
 
-    /**
-     * CORS 설정
-     */
     @Bean
     @ConditionalOnMissingBean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -107,31 +104,20 @@ public class BaseSecurityConfig {
     /**
      * 공통 HttpSecurity 설정 헬퍼 메서드
      */
-    public void configureCommonSecurity(
-            HttpSecurity http,
-            JwtAuthenticationFilter jwtFilter) throws Exception {
-
+    public void configureCommonSecurity(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(CsrfConfigurer::disable)
-                .httpBasic(HttpBasicConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-
-                // 세션 비활성화 (JWT 사용)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-
-                // SecurityContext를 세션에 저장하지 않음
-                .securityContext(context ->
-                        context.securityContextRepository(nullSecurityContextRepository())
-                )
-
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-
-                .exceptionHandling(x -> {
-                    x.authenticationEntryPoint(jwtAuthenticationEntryPoint);
-                    x.accessDeniedHandler(jwtAccessDeniedHandler);
-                });
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(CsrfConfigurer::disable)
+            .httpBasic(HttpBasicConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            // 세션 비활성화 (JWT 사용)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // SecurityContext를 세션에 저장하지 않음
+            .securityContext(context -> context.securityContextRepository(nullSecurityContextRepository()))
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(x -> {
+                x.authenticationEntryPoint(jwtAuthenticationEntryPoint);
+                x.accessDeniedHandler(jwtAccessDeniedHandler);
+            });
     }
 }

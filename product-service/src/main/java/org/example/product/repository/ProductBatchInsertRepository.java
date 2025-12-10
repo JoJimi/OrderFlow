@@ -52,7 +52,7 @@ public class ProductBatchInsertRepository {
                 ps.setString(2, product.getProductName());
                 ps.setString(3, product.getDescription());
                 ps.setBigDecimal(4, product.getPrice());
-                ps.setString(5, product.getCategory());
+                ps.setString(5, product.getCategory().getCode());
                 ps.setBoolean(6, false);
                 ps.setTimestamp(7, Timestamp.valueOf(now));
                 ps.setTimestamp(8, Timestamp.valueOf(now));

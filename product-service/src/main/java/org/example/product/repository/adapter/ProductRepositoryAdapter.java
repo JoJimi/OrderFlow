@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.product.domain.Product;
 import org.example.product.repository.ProductRepository;
 import org.example.product.repository.SpringDataProductRepository;
+import org.example.shared.type.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -32,7 +33,7 @@ public class ProductRepositoryAdapter implements ProductRepository {
     }
 
     @Override
-    public Page<Product> findByCategory(String category, Pageable pageable) {
+    public Page<Product> findByCategory(CategoryType category, Pageable pageable) {
         return springDataProductRepository.findByIsDeletedFalseAndCategory(category, pageable);
     }
 
@@ -58,7 +59,7 @@ public class ProductRepositoryAdapter implements ProductRepository {
     }
 
     @Override
-    public long countByCategory(String category) {
+    public long countByCategory(CategoryType category) {
         return springDataProductRepository.countByCategory(category);
     }
 

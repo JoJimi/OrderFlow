@@ -31,10 +31,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ErrorResponse body = ErrorResponse.of(
-                code,
-                request.getRequestURI()
-        );
+        ErrorResponse body = ErrorResponse.of(code, request.getRequestURI());
 
         objectMapper.writeValue(response.getWriter(), body);
     }

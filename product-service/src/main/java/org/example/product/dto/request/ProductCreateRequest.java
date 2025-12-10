@@ -2,6 +2,7 @@ package org.example.product.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import org.example.shared.type.CategoryType;
 
 import java.math.BigDecimal;
 
@@ -28,12 +29,10 @@ public record ProductCreateRequest(
         @Schema(description = "초기 재고 수량", example = "100", required = true)
         Integer initialStock,
 
-        @NotBlank(message = "카테고리는 필수입니다.")
-        @Pattern(regexp = "^(ELECTRONICS|CLOTHING|BOOKS|HOME|SPORTS)$",
-                message = "카테고리는 ELECTRONICS, CLOTHING, BOOKS, HOME, SPORTS 중 하나여야 합니다.")
+        @NotNull(message = "카테고리는 필수입니다.")
         @Schema(description = "상품 카테고리", example = "ELECTRONICS",
                 allowableValues = {"ELECTRONICS", "CLOTHING", "BOOKS", "HOME", "SPORTS"},
                 required = true)
-        String category
+        CategoryType category
 ) {
 }

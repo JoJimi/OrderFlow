@@ -1,6 +1,7 @@
 package org.example.product.repository;
 
 import org.example.product.domain.Product;
+import org.example.shared.type.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -26,7 +27,7 @@ public interface ProductRepository {
     /**
      * 카테고리별 상품 조회 (삭제되지 않은 것만, 페이지네이션)
      */
-    Page<Product> findByCategory(String category, Pageable pageable);
+    Page<Product> findByCategory(CategoryType category, Pageable pageable);
 
     /**
      * 상품명으로 검색 (LIKE 검색, 페이지네이션)
@@ -51,7 +52,7 @@ public interface ProductRepository {
     /**
      * 카테고리별 상품 개수
      */
-    long countByCategory(String category);
+    long countByCategory(CategoryType category);
 
     /**
      * 모든 상품 삭제 (테스트용)

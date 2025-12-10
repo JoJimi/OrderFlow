@@ -1,6 +1,7 @@
 package org.example.product.repository;
 
 import org.example.product.domain.Product;
+import org.example.shared.type.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,7 +25,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Stri
     /**
      * 카테고리별 상품 조회 (삭제되지 않은 것만)
      */
-    Page<Product> findByIsDeletedFalseAndCategory(String category, Pageable pageable);
+    Page<Product> findByIsDeletedFalseAndCategory(CategoryType category, Pageable pageable);
 
     /**
      * 상품명으로 검색 (삭제되지 않은 것만, LIKE 검색)
@@ -41,7 +42,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Stri
      * 카테고리별 상품 개수 조회
      */
     @Query("SELECT COUNT(p) FROM Product p WHERE p.isDeleted = false AND p.category = :category")
-    long countByCategory(@Param("category") String category);
+    long countByCategory(@Param("category") CategoryType category);
 
     /**
      * 상품 ID로 삭제 여부 확인
@@ -54,7 +55,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, Stri
      */
     @Modifying
     @Query("UPDATE Product p SET p.isDeleted = true WHERE p.category = :category AND p.isDeleted = false")
-    int deleteAllByCategory(@Param("category") String category);
+    int deleteAllByCategory(@Param("category") CategoryType category);
 
     /**
      * 모든 상품 삭제 (테스트용)

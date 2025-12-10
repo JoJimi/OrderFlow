@@ -13,6 +13,7 @@ import org.example.product.repository.ProductRepository;
 import org.example.shared.dto.ProductEvent;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
+import org.example.shared.type.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,6 @@ public class ProductService {
     private final ProductBatchInsertRepository batchInsertRepository;
     private final ProductEventProducer eventProducer;
 
-    private static final String[] CATEGORIES = {"ELECTRONICS", "CLOTHING", "BOOKS", "HOME", "SPORTS"};
     private static final int MIN_PRICE = 1000;
     private static final int MAX_PRICE = 999999;
 
@@ -51,9 +51,11 @@ public class ProductService {
      * 카테고리별 상품 조회
      */
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getProductsByCategory(String category, Pageable pageable) {
-        log.info("카테고리별 상품 조회 - 카테고리: {}, 페이지: {}", category, pageable.getPageNumber());
-        validateCategory(category);
+    public Page<ProductResponse> getProductsByCategory(String categoryCode, Pageable pageable) {
+        log.info("카테고리별 상품 조회 - 카테고리: {}, 페이지: {}", categoryCode, pageable.getPageNumber());
+
+        CategoryType category = CategoryType.from(categoryCode); // 유효성 검증 포함
+
         return productRepository.findByCategory(category, pageable)
                 .map(ProductResponse::from);
     }
@@ -68,6 +70,7 @@ public class ProductService {
         // 1. 캐시에서 조회
         ProductResponse cachedProduct = cacheService.getProductFromCache(productId);
         if (cachedProduct != null) {
+            log.debug("캐시에서 상품 조회 성공 - 상품 ID: {}", productId);
             return cachedProduct;
         }
 
@@ -98,7 +101,7 @@ public class ProductService {
      */
     @Transactional
     public ProductResponse createProduct(ProductCreateRequest request) {
-        log.info("상품 등록 - 상품명: {}", request.productName());
+        log.info("상품 등록 - 상품명: {}, 카테고리: {}", request.productName(), request.category());
 
         String productId = "PROD-" + UUID.randomUUID();
 
@@ -112,21 +115,13 @@ public class ProductService {
                 .build();
 
         Product savedProduct = productRepository.save(product);
-
         ProductResponse response = ProductResponse.from(savedProduct);
 
         // 캐시에 저장
         cacheService.cacheProduct(productId, response);
 
-        // Kafka 이벤트 발행 (상품 등록 이벤트)
-        ProductEvent event = ProductEvent.created(
-                savedProduct.getProductId(),
-                savedProduct.getProductName(),
-                savedProduct.getDescription(),
-                savedProduct.getPrice(),
-                savedProduct.getCategory()
-        );
-        eventProducer.publishProductCreatedEvent(event);
+        // Kafka 이벤트 발행
+        publishProductCreatedEvent(savedProduct);
 
         log.info("상품 등록 완료 - 상품 ID: {}", productId);
 
@@ -158,15 +153,8 @@ public class ProductService {
         cacheService.evictProduct(productId);
         cacheService.cacheProduct(productId, response);
 
-        // Kafka 이벤트 발행 (상품 수정 이벤트)
-        ProductEvent event = ProductEvent.updated(
-                updatedProduct.getProductId(),
-                updatedProduct.getProductName(),
-                updatedProduct.getDescription(),
-                updatedProduct.getPrice(),
-                updatedProduct.getCategory()
-        );
-        eventProducer.publishProductUpdatedEvent(event);
+        // Kafka 이벤트 발행
+        publishProductUpdatedEvent(updatedProduct);
 
         log.info("상품 수정 완료 - 상품 ID: {}", productId);
 
@@ -189,7 +177,7 @@ public class ProductService {
         // 캐시에서 삭제
         cacheService.evictProduct(productId);
 
-        // Kafka 이벤트 발행 (상품 삭제 이벤트)
+        // Kafka 이벤트 발행
         ProductEvent event = ProductEvent.deleted(productId);
         eventProducer.publishProductDeletedEvent(event);
 
@@ -217,7 +205,6 @@ public class ProductService {
             int endIdx = Math.min(startIdx + batchSize, totalCount);
 
             try {
-                // JDBC Batch Insert 사용
                 saveBatchWithJdbc(startIdx, endIdx);
                 successfulBatches++;
 
@@ -237,12 +224,10 @@ public class ProductService {
         // 캐시 초기화
         cacheService.evictAllProducts();
 
-        long endTime = System.currentTimeMillis();
-        long processingTime = endTime - startTime;
-
+        long processingTime = System.currentTimeMillis() - startTime;
         int totalCreated = totalCount - (failedBatches * batchSize);
 
-        // Kafka 이벤트 발행 (상품 대량 생성 이벤트)
+        // Kafka 이벤트 발행
         ProductEvent event = ProductEvent.bulkCreated(totalCreated);
         eventProducer.publishProductBulkCreatedEvent(event);
 
@@ -273,23 +258,13 @@ public class ProductService {
                     .productName("테스트 상품 " + (i + 1))
                     .description("대량 생성된 테스트 상품입니다. (번호: " + (i + 1) + ")")
                     .price(generateRandomPrice())
-                    .category(getRandomCategory())
+                    .category(CategoryType.getRandomCategory())
                     .isDeleted(false)
                     .build();
             products.add(product);
         }
 
-        // JDBC Batch Insert 실행
         batchInsertRepository.batchInsert(products);
-    }
-
-    /**
-     * 카테고리 유효성 검증
-     */
-    private void validateCategory(String category) {
-        if (!Arrays.asList(CATEGORIES).contains(category)) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
-        }
     }
 
     /**
@@ -301,10 +276,30 @@ public class ProductService {
     }
 
     /**
-     * 랜덤 카테고리 선택
+     * 상품 생성 이벤트 발행
      */
-    private String getRandomCategory() {
-        int index = ThreadLocalRandom.current().nextInt(CATEGORIES.length);
-        return CATEGORIES[index];
+    private void publishProductCreatedEvent(Product product) {
+        ProductEvent event = ProductEvent.created(
+                product.getProductId(),
+                product.getProductName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getCategory().getCode()
+        );
+        eventProducer.publishProductCreatedEvent(event);
+    }
+
+    /**
+     * 상품 수정 이벤트 발행
+     */
+    private void publishProductUpdatedEvent(Product product) {
+        ProductEvent event = ProductEvent.updated(
+                product.getProductId(),
+                product.getProductName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getCategory().getCode()
+        );
+        eventProducer.publishProductUpdatedEvent(event);
     }
 }
