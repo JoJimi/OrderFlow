@@ -80,4 +80,12 @@ public class User extends BaseEntity {
 
         this.role = newRole;
     }
+
+    /**
+     * 사용자 논리 삭제 (회원 탈퇴)
+     */
+    public void markAsDeleted() {
+        log.info("사용자 탈퇴 처리: userId={}, email={}", this.id, this.email);
+        this.setDeleted(true);
+    }
 }

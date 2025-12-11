@@ -5,15 +5,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.shared.exception.auth.InvalidTokenException;
+import org.example.shared.security.annotation.CurrentUser;
 import org.example.shared.security.jwt.JwtTokenProvider;
+import org.example.shared.security.userdetails.SecurityUser;
 import org.example.user.dto.request.TokenRequest;
 import org.example.user.dto.response.TokenResponse;
 import org.example.user.redis.RefreshSession;
 import org.example.user.redis.TokenService;
-import org.example.user.security.userdetails.CustomUserDetails;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,10 +75,10 @@ public class AuthController {
      */
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(
-            @AuthenticationPrincipal CustomUserDetails principal,
+            @CurrentUser SecurityUser securityUser,
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
 
-        String userId = principal.getUser().getId().toString();
+        String userId = securityUser.getUserId();  // JWT의 userId는 String
 
         // Access Token 블랙리스트 추가
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -88,12 +88,11 @@ public class AuthController {
                 long remainTtl = calculateRemainTtl(jwtProvider.getExpiration(accessToken));
                 tokenService.blacklistAccessToken(jti, remainTtl);
             } catch (Exception e) {
-                // 토큰 파싱 실패 시 무시 (이미 유효하지 않은 토큰)
                 log.warn("로그아웃 시 Access Token 파싱 실패: {}", e.getMessage());
             }
         }
 
-        // Refresh Token 세션 삭제
+        // Refresh Token 세션 삭제 (JWT의 userId는 String이므로 그대로 사용)
         tokenService.deleteSession(userId);
 
         return ResponseEntity.noContent().build();
@@ -162,7 +161,7 @@ public class AuthController {
     /**
      * 정상 토큰 회전: 새 토큰 발급 및 세션 업데이트
      */
-    private TokenResponse rotateTokens(String userId, String fam, String role, String oldJti, long oldTtlMs) {  // ← role 파라미터 추가
+    private TokenResponse rotateTokens(String userId, String fam, String role, String oldJti, long oldTtlMs) {
         log.debug("토큰 회전 - userId: {}, role: {}, oldJti: {}", userId, role, oldJti);
 
         // 새 토큰 발급

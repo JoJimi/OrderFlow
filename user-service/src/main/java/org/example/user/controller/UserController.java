@@ -4,9 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.shared.security.annotation.CurrentUser;
+import org.example.shared.security.userdetails.SecurityUser;
 import org.example.user.dto.request.UserRoleUpdateRequest;
 import org.example.user.dto.response.UserResponse;
-import org.example.user.security.userdetails.CustomUserDetails;
 import org.example.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,9 +31,12 @@ public class UserController {
     @GetMapping("/me")
     @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 정보를 조회합니다.")
     public ResponseEntity<UserResponse> getMyProfile(
-            @AuthenticationPrincipal CustomUserDetails principal) {
+            @CurrentUser SecurityUser securityUser) {
 
-        return ResponseEntity.ok(UserResponse.from(principal.getUser()));
+        // JWT의 userId는 String이므로 Long으로 변환
+        Long userId = Long.parseLong(securityUser.getUserId());
+        UserResponse response = userService.getUserById(userId);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -42,9 +45,11 @@ public class UserController {
     @DeleteMapping("/me")
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자를 탈퇴 처리합니다.")
     public ResponseEntity<Void> deleteAccount(
-            @AuthenticationPrincipal CustomUserDetails principal) {
+            @CurrentUser SecurityUser securityUser) {
 
-        userService.deleteUser(principal.getUser().getId());
+        // JWT의 userId는 String이므로 Long으로 변환
+        Long userId = Long.parseLong(securityUser.getUserId());
+        userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -58,8 +63,8 @@ public class UserController {
     public ResponseEntity<Page<UserResponse>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) {
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
 
         Sort.Direction sortDirection = direction.equalsIgnoreCase("desc")
                 ? Sort.Direction.DESC
@@ -81,9 +86,10 @@ public class UserController {
     public ResponseEntity<UserResponse> updateUserRole(
             @PathVariable Long userId,
             @Valid @RequestBody UserRoleUpdateRequest request,
-            @AuthenticationPrincipal CustomUserDetails principal) {
+            @CurrentUser SecurityUser securityUser) {
 
-        Long currentUserId = principal.getUser().getId();
+        // JWT의 userId는 String이므로 Long으로 변환
+        Long currentUserId = Long.parseLong(securityUser.getUserId());
         UserResponse updated = userService.updateUserRole(userId, currentUserId, request.role());
 
         return ResponseEntity.ok(updated);

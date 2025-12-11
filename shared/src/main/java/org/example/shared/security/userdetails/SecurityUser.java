@@ -3,7 +3,6 @@ package org.example.shared.security.userdetails;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.example.shared.security.jwt.JwtClaims;
-import org.example.shared.type.RoleType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

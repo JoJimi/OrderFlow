@@ -23,12 +23,22 @@ public class UserService {
     private final UserRepository userRepository;
 
     /**
-     * 사용자 ID로 조회
+     * 사용자 ID로 조회 (내부용 - User 엔티티 반환)
      */
     @Transactional(readOnly = true)
     public User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
+    }
+
+    /**
+     * 사용자 ID로 조회 (API용 - UserResponse 반환)
+     */
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(Long userId) {
+        log.info("사용자 조회: userId={}", userId);
+        User user = findUserById(userId);
+        return UserResponse.from(user);
     }
 
     /**
@@ -51,7 +61,9 @@ public class UserService {
             }
         }
 
-        userRepository.delete(user);
+        user.markAsDeleted();  // 논리 삭제
+        userRepository.save(user);
+
         log.info("사용자 탈퇴 완료: userId={}, email={}, role={}",
                 userId, user.getEmail(), user.getRole());
     }
