@@ -64,6 +64,7 @@ public enum ErrorCode {
     ORDER_CANNOT_BE_CANCELLED(HttpStatus.BAD_REQUEST, "ORD004", "취소할 수 없는 주문입니다."),
     EMPTY_ORDER_ITEMS(HttpStatus.BAD_REQUEST, "ORD005", "주문 항목이 비어있습니다."),
     ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "ORD006", "주문 금액이 일치하지 않습니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.BAD_REQUEST, "ORD007", "본인 주문이 아닙니다."),
 
     // ============================================
     // 결제 서비스 에러 (PAY: Payment) - 6000번대

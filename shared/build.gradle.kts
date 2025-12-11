@@ -22,6 +22,9 @@ dependencies {
     api("com.fasterxml.jackson.core:jackson-databind")
     api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
+    // ULID
+    implementation("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.3.0")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
 }
