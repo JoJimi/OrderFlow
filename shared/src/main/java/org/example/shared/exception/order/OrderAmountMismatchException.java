@@ -7,4 +7,8 @@ public class OrderAmountMismatchException extends BusinessException {
     public OrderAmountMismatchException() {
         super(ErrorCode.ORDER_AMOUNT_MISMATCH);
     }
+
+    public OrderAmountMismatchException(String message) {
+        super(ErrorCode.ORDER_AMOUNT_MISMATCH, message);
+    }
 }

@@ -1,3 +1,4 @@
+// root의 build.gradle.kts
 plugins {
 	java
 	id("org.springframework.boot") version "3.2.0" apply false

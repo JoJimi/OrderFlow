@@ -7,4 +7,8 @@ public class OrderCannotBeCancelledException extends BusinessException {
     public OrderCannotBeCancelledException() {
         super(ErrorCode.ORDER_CANNOT_BE_CANCELLED);
     }
+
+    public OrderCannotBeCancelledException(String message) {
+        super(ErrorCode.ORDER_CANNOT_BE_CANCELLED, message);
+    }
 }

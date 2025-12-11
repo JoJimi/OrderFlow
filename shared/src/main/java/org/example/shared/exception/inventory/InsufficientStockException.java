@@ -7,4 +7,8 @@ public class InsufficientStockException extends BusinessException {
     public InsufficientStockException() {
         super(ErrorCode.INSUFFICIENT_STOCK);
     }
+
+    public InsufficientStockException(String message) {
+        super(ErrorCode.INSUFFICIENT_STOCK, message);
+    }
 }

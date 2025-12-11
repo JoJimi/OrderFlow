@@ -7,7 +7,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableDiscoveryClient
 @EnableJpaAuditing
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {
+        "org.example.order",
+        "org.example.shared"
+})
 public class OrderServiceApplication {
 
     public static void main(String[] args) {

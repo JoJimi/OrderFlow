@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableDiscoveryClient
 @EnableJpaAuditing
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"org.example.payment", "org.example.shared"})
 public class PaymentServiceApplication {
 
 	public static void main(String[] args) {

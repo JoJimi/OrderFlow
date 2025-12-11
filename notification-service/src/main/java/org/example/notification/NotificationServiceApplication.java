@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableDiscoveryClient
 @EnableJpaAuditing
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"org.example.notification", "org.example.shared"})
 public class NotificationServiceApplication {
 
     public static void main(String[] args) {

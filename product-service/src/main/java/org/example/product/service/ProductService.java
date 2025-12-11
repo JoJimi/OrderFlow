@@ -111,7 +111,7 @@ public class ProductService {
                 .description(request.description())
                 .price(request.price())
                 .category(request.category())
-                .isDeleted(false)
+                // .isDeleted(false) 제거 - BaseEntity의 deleted 기본값이 false
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -171,7 +171,8 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        product.markAsDeleted();
+        product.markAsDeleted(); // BaseEntity의 setDeleted(true) 호출
+
         productRepository.save(product);
 
         // 캐시에서 삭제
@@ -259,7 +260,7 @@ public class ProductService {
                     .description("대량 생성된 테스트 상품입니다. (번호: " + (i + 1) + ")")
                     .price(generateRandomPrice())
                     .category(CategoryType.getRandomCategory())
-                    .isDeleted(false)
+                    // .isDeleted(false) 제거 - BaseEntity의 deleted 기본값이 false
                     .build();
             products.add(product);
         }

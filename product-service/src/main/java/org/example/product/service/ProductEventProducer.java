@@ -23,8 +23,6 @@ public class ProductEventProducer {
 
     /**
      * 상품 생성 이벤트 발행
-     *
-     * @param event 상품 생성 이벤트
      */
     public void publishProductCreatedEvent(ProductEvent event) {
         publishEvent(event, "상품 생성");
@@ -32,8 +30,6 @@ public class ProductEventProducer {
 
     /**
      * 상품 수정 이벤트 발행
-     *
-     * @param event 상품 수정 이벤트
      */
     public void publishProductUpdatedEvent(ProductEvent event) {
         publishEvent(event, "상품 수정");
@@ -41,8 +37,6 @@ public class ProductEventProducer {
 
     /**
      * 상품 삭제 이벤트 발행
-     *
-     * @param event 상품 삭제 이벤트
      */
     public void publishProductDeletedEvent(ProductEvent event) {
         publishEvent(event, "상품 삭제");
@@ -50,8 +44,6 @@ public class ProductEventProducer {
 
     /**
      * 상품 대량 생성 이벤트 발행
-     *
-     * @param event 상품 대량 생성 이벤트
      */
     public void publishProductBulkCreatedEvent(ProductEvent event) {
         publishEvent(event, "상품 대량 생성");
@@ -59,9 +51,6 @@ public class ProductEventProducer {
 
     /**
      * Kafka로 이벤트를 발행하는 공통 메서드
-     *
-     * @param event       발행할 이벤트
-     * @param eventTypeDescription 이벤트 타입 설명 (로깅용)
      */
     private void publishEvent(ProductEvent event, String eventTypeDescription) {
         try {

@@ -2,25 +2,23 @@ package org.example.product.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.shared.entity.BaseEntity;
 import org.example.shared.type.CategoryType;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "products", indexes = {
         @Index(name = "idx_category", columnList = "category"),
-        @Index(name = "idx_is_deleted", columnList = "is_deleted"),
+        @Index(name = "idx_is_deleted", columnList = "deleted"),
         @Index(name = "idx_created_at", columnList = "created_at")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-public class Product implements Persistable<String> {
+public class Product extends BaseEntity implements Persistable<String> {
 
     @Id
     @Column(name = "product_id", nullable = false, length = 50)
@@ -39,18 +37,6 @@ public class Product implements Persistable<String> {
     @Column(name = "category", nullable = false, length = 50)
     private CategoryType category;
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
     @Override
     public String getId() {
         return productId;
@@ -58,14 +44,14 @@ public class Product implements Persistable<String> {
 
     @Override
     public boolean isNew() {
-        return createdAt == null;
+        return getCreatedAt() == null;
     }
 
     /**
      * 상품을 논리 삭제 처리합니다.
      */
     public void markAsDeleted() {
-        this.isDeleted = true;
+        this.setDeleted(true);
     }
 
     /**
