@@ -48,6 +48,12 @@ server:
       enabled: true
   shutdown: graceful
 
+kafka:
+  topics:
+    order-event: order-event
+    payment-event: payment-event
+    shipping-event: shipping-event
+
 eureka:
   client:
     register-with-eureka: true
