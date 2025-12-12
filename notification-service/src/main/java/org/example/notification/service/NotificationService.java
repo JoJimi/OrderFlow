@@ -6,7 +6,8 @@ import org.example.notification.domain.Notification;
 import org.example.notification.dto.response.NotificationResponse;
 import org.example.notification.dto.response.UnreadCountResponse;
 import org.example.notification.repository.NotificationRepository;
-import org.example.shared.exception.notification.NotificationNotFoundException;
+import org.example.shared.exception.notification.InvalidRecipientException;
+import org.example.shared.exception.notification.NotificationSendFailedException;
 import org.example.shared.type.NotificationType;
 import org.example.shared.util.IdGenerator;
 import org.springframework.data.domain.Page;
@@ -109,11 +110,11 @@ public class NotificationService {
         log.info("알림 읽음 처리 - notificationId: {}, userId: {}", notificationId, userId);
 
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(NotificationNotFoundException::new);
+                .orElseThrow(NotificationSendFailedException::new);
 
         // 본인 알림인지 확인
         if (!notification.getUserId().equals(userId)) {
-            throw new NotificationNotFoundException();
+            throw new InvalidRecipientException();
         }
 
         notification.markAsRead();

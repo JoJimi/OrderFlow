@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.notification.dto.response.NotificationResponse;
 import org.example.notification.dto.response.UnreadCountResponse;
 import org.example.notification.service.NotificationService;
-import org.example.notification.service.SseEmitterService;
+import org.example.notification.service.sse.SseEmitterService;
 import org.example.shared.security.annotation.CurrentUser;
 import org.example.shared.security.userdetails.SecurityUser;
 import org.springframework.data.domain.Page;

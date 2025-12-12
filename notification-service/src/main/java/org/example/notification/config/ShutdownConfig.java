@@ -2,7 +2,7 @@ package org.example.notification.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.notification.service.SseEmitterService;
+import org.example.notification.service.sse.SseEmitterService;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

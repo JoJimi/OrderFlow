@@ -1,9 +1,10 @@
-package org.example.notification.service;
+package org.example.notification.service.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.notification.dto.response.NotificationResponse;
+import org.example.notification.service.sse.SseEmitterService;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Service;

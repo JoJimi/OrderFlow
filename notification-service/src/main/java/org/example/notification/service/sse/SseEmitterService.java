@@ -1,4 +1,4 @@
-package org.example.notification.service;
+package org.example.notification.service.sse;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
