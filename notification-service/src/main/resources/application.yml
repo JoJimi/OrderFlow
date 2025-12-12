@@ -36,7 +36,7 @@ spring:
       key-serializer: StringSerializer
       value-serializer: JsonSerializer
     consumer:
-      group-id: user-service-group
+      group-id: notification-service-group
       key-deserializer: StringDeserializer
       value-deserializer: JsonDeserializer
 

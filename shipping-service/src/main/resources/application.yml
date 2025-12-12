@@ -36,7 +36,7 @@ spring:
       key-serializer: StringSerializer
       value-serializer: JsonSerializer
     consumer:
-      group-id: user-service-group
+      group-id: shipping-service-group
       key-deserializer: StringDeserializer
       value-deserializer: JsonDeserializer
 
@@ -59,6 +59,10 @@ eureka:
     lease-expiration-duration-in-seconds: 10
     metadata-map:
       management.port: ${management.server.port}
+
+kafka:
+  topics:
+    payment-event: payment-event
 
 management:
   server:
