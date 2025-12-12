@@ -36,7 +36,7 @@ spring:
       key-serializer: StringSerializer
       value-serializer: JsonSerializer
     consumer:
-      group-id: user-service-group
+      group-id: inventory-service-group
       key-deserializer: StringDeserializer
       value-deserializer: JsonDeserializer
 
@@ -77,6 +77,12 @@ management:
       enabled: true
     readinessState:
       enabled: true
+
+kafka:
+  topics:
+    order-event: order-event
+    payment-event: payment-event
+    product-event: product-event
 
 logging:
   pattern:
