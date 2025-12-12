@@ -1,6 +1,7 @@
 package org.example.shared.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.example.shared.type.OrderEventType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OrderEvent(
         String eventId,
-        String eventType,
+        OrderEventType eventType,
         String orderId,
         String userId,
         BigDecimal totalPrice,
@@ -47,7 +48,7 @@ public record OrderEvent(
                                      List<OrderItemInfo> items, ShippingInfo shippingInfo) {
         return new OrderEvent(
                 UUID.randomUUID().toString(),
-                "ORDER_CREATED",
+                OrderEventType.ORDER_CREATED,  // ✅ Enum 사용
                 orderId,
                 userId,
                 totalPrice,
@@ -63,7 +64,7 @@ public record OrderEvent(
     public static OrderEvent cancelled(String orderId, String userId) {
         return new OrderEvent(
                 UUID.randomUUID().toString(),
-                "ORDER_CANCELLED",
+                OrderEventType.ORDER_CANCELLED,  // ✅ Enum 사용
                 orderId,
                 userId,
                 null,
@@ -79,7 +80,7 @@ public record OrderEvent(
     public static OrderEvent statusChanged(String orderId, String userId, String newStatus) {
         return new OrderEvent(
                 UUID.randomUUID().toString(),
-                "ORDER_STATUS_CHANGED_" + newStatus,
+                OrderEventType.ORDER_STATUS_CHANGED,  // ✅ Enum 사용
                 orderId,
                 userId,
                 null,

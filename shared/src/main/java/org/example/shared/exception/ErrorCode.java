@@ -75,6 +75,7 @@ public enum ErrorCode {
     PAYMENT_CANCELLED(HttpStatus.BAD_REQUEST, "PAY004", "취소된 결제입니다."),
     INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "PAY005", "잔액이 부족합니다."),
     INVALID_PAYMENT_METHOD(HttpStatus.BAD_REQUEST, "PAY006", "유효하지 않은 결제 수단입니다."),
+    PAYMENT_ACCESS_DENIED(HttpStatus.BAD_REQUEST, "PAY007", "본인 결제가 아닙니다."),
 
     // ============================================
     // 재고 서비스 에러 (INV: Inventory) - 7000번대
