@@ -9,10 +9,6 @@ import org.example.shared.exception.inventory.NegativeStockNotAllowedException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 재고 엔티티
- * Products 테이블과 1:1 연결 (한 상품당 하나의 재고 정보)
- */
 @Entity
 @Table(name = "inventory",
         uniqueConstraints = {
@@ -51,9 +47,6 @@ public class Inventory extends BaseEntity {
     @Builder.Default
     private List<InventoryLog> inventoryLogs = new ArrayList<>();
 
-    /**
-     * 재고 예약 (주문 생성 시)
-     */
     public void reserveStock(int quantity) {
         if (quantity <= 0) {
             throw new NegativeStockNotAllowedException("예약 수량은 0보다 커야 합니다.");
@@ -67,9 +60,6 @@ public class Inventory extends BaseEntity {
         this.availableStock -= quantity;
     }
 
-    /**
-     * 재고 차감 (결제 완료 시)
-     */
     public void deductStock(int quantity) {
         if (quantity <= 0) {
             throw new NegativeStockNotAllowedException("차감 수량은 0보다 커야 합니다.");
@@ -83,9 +73,6 @@ public class Inventory extends BaseEntity {
         this.totalStock -= quantity;
     }
 
-    /**
-     * 재고 복구 (결제 실패 시 보상 트랜잭션)
-     */
     public void restoreStock(int quantity) {
         if (quantity <= 0) {
             throw new NegativeStockNotAllowedException("복구 수량은 0보다 커야 합니다.");
@@ -94,9 +81,6 @@ public class Inventory extends BaseEntity {
         this.availableStock += quantity;
     }
 
-    /**
-     * 재고 증가 (입고)
-     */
     public void increaseStock(int quantity) {
         if (quantity <= 0) {
             throw new NegativeStockNotAllowedException("증가 수량은 0보다 커야 합니다.");
@@ -105,16 +89,10 @@ public class Inventory extends BaseEntity {
         this.availableStock += quantity;
     }
 
-    /**
-     * 재고 일관성 검증
-     */
     public boolean isConsistent() {
         return this.totalStock == (this.availableStock + this.reservedStock);
     }
 
-    /**
-     * 재고 로그 추가
-     */
     public void addInventoryLog(InventoryLog log) {
         this.inventoryLogs.add(log);
         log.setInventory(this);

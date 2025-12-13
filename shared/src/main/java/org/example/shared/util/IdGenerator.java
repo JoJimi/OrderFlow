@@ -48,6 +48,14 @@ public class IdGenerator {
     }
 
     /**
+     * 재고 ID 생성
+     * @return INV-01HQVX3K7N9XQJ5Y8W2S4P 형식
+     */
+    public static String generateInventoryId() {
+        return "INV-" + ulid.nextULID();
+    }
+
+    /**
      * 배송 ID 생성
      * @return SHIP-01HQVX3K7N9XQJ5Y8W2S4P 형식
      */

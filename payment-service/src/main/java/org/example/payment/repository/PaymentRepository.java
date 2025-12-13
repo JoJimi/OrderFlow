@@ -6,9 +6,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-/**
- * 결제 저장소 인터페이스 (도메인 계층 Port)
- */
 public interface PaymentRepository {
     Payment save(Payment payment);
     Optional<Payment> findById(String paymentId);

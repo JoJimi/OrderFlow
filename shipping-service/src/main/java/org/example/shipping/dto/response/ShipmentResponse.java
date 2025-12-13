@@ -6,9 +6,6 @@ import org.example.shared.type.ShippingStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * 배송 응답 DTO
- */
 public record ShipmentResponse(
         String shipmentId,
         String orderId,

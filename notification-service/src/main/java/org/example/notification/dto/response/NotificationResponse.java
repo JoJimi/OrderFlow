@@ -5,9 +5,6 @@ import org.example.shared.type.NotificationType;
 
 import java.time.LocalDateTime;
 
-/**
- * 알림 응답 DTO
- */
 public record NotificationResponse(
         String notificationId,
         String userId,

@@ -7,9 +7,6 @@ import org.example.shared.type.PaymentStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * 결제 응답 DTO
- */
 public record PaymentResponse(
         String paymentId,
         String orderId,

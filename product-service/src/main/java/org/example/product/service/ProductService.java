@@ -54,7 +54,7 @@ public class ProductService {
     public Page<ProductResponse> getProductsByCategory(String categoryCode, Pageable pageable) {
         log.info("카테고리별 상품 조회 - 카테고리: {}, 페이지: {}", categoryCode, pageable.getPageNumber());
 
-        CategoryType category = CategoryType.from(categoryCode); // 유효성 검증 포함
+        CategoryType category = CategoryType.from(categoryCode);
 
         return productRepository.findByCategory(category, pageable)
                 .map(ProductResponse::from);
@@ -111,7 +111,6 @@ public class ProductService {
                 .description(request.description())
                 .price(request.price())
                 .category(request.category())
-                // .isDeleted(false) 제거 - BaseEntity의 deleted 기본값이 false
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -260,12 +259,14 @@ public class ProductService {
                     .description("대량 생성된 테스트 상품입니다. (번호: " + (i + 1) + ")")
                     .price(generateRandomPrice())
                     .category(CategoryType.getRandomCategory())
-                    // .isDeleted(false) 제거 - BaseEntity의 deleted 기본값이 false
                     .build();
             products.add(product);
         }
 
         batchInsertRepository.batchInsert(products);
+
+        // 각 상품마다 PRODUCT_CREATED 이벤트 발행 (재고 초기화용)
+        products.forEach(this::publishProductCreatedEvent);
     }
 
     /**

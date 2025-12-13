@@ -40,7 +40,7 @@ public class SseEmitterService {
 
         // 새 연결 저장
         emitters.put(userId, emitter);
-        log.info("✅ SSE 연결 생성 - userId: {}, 총 연결 수: {}", userId, emitters.size());
+        log.info("SSE 연결 생성 - userId: {}, 총 연결 수: {}", userId, emitters.size());
 
         // 연결 종료 이벤트 핸들러
         emitter.onCompletion(() -> {
@@ -88,7 +88,7 @@ public class SseEmitterService {
             emitter.send(SseEmitter.event()
                     .name("notification")
                     .data(data));
-            log.info("📢 SSE 알림 전송 성공 - userId: {}", userId);
+            log.info("SSE 알림 전송 성공 - userId: {}", userId);
         } catch (IOException e) {
             log.error("SSE 알림 전송 실패 - userId: {}", userId, e);
             emitters.remove(userId);

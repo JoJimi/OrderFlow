@@ -5,10 +5,6 @@ import lombok.*;
 import org.example.shared.entity.BaseEntity;
 import org.example.shared.type.InventoryAction;
 
-/**
- * 재고 로그 엔티티
- * 재고 변동 추적 및 감사(Audit) 로그
- */
 @Entity
 @Table(name = "inventory_logs", indexes = {
         @Index(name = "idx_inventory_id", columnList = "inventory_id"),

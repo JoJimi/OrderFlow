@@ -49,9 +49,6 @@ public class Payment extends BaseEntity {
     @Column(name = "failure_reason", length = 500)
     private String failureReason;
 
-    /**
-     * 결제 상태 변경
-     */
     public void updateStatus(PaymentStatus newStatus) {
         if (!this.paymentStatus.canTransitionTo(newStatus)) {
             throw new IllegalStateException(
@@ -62,17 +59,11 @@ public class Payment extends BaseEntity {
         this.paymentStatus = newStatus;
     }
 
-    /**
-     * 결제 완료 처리
-     */
     public void complete(String transactionId) {
         this.paymentStatus = PaymentStatus.PAYMENT_COMPLETED;
         this.transactionId = transactionId;
     }
 
-    /**
-     * 결제 실패 처리
-     */
     public void fail(String failureReason) {
         this.paymentStatus = PaymentStatus.PAYMENT_FAILED;
         this.failureReason = failureReason;

@@ -12,10 +12,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * ProductRepository Adapter
- * Port 인터페이스를 Spring Data JPA로 구현합니다.
- */
 @Repository
 @RequiredArgsConstructor
 public class ProductRepositoryAdapter implements ProductRepository {

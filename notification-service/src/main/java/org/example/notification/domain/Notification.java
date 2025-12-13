@@ -7,10 +7,6 @@ import org.example.shared.type.NotificationType;
 
 import java.time.LocalDateTime;
 
-/**
- * 알림 엔티티
- * 사용자에게 전송되는 알림 정보
- */
 @Entity
 @Table(name = "notifications", indexes = {
         @Index(name = "idx_user_id", columnList = "user_id"),
@@ -49,9 +45,6 @@ public class Notification extends BaseEntity {
     @Column(name = "read_at")
     private LocalDateTime readAt;
 
-    /**
-     * 알림을 읽음 처리
-     */
     public void markAsRead() {
         if (this.isRead) {
             return; // 이미 읽음 처리됨
@@ -60,9 +53,6 @@ public class Notification extends BaseEntity {
         this.readAt = LocalDateTime.now();
     }
 
-    /**
-     * 알림을 안읽음 처리
-     */
     public void markAsUnread() {
         this.isRead = false;
         this.readAt = null;

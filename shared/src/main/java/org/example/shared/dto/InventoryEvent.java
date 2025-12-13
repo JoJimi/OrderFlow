@@ -5,10 +5,6 @@ import org.example.shared.type.InventoryEventType;
 
 import java.time.LocalDateTime;
 
-/**
- * 재고 이벤트 DTO
- * Kafka 메시지로 전송되는 재고 변동 이벤트
- */
 public record InventoryEvent(
         String inventoryId,
         String productId,
@@ -40,9 +36,6 @@ public record InventoryEvent(
         );
     }
 
-    /**
-     * 재고 부족 이벤트 생성
-     */
     public static InventoryEvent insufficient(
             String productId,
             String orderId,
@@ -61,9 +54,6 @@ public record InventoryEvent(
         );
     }
 
-    /**
-     * 재고 차감 이벤트 생성
-     */
     public static InventoryEvent deducted(
             String inventoryId,
             String productId,
@@ -82,9 +72,6 @@ public record InventoryEvent(
         );
     }
 
-    /**
-     * 재고 복구 이벤트 생성
-     */
     public static InventoryEvent restored(
             String inventoryId,
             String productId,

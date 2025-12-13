@@ -3,9 +3,6 @@ package org.example.shared.type;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * 알림 타입 Enum
- */
 @Getter
 @RequiredArgsConstructor
 public enum NotificationType {
@@ -17,9 +14,6 @@ public enum NotificationType {
     private final String description;
     private final String detail;
 
-    /**
-     * 코드로부터 NotificationType 찾기
-     */
     public static NotificationType fromCode(String code) {
         try {
             return NotificationType.valueOf(code.toUpperCase());
@@ -28,16 +22,10 @@ public enum NotificationType {
         }
     }
 
-    /**
-     * 보안 관련 알림인지 확인
-     */
     public boolean isSecurityAlert() {
         return this == ALERT;
     }
 
-    /**
-     * 주문 프로세스 관련 알림인지 확인
-     */
     public boolean isOrderRelated() {
         return this == ORDER || this == PAYMENT || this == SHIPPING;
     }

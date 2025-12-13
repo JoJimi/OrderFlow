@@ -33,9 +33,6 @@ public record ProductResponse(
         @Schema(description = "수정 시간", example = "2024-12-10 15:45:00")
         LocalDateTime updatedAt
 ) {
-    /**
-     * Product 엔티티를 ProductResponse로 변환합니다.
-     */
     public static ProductResponse from(Product product) {
         return new ProductResponse(
                 product.getProductId(),

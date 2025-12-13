@@ -10,9 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * OrderRepository Port-Adapter 구현체
- */
 @Repository
 @RequiredArgsConstructor
 public class OrderRepositoryAdapter implements OrderRepository {

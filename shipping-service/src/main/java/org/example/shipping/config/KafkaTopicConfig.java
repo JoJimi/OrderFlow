@@ -5,15 +5,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
-/**
- * Kafka Topic 설정
- */
 @Configuration
 public class KafkaTopicConfig {
 
-    /**
-     * shipping-event 토픽 생성
-     */
     @Bean
     public NewTopic shippingEventTopic() {
         return TopicBuilder

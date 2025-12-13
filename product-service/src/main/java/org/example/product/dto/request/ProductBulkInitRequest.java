@@ -25,7 +25,6 @@ public record ProductBulkInitRequest(
         }
     }
 
-    // 기본값을 가진 생성자
     public ProductBulkInitRequest() {
         this(100000, 1000);
     }

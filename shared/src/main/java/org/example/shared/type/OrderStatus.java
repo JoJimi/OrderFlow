@@ -5,13 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 
-/**
- * 주문 상태 Enum
- *
- * 상태 전이:
- * OrderCreated → PaymentPending → PaymentCompleted → ShippingStarted → ShippingCompleted
- * OrderCreated → PaymentPending → PaymentFailed → Cancelled (보상 트랜잭션)
- */
 @Getter
 @RequiredArgsConstructor
 public enum OrderStatus {
@@ -26,16 +19,10 @@ public enum OrderStatus {
     private final String description;
     private final Set<String> allowedTransitions;
 
-    /**
-     * 다음 상태로 전환 가능한지 확인
-     */
     public boolean canTransitionTo(OrderStatus nextStatus) {
         return allowedTransitions.contains(nextStatus.name());
     }
 
-    /**
-     * 코드로부터 OrderStatus 찾기
-     */
     public static OrderStatus fromCode(String code) {
         try {
             return OrderStatus.valueOf(code.toUpperCase());

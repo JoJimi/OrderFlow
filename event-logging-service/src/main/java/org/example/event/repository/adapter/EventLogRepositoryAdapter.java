@@ -11,9 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * EventLogRepository Port-Adapter 구현체
- */
 @Repository
 @RequiredArgsConstructor
 public class EventLogRepositoryAdapter implements EventLogRepository {

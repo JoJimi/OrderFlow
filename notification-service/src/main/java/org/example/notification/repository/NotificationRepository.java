@@ -6,9 +6,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-/**
- * 알림 저장소 인터페이스 (도메인 계층 Port)
- */
 public interface NotificationRepository {
     Notification save(Notification notification);
     Optional<Notification> findById(String notificationId);

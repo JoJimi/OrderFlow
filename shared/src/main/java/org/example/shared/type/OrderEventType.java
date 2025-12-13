@@ -3,10 +3,6 @@ package org.example.shared.type;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * 주문 이벤트 타입 Enum
- * - Kafka 메시지의 이벤트 종류를 정의
- */
 @Getter
 @RequiredArgsConstructor
 public enum OrderEventType {

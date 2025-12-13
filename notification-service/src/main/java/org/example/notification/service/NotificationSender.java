@@ -8,13 +8,6 @@ import org.example.notification.domain.Notification;
  */
 public interface NotificationSender {
 
-    /**
-     * 알림 전송
-     */
     void send(Notification notification);
-
-    /**
-     * 지원하는 알림 타입 확인
-     */
     boolean supports(String channel);
 }

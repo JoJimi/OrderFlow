@@ -45,9 +45,9 @@ public class OrderController {
     ) {
         Page<OrderResponse> orders;
         if ("ROLE_ADMIN".equals(securityUser.getRole())) {
-            orders = orderService.getAllOrders(pageable);                           // 관리자는 전체 주문 조회
+            orders = orderService.getAllOrders(pageable);
         } else {
-            orders = orderService.getMyOrders(securityUser.getUserId(), pageable);  // 일반 사용자는 본인 주문만 조회
+            orders = orderService.getMyOrders(securityUser.getUserId(), pageable);
         }
 
         return ResponseEntity.ok(orders);

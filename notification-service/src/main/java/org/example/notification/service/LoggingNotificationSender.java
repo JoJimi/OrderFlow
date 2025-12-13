@@ -15,7 +15,7 @@ public class LoggingNotificationSender implements NotificationSender {
     @Override
     public void send(Notification notification) {
         log.info("=".repeat(80));
-        log.info("📢 알림 전송 시뮬레이션");
+        log.info("알림 전송 시뮬레이션");
         log.info("수신자: {}", notification.getUserId());
         log.info("타입: {}", notification.getNotificationType().getDescription());
         log.info("메시지: {}", notification.getMessage());

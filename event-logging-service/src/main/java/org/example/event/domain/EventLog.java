@@ -5,10 +5,6 @@ import lombok.*;
 import org.example.shared.entity.BaseEntity;
 import org.example.shared.type.EventStatus;
 
-/**
- * 이벤트 로그 엔티티
- * 전체 시스템의 이벤트 감사 로그
- */
 @Entity
 @Table(name = "event_logs", indexes = {
         @Index(name = "idx_order_id", columnList = "order_id"),
@@ -44,23 +40,14 @@ public class EventLog extends BaseEntity {
     @Builder.Default
     private EventStatus status = EventStatus.SUCCESS;
 
-    /**
-     * 이벤트 상태 업데이트
-     */
     public void updateStatus(EventStatus newStatus) {
         this.status = newStatus;
     }
 
-    /**
-     * 이벤트가 성공했는지 확인
-     */
     public boolean isSuccess() {
         return this.status == EventStatus.SUCCESS;
     }
 
-    /**
-     * 이벤트가 실패했는지 확인
-     */
     public boolean isFailed() {
         return this.status == EventStatus.FAILED;
     }

@@ -5,11 +5,9 @@ import org.example.shared.type.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
-/**
- * 결제 이벤트 DTO (Kafka 메시지)
- */
 public record PaymentEvent(
         String eventId,
         PaymentStatus eventType,
@@ -22,9 +20,12 @@ public record PaymentEvent(
         String failureReason,
         LocalDateTime eventTimestamp
 ) {
-    /**
-     * 결제 완료 이벤트 생성
-     */
+
+    public record OrderItemInfo(
+            String productId,
+            Integer quantity
+    ) {}
+
     public static PaymentEvent completed(
             String paymentId,
             String orderId,
@@ -47,9 +48,6 @@ public record PaymentEvent(
         );
     }
 
-    /**
-     * 결제 실패 이벤트 생성
-     */
     public static PaymentEvent failed(
             String paymentId,
             String orderId,

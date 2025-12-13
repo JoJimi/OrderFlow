@@ -66,7 +66,7 @@ public class ProductRepositoryQueryDsl {
             BigDecimal maxPrice,
             String keyword
     ) {
-        BooleanExpression condition = product.isDeleted.isFalse();
+        BooleanExpression condition = product.deleted.isFalse();
 
         if (category != null) {
             condition = condition.and(product.category.eq(category));
@@ -95,7 +95,7 @@ public class ProductRepositoryQueryDsl {
                 .select(product.count())
                 .from(product)
                 .where(
-                        product.isDeleted.isFalse(),
+                        product.deleted.isFalse(),
                         product.price.between(minPrice, maxPrice)
                 )
                 .fetchOne();
@@ -111,7 +111,7 @@ public class ProductRepositoryQueryDsl {
                 .select(product.price.avg())
                 .from(product)
                 .where(
-                        product.isDeleted.isFalse(),
+                        product.deleted.isFalse(),
                         product.category.eq(category)
                 )
                 .fetchOne();
@@ -125,7 +125,7 @@ public class ProductRepositoryQueryDsl {
     public List<Product> findTopNExpensiveProducts(int limit) {
         return queryFactory
                 .selectFrom(product)
-                .where(product.isDeleted.isFalse())
+                .where(product.deleted.isFalse())
                 .orderBy(product.price.desc())
                 .limit(limit)
                 .fetch();
@@ -138,7 +138,7 @@ public class ProductRepositoryQueryDsl {
         List<Product> content = queryFactory
                 .selectFrom(product)
                 .where(
-                        product.isDeleted.isFalse(),
+                        product.deleted.isFalse(),
                         product.price.goe(minPrice)
                 )
                 .orderBy(product.price.desc())
@@ -150,7 +150,7 @@ public class ProductRepositoryQueryDsl {
                 .select(product.count())
                 .from(product)
                 .where(
-                        product.isDeleted.isFalse(),
+                        product.deleted.isFalse(),
                         product.price.goe(minPrice)
                 )
                 .fetchOne();

@@ -5,9 +5,6 @@ import org.example.shared.type.EventStatus;
 
 import java.time.LocalDateTime;
 
-/**
- * 이벤트 로그 응답 DTO
- */
 public record EventLogResponse(
         String eventId,
         String orderId,
@@ -17,9 +14,6 @@ public record EventLogResponse(
         EventStatus status,
         LocalDateTime createdAt
 ) {
-    /**
-     * EventLog 엔티티로부터 EventLogResponse 생성
-     */
     public static EventLogResponse from(EventLog eventLog) {
         return new EventLogResponse(
                 eventLog.getEventId(),

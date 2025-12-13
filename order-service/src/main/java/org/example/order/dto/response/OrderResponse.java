@@ -9,9 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 주문 응답 DTO
- */
 public record OrderResponse(
         String orderId,
         String userId,
@@ -42,9 +39,6 @@ public record OrderResponse(
         }
     }
 
-    /**
-     * Order 엔티티로부터 OrderResponse 생성
-     */
     public static OrderResponse from(Order order) {
         return new OrderResponse(
                 order.getOrderId(),

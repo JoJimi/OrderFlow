@@ -5,26 +5,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
-/**
- * Kafka Topic 설정
- * 애플리케이션 시작 시 필요한 토픽들을 자동으로 생성합니다.
- */
 @Configuration
 public class KafkaTopicConfig {
 
-    /**
-     * payment-event 토픽 생성
-     * - Partition: 3 (병렬 처리를 위해)
-     * - Replication Factor: 1 (개발 환경, 프로덕션에서는 3 권장)
-     * - Retention: 7일 (604800000 ms)
-     */
     @Bean
     public NewTopic paymentEventTopic() {
         return TopicBuilder
                 .name(KafkaTopics.PAYMENT_EVENT)
                 .partitions(3)
                 .replicas(1)
-                .config("retention.ms", "604800000") // 7일
+                .config("retention.ms", "604800000")
                 .config("compression.type", "gzip")
                 .build();
     }

@@ -3,9 +3,6 @@ package org.example.shared.type;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * 재고 이벤트 타입 Enum
- */
 @Getter
 @RequiredArgsConstructor
 public enum InventoryEventType {

@@ -49,9 +49,6 @@ public class Order extends BaseEntity {
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    /**
-     * 주문 상태 변경
-     */
     public void updateStatus(OrderStatus newStatus) {
         if (!this.orderStatus.canTransitionTo(newStatus)) {
             throw new IllegalStateException(
@@ -62,33 +59,21 @@ public class Order extends BaseEntity {
         this.orderStatus = newStatus;
     }
 
-    /**
-     * 주문 항목 추가 (양방향 관계 설정)
-     */
     public void addOrderItem(OrderItem orderItem) {
         this.orderItems.add(orderItem);
         orderItem.setOrder(this);
     }
 
-    /**
-     * 총액 계산
-     */
     public void calculateTotalPrice() {
         this.totalPrice = orderItems.stream()
                 .map(OrderItem::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * 주문 취소 가능 여부 확인
-     */
     public boolean isCancellable() {
         return this.orderStatus == OrderStatus.ORDER_CREATED;
     }
 
-    /**
-     * 주문 취소
-     */
     public void cancel() {
         if (!isCancellable()) {
             throw new IllegalStateException(

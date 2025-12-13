@@ -21,6 +21,11 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     }
 
     @Override
+    public List<Inventory> saveAll(List<Inventory> inventories) {  // ← 추가
+        return jpaRepository.saveAll(inventories);
+    }
+
+    @Override
     public Optional<Inventory> findById(String inventoryId) {
         return jpaRepository.findById(inventoryId);
     }

@@ -8,9 +8,6 @@ import jakarta.validation.constraints.Positive;
 
 import java.util.List;
 
-/**
- * 주문 생성 요청 DTO
- */
 public record OrderCreateRequest(
         @NotEmpty(message = "주문 항목은 최소 1개 이상이어야 합니다")
         @Valid

@@ -33,8 +33,8 @@ public class ProductEventConsumer {
             switch (event.eventType()) {
                 case PRODUCT_CREATED -> handleProductCreated(event);
                 case PRODUCT_BULK_CREATED -> handleProductBulkCreated(event);
-                case PRODUCT_UPDATED -> log.info("상품 수정 이벤트 - productId: {}", event.productId());
-                case PRODUCT_DELETED -> log.info("상품 삭제 이벤트 - productId: {}", event.productId());
+                case PRODUCT_UPDATED -> handleProductUpdated(event);
+                case PRODUCT_DELETED -> handleProductDeleted(event);
                 default -> log.warn("처리되지 않은 이벤트 타입: {}", event.eventType());
             }
 
@@ -50,17 +50,34 @@ public class ProductEventConsumer {
      * ProductCreated 이벤트 처리 → 재고 초기화
      */
     private void handleProductCreated(ProductEvent event) {
-        log.info("상품 생성 이벤트 처리 - productId: {}, stockQuantity: {}",
-                event.productId(), event.stockQuantity());
+        log.info("상품 생성 이벤트 처리 - productId: {}", event.productId());
 
+        // stockQuantity 제거 - Inventory Service가 기본값으로 초기화
         inventoryService.initializeInventory(event);
     }
 
     /**
-     * ProductBulkCreated 이벤트 처리 → 대량 재고 초기화
+     * ProductBulkCreated 이벤트 처리
+     * 대량 생성된 상품의 재고를 배치로 초기화 (성능 최적화)
      */
     private void handleProductBulkCreated(ProductEvent event) {
         log.info("대량 상품 생성 이벤트 수신 - count: {}", event.count());
-        // 대량 생성 시에는 개별 ProductCreated 이벤트가 별도로 발행됨
+        inventoryService.bulkInitializeInventory(event.count());
+    }
+
+    /**
+     * ProductUpdated 이벤트 처리
+     */
+    private void handleProductUpdated(ProductEvent event) {
+        log.info("상품 수정 이벤트 - productId: {}", event.productId());
+        // 재고 관련 로직은 없지만, 필요시 상품 정보 캐시 갱신 등 가능
+    }
+
+    /**
+     * ProductDeleted 이벤트 처리
+     */
+    private void handleProductDeleted(ProductEvent event) {
+        log.info("상품 삭제 이벤트 - productId: {}", event.productId());
+        // 필요시 재고도 논리 삭제 또는 보관 처리
     }
 }

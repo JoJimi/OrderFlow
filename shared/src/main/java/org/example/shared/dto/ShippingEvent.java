@@ -6,10 +6,6 @@ import org.example.shared.type.ShippingStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * 배송 이벤트 DTO
- * Kafka 메시지로 전송되는 배송 상태 변경 이벤트
- */
 public record ShippingEvent(
         String shipmentId,
         String orderId,
@@ -22,9 +18,6 @@ public record ShippingEvent(
         LocalDateTime actualDeliveryDate,
         LocalDateTime timestamp
 ) {
-    /**
-     * 배송 준비 이벤트 생성
-     */
     public static ShippingEvent preparing(
             String shipmentId,
             String orderId,
@@ -44,9 +37,6 @@ public record ShippingEvent(
         );
     }
 
-    /**
-     * 배송 시작 이벤트 생성
-     */
     public static ShippingEvent started(
             String shipmentId,
             String orderId,
@@ -69,9 +59,6 @@ public record ShippingEvent(
         );
     }
 
-    /**
-     * 배송 완료 이벤트 생성
-     */
     public static ShippingEvent completed(
             String shipmentId,
             String orderId,

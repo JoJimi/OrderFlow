@@ -1,4 +1,3 @@
-// payment-service/src/main/java/org/example/payment/service/PaymentEventProducer.java
 package org.example.payment.service;
 
 import lombok.RequiredArgsConstructor;

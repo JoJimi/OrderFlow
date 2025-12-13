@@ -8,9 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 주문 이벤트 DTO (Kafka 메시지)
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OrderEvent(
         String eventId,
@@ -22,9 +19,7 @@ public record OrderEvent(
         ShippingInfo shippingInfo,
         LocalDateTime eventTimestamp
 ) {
-    /**
-     * 주문 항목 정보
-     */
+
     public record OrderItemInfo(
             String productId,
             Integer quantity,
@@ -32,23 +27,17 @@ public record OrderEvent(
             BigDecimal subtotal
     ) {}
 
-    /**
-     * 배송 정보
-     */
     public record ShippingInfo(
             String address,
             String city,
             String postalCode
     ) {}
 
-    /**
-     * 주문 생성 이벤트
-     */
     public static OrderEvent created(String orderId, String userId, BigDecimal totalPrice,
                                      List<OrderItemInfo> items, ShippingInfo shippingInfo) {
         return new OrderEvent(
                 UUID.randomUUID().toString(),
-                OrderEventType.ORDER_CREATED,  // ✅ Enum 사용
+                OrderEventType.ORDER_CREATED,
                 orderId,
                 userId,
                 totalPrice,
@@ -58,13 +47,10 @@ public record OrderEvent(
         );
     }
 
-    /**
-     * 주문 취소 이벤트
-     */
     public static OrderEvent cancelled(String orderId, String userId) {
         return new OrderEvent(
                 UUID.randomUUID().toString(),
-                OrderEventType.ORDER_CANCELLED,  // ✅ Enum 사용
+                OrderEventType.ORDER_CANCELLED,
                 orderId,
                 userId,
                 null,
@@ -74,13 +60,10 @@ public record OrderEvent(
         );
     }
 
-    /**
-     * 주문 상태 변경 이벤트
-     */
     public static OrderEvent statusChanged(String orderId, String userId, String newStatus) {
         return new OrderEvent(
                 UUID.randomUUID().toString(),
-                OrderEventType.ORDER_STATUS_CHANGED,  // ✅ Enum 사용
+                OrderEventType.ORDER_STATUS_CHANGED,
                 orderId,
                 userId,
                 null,

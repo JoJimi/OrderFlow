@@ -102,7 +102,7 @@ public class ProductEventProducer {
                     KafkaTopics.PRODUCT_EVENT,
                     event.productId(),
                     event
-            ).get(); // 동기식 대기
+            ).get();
 
             log.info("[Kafka] 동기 이벤트 발행 성공 - ProductId: {}, Partition: {}, Offset: {}",
                     event.productId(),

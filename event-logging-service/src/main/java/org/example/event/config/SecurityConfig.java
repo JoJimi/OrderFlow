@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableMethodSecurity // @PreAuthorize 활성화
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final BaseSecurityConfig baseSecurityConfig;

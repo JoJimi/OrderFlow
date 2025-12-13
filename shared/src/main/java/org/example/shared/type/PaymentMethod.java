@@ -3,9 +3,6 @@ package org.example.shared.type;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * 결제 수단 Enum
- */
 @Getter
 @RequiredArgsConstructor
 public enum PaymentMethod {
@@ -17,9 +14,6 @@ public enum PaymentMethod {
 
     private final String description;
 
-    /**
-     * 코드로부터 PaymentMethod 찾기
-     */
     public static PaymentMethod fromCode(String code) {
         try {
             return PaymentMethod.valueOf(code.toUpperCase());
@@ -28,9 +22,6 @@ public enum PaymentMethod {
         }
     }
 
-    /**
-     * 결제 수단이 온라인 결제인지 확인
-     */
     public boolean isOnlinePayment() {
         return this == CREDIT_CARD ||
                 this == DEBIT_CARD ||

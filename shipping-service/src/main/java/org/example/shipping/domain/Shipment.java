@@ -8,10 +8,6 @@ import org.example.shared.type.ShippingStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * 배송 엔티티
- * Orders 테이블과 1:1 연결 (한 주문당 하나의 배송)
- */
 @Entity
 @Table(name = "shipments",
         uniqueConstraints = {
@@ -52,9 +48,6 @@ public class Shipment extends BaseEntity {
     @Column(name = "actual_delivery_date")
     private LocalDateTime actualDeliveryDate;
 
-    /**
-     * 배송 시작
-     */
     public void startShipping(String trackingNumber, String carrier, LocalDate estimatedDeliveryDate) {
         if (this.shippingStatus != ShippingStatus.SHIPPING_PREPARING) {
             throw new IllegalStateException(
@@ -67,9 +60,6 @@ public class Shipment extends BaseEntity {
         this.estimatedDeliveryDate = estimatedDeliveryDate;
     }
 
-    /**
-     * 배송 완료
-     */
     public void completeShipping() {
         if (this.shippingStatus != ShippingStatus.SHIPPING_STARTED) {
             throw new IllegalStateException(
@@ -80,9 +70,6 @@ public class Shipment extends BaseEntity {
         this.actualDeliveryDate = LocalDateTime.now();
     }
 
-    /**
-     * 운송장 번호 업데이트
-     */
     public void updateTrackingNumber(String trackingNumber) {
         if (trackingNumber == null || trackingNumber.isBlank()) {
             throw new IllegalArgumentException("운송장 번호는 필수입니다.");

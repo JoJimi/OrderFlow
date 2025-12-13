@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.event.dto.response.EventLogResponse;
 import org.example.event.service.EventLogService;
-import org.example.shared.security.annotation.CurrentUser;
-import org.example.shared.security.userdetails.SecurityUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

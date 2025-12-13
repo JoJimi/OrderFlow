@@ -19,7 +19,5 @@ public class KafkaTopics {
      */
     public static final String PRODUCT_INVENTORY_EVENT = "product-inventory-event";
 
-    private KafkaTopics() {
-        // 유틸리티 클래스 - 인스턴스화 방지
-    }
+    private KafkaTopics() { }
 }

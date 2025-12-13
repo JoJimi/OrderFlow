@@ -45,24 +45,26 @@ public class InventoryService {
             return;
         }
 
+        int defaultStock = 100;
+
         // 재고 엔티티 생성
         String inventoryId = IdGenerator.generateInventoryId();
         Inventory inventory = Inventory.builder()
                 .inventoryId(inventoryId)
                 .productId(event.productId())
-                .totalStock(event.stockQuantity() != null ? event.stockQuantity() : 0)
+                .totalStock(defaultStock)
                 .reservedStock(0)
-                .availableStock(event.stockQuantity() != null ? event.stockQuantity() : 0)
+                .availableStock(defaultStock)
                 .build();
 
         inventoryRepository.save(inventory);
 
         // 재고 로그 기록
-        createInventoryLog(inventory, null, event.stockQuantity(),
+        createInventoryLog(inventory, null, defaultStock,
                 InventoryAction.INCREASE, "상품 생성으로 인한 재고 초기화");
 
         log.info("재고 초기화 완료 - productId: {}, inventoryId: {}, stock: {}",
-                event.productId(), inventoryId, event.stockQuantity());
+                event.productId(), inventoryId, defaultStock);
     }
 
     /**
@@ -91,7 +93,7 @@ public class InventoryService {
 
                 if (inventory == null) {
                     log.error("재고 정보가 존재하지 않습니다 - productId: {}", item.productId());
-                    throw new InventoryNotFoundException("재고 정보가 존재하지 않습니다: " + item.productId());
+                    throw new InventoryNotFoundException();
                 }
 
                 if (inventory.getAvailableStock() < item.quantity()) {
@@ -207,9 +209,53 @@ public class InventoryService {
         log.info("재고 조회 - productId: {}", productId);
 
         Inventory inventory = inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new InventoryNotFoundException("재고 정보가 존재하지 않습니다: " + productId));
+                .orElseThrow(InventoryNotFoundException::new);
 
         return InventoryResponse.from(inventory);
+    }
+
+    /**
+     * 대량 초기화 메서드 추가
+     */
+    @Transactional
+    public void bulkInitializeInventory(int count) {
+        log.info("대량 재고 초기화 시작 - count: {}", count);
+
+        List<Inventory> inventories = new ArrayList<>();
+        int defaultStock = 100;
+
+        for (int i = 1; i <= count; i++) {
+            String productId = "SEED-1-" + String.format("%06d", i);
+
+            // 이미 존재하면 스킵
+            if (inventoryRepository.existsByProductId(productId)) {
+                continue;
+            }
+
+            String inventoryId = IdGenerator.generateInventoryId();
+            Inventory inventory = Inventory.builder()
+                    .inventoryId(inventoryId)
+                    .productId(productId)
+                    .totalStock(defaultStock)
+                    .reservedStock(0)
+                    .availableStock(defaultStock)
+                    .build();
+
+            inventories.add(inventory);
+
+            // 1000개씩 배치로 저장 (메모리 관리)
+            if (inventories.size() >= 1000) {
+                inventoryRepository.saveAll(inventories);
+                inventories.clear();
+            }
+        }
+
+        // 남은 것들 저장
+        if (!inventories.isEmpty()) {
+            inventoryRepository.saveAll(inventories);
+        }
+
+        log.info("대량 재고 초기화 완료 - count: {}", count);
     }
 
     /**
@@ -219,7 +265,7 @@ public class InventoryService {
                                     InventoryAction action, String reason) {
         String logId = IdGenerator.generateInventoryLogId();
 
-        InventoryLog log = InventoryLog.builder()
+        InventoryLog inventoryLog = InventoryLog.builder()
                 .logId(logId)
                 .productId(inventory.getProductId())
                 .action(action)
@@ -228,8 +274,8 @@ public class InventoryService {
                 .orderId(orderId)
                 .build();
 
-        inventory.addInventoryLog(log);
-        inventoryLogRepository.save(log);
+        inventory.addInventoryLog(inventoryLog);
+        inventoryLogRepository.save(inventoryLog);
 
         log.info("재고 로그 생성 완료 - logId: {}, action: {}, quantity: {}",
                 logId, action, quantity);

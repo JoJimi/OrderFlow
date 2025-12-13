@@ -3,9 +3,6 @@ package org.example.shared.type;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * 재고 액션 타입 Enum
- */
 @Getter
 @RequiredArgsConstructor
 public enum InventoryAction {
@@ -17,9 +14,6 @@ public enum InventoryAction {
     private final String description;
     private final String detail;
 
-    /**
-     * 코드로부터 InventoryAction 찾기
-     */
     public static InventoryAction fromCode(String code) {
         try {
             return InventoryAction.valueOf(code.toUpperCase());
@@ -28,23 +22,14 @@ public enum InventoryAction {
         }
     }
 
-    /**
-     * 보상 트랜잭션 액션인지 확인
-     */
     public boolean isCompensation() {
         return this == RESTORE;
     }
 
-    /**
-     * 재고 감소 액션인지 확인
-     */
     public boolean isDecreasing() {
         return this == RESERVE || this == DEDUCT;
     }
 
-    /**
-     * 재고 증가 액션인지 확인
-     */
     public boolean isIncreasing() {
         return this == RESTORE || this == INCREASE;
     }

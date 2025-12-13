@@ -4,9 +4,6 @@ import org.example.inventory.domain.Inventory;
 
 import java.time.LocalDateTime;
 
-/**
- * 재고 응답 DTO
- */
 public record InventoryResponse(
         String inventoryId,
         String productId,
@@ -26,9 +23,6 @@ public record InventoryResponse(
         );
     }
 
-    /**
-     * 재고 일관성 확인
-     */
     public boolean isConsistent() {
         return totalStock.equals(availableStock + reservedStock);
     }
