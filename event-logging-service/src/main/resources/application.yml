@@ -36,9 +36,11 @@ spring:
       key-serializer: StringSerializer
       value-serializer: JsonSerializer
     consumer:
-      group-id: user-service-group
-      key-deserializer: StringDeserializer
-      value-deserializer: JsonDeserializer
+      group-id: event-logging-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
 
 server:
   port: 8088
@@ -76,6 +78,6 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: logs/user-service.log
+    name: logs/event-logging-service.log
     max-size: 10MB
     max-history: 30
