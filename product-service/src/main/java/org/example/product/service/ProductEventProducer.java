@@ -87,8 +87,8 @@ public class ProductEventProducer {
     }
 
     /**
-     * 동기식 이벤트 발행 (테스트용)
-     * 프로덕션에서는 비동기 방식을 권장합니다.
+     * 동기식 이벤트 발행 (통합 테스트 전용)
+     * ⚠️ 프로덕션에서는 비동기 방식을 권장합니다.
      */
     public void publishEventSync(ProductEvent event) {
         try {
