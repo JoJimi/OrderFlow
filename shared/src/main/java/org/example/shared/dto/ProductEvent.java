@@ -12,7 +12,6 @@ public record ProductEvent(
         String description,
         BigDecimal price,
         String category,
-        Integer count,
         LocalDateTime eventTimestamp,
         String eventId
 ) {
@@ -31,7 +30,6 @@ public record ProductEvent(
                 description,
                 price,
                 category,
-                null,
                 LocalDateTime.now(),
                 generateEventId()
         );
@@ -51,7 +49,6 @@ public record ProductEvent(
                 description,
                 price,
                 category,
-                null,
                 LocalDateTime.now(),
                 generateEventId()
         );
@@ -65,21 +62,6 @@ public record ProductEvent(
                 null,
                 null,
                 null,
-                null,
-                LocalDateTime.now(),
-                generateEventId()
-        );
-    }
-
-    public static ProductEvent bulkCreated(int count) {
-        return new ProductEvent(
-                ProductEventType.PRODUCT_BULK_CREATED,
-                null,
-                null,
-                null,
-                null,
-                null,
-                count,
                 LocalDateTime.now(),
                 generateEventId()
         );

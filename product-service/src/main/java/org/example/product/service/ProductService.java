@@ -227,10 +227,6 @@ public class ProductService {
         long processingTime = System.currentTimeMillis() - startTime;
         int totalCreated = totalCount - (failedBatches * batchSize);
 
-        // Kafka 이벤트 발행
-        ProductEvent event = ProductEvent.bulkCreated(totalCreated);
-        eventProducer.publishProductBulkCreatedEvent(event);
-
         log.info("상품 대량 추가 완료 - 총 생성: {} 개, 소요 시간: {} ms ({} 초)",
                 totalCreated, processingTime, processingTime / 1000.0);
 

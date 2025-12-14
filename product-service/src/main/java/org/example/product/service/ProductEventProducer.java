@@ -42,12 +42,6 @@ public class ProductEventProducer {
         publishEvent(event, "상품 삭제");
     }
 
-    /**
-     * 상품 대량 생성 이벤트 발행
-     */
-    public void publishProductBulkCreatedEvent(ProductEvent event) {
-        publishEvent(event, "상품 대량 생성");
-    }
 
     /**
      * Kafka로 이벤트를 발행하는 공통 메서드

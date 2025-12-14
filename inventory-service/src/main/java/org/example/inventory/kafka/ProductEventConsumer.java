@@ -32,7 +32,6 @@ public class ProductEventConsumer {
 
             switch (event.eventType()) {
                 case PRODUCT_CREATED -> handleProductCreated(event);
-                case PRODUCT_BULK_CREATED -> handleProductBulkCreated(event);
                 case PRODUCT_UPDATED -> handleProductUpdated(event);
                 case PRODUCT_DELETED -> handleProductDeleted(event);
                 default -> log.warn("처리되지 않은 이벤트 타입: {}", event.eventType());
@@ -56,14 +55,6 @@ public class ProductEventConsumer {
         inventoryService.initializeInventory(event);
     }
 
-    /**
-     * ProductBulkCreated 이벤트 처리
-     * 대량 생성된 상품의 재고를 배치로 초기화 (성능 최적화)
-     */
-    private void handleProductBulkCreated(ProductEvent event) {
-        log.info("대량 상품 생성 이벤트 수신 - count: {}", event.count());
-        inventoryService.bulkInitializeInventory(event.count());
-    }
 
     /**
      * ProductUpdated 이벤트 처리
