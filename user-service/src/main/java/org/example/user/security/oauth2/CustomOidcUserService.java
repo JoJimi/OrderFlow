@@ -1,7 +1,7 @@
 package org.example.user.security.oauth2;
 
 import lombok.RequiredArgsConstructor;
-import org.example.shared.type.LoginType;
+import org.example.shared.type.common.LoginType;
 import org.example.user.domain.User;
 import org.example.user.service.OAuth2UserRegistration;
 import org.springframework.security.core.GrantedAuthority;

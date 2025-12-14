@@ -3,8 +3,8 @@ package org.example.payment.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.PaymentMethod;
-import org.example.shared.type.PaymentStatus;
+import org.example.shared.type.payment.PaymentMethod;
+import org.example.shared.type.payment.PaymentStatus;
 
 import java.math.BigDecimal;
 

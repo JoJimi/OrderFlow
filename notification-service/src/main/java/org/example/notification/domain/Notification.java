@@ -3,7 +3,7 @@ package org.example.notification.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.NotificationType;
+import org.example.shared.type.notification.NotificationType;
 
 import java.time.LocalDateTime;
 

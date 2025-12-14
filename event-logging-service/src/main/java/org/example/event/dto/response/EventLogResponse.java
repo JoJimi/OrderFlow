@@ -1,7 +1,7 @@
 package org.example.event.dto.response;
 
 import org.example.event.domain.EventLog;
-import org.example.shared.type.EventStatus;
+import org.example.shared.type.common.EventStatus;
 
 import java.time.LocalDateTime;
 

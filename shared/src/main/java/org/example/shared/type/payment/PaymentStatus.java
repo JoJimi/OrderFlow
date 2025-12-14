@@ -1,4 +1,4 @@
-package org.example.shared.type;
+package org.example.shared.type.payment;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

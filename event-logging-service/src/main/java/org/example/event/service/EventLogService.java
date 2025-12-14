@@ -8,7 +8,7 @@ import org.example.event.domain.EventLog;
 import org.example.event.dto.response.EventLogResponse;
 import org.example.event.repository.EventLogRepository;
 import org.example.shared.dto.OrderEvent;
-import org.example.shared.type.EventStatus;
+import org.example.shared.type.common.EventStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

@@ -6,7 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.example.product.domain.Product;
 import org.example.product.domain.QProduct;
-import org.example.shared.type.CategoryType;
+import org.example.shared.type.product.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;

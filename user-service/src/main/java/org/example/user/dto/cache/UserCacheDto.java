@@ -1,8 +1,8 @@
 package org.example.user.dto.cache;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.example.shared.type.LoginType;
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.LoginType;
+import org.example.shared.type.common.RoleType;
 import org.example.user.domain.User;
 
 import java.io.Serializable;

@@ -8,7 +8,7 @@ import org.example.notification.dto.response.UnreadCountResponse;
 import org.example.notification.repository.NotificationRepository;
 import org.example.shared.exception.notification.InvalidRecipientException;
 import org.example.shared.exception.notification.NotificationSendFailedException;
-import org.example.shared.type.NotificationType;
+import org.example.shared.type.notification.NotificationType;
 import org.example.shared.util.IdGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

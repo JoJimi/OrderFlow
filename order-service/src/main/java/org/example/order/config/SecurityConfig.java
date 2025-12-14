@@ -3,7 +3,7 @@ package org.example.order.config;
 import lombok.RequiredArgsConstructor;
 import org.example.shared.security.config.BaseSecurityConfig;
 import org.example.shared.security.filter.JwtAuthenticationFilter;
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.RoleType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

@@ -2,7 +2,7 @@ package org.example.product.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import org.example.shared.type.CategoryType;
+import org.example.shared.type.product.CategoryType;
 
 import java.math.BigDecimal;
 

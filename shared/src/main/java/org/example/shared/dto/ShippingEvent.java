@@ -1,7 +1,7 @@
 package org.example.shared.dto;
 
-import org.example.shared.type.ShippingEventType;
-import org.example.shared.type.ShippingStatus;
+import org.example.shared.type.shipping.ShippingEventType;
+import org.example.shared.type.shipping.ShippingStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

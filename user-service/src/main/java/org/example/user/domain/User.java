@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.LoginType;
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.LoginType;
+import org.example.shared.type.common.RoleType;
 
 @Slf4j
 @Entity

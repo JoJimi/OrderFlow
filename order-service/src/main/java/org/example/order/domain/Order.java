@@ -3,7 +3,7 @@ package org.example.order.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.OrderStatus;
+import org.example.shared.type.order.OrderStatus;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

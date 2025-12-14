@@ -3,7 +3,7 @@ package org.example.product.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.CategoryType;
+import org.example.shared.type.product.CategoryType;
 import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;

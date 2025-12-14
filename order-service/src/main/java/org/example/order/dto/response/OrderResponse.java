@@ -2,7 +2,7 @@ package org.example.order.dto.response;
 
 import org.example.order.domain.Order;
 import org.example.order.domain.OrderItem;
-import org.example.shared.type.OrderStatus;
+import org.example.shared.type.order.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

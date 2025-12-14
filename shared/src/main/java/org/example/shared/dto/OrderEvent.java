@@ -1,7 +1,7 @@
 package org.example.shared.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.example.shared.type.OrderEventType;
+import org.example.shared.type.order.OrderEventType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

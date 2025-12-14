@@ -1,7 +1,7 @@
 package org.example.product.repository;
 
 import org.example.product.domain.Product;
-import org.example.shared.type.CategoryType;
+import org.example.shared.type.product.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

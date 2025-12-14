@@ -13,7 +13,7 @@ import org.example.product.repository.ProductRepository;
 import org.example.shared.dto.ProductEvent;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
-import org.example.shared.type.CategoryType;
+import org.example.shared.type.product.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

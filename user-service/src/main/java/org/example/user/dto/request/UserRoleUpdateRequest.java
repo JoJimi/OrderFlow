@@ -2,7 +2,7 @@ package org.example.user.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.RoleType;
 
 @Schema(description = "사용자 역할 변경 요청")
 public record UserRoleUpdateRequest(

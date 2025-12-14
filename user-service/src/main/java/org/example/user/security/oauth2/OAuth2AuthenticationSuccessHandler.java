@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.shared.security.jwt.JwtTokenProvider;
-import org.example.shared.type.LoginType;
+import org.example.shared.type.common.LoginType;
 import org.example.user.redis.TokenService;
 import org.example.user.service.OAuth2UserRegistration;
 import org.springframework.beans.factory.annotation.Value;

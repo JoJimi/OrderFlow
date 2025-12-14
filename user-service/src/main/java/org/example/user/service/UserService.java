@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.shared.exception.ErrorCode;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.user.UserNotFoundException;
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.RoleType;
 import org.example.user.domain.User;
 import org.example.user.dto.response.UserResponse;
 import org.example.user.repository.UserRepository;

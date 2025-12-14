@@ -1,8 +1,8 @@
 package org.example.user.repository.adapter;
 
 import lombok.RequiredArgsConstructor;
-import org.example.shared.type.LoginType;
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.LoginType;
+import org.example.shared.type.common.RoleType;
 import org.example.user.domain.User;
 import org.example.user.repository.SpringDataUserRepository;
 import org.example.user.repository.UserRepository;

@@ -3,7 +3,7 @@ package org.example.event.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.EventStatus;
+import org.example.shared.type.common.EventStatus;
 
 @Entity
 @Table(name = "event_logs", indexes = {

@@ -1,7 +1,7 @@
 package org.example.shipping.dto.response;
 
 import org.example.shipping.domain.Shipment;
-import org.example.shared.type.ShippingStatus;
+import org.example.shared.type.shipping.ShippingStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package org.example.shared.type;
+package org.example.shared.type.product;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

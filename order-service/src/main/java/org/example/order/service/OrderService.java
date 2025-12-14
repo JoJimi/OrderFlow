@@ -12,7 +12,7 @@ import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
 import org.example.shared.exception.order.EmptyOrderItemsException;
 import org.example.shared.exception.order.OrderAccessDeniedException;
-import org.example.shared.type.OrderStatus;
+import org.example.shared.type.order.OrderStatus;
 import org.example.shared.util.IdGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

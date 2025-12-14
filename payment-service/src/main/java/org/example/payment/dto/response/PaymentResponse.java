@@ -1,8 +1,8 @@
 package org.example.payment.dto.response;
 
 import org.example.payment.domain.Payment;
-import org.example.shared.type.PaymentMethod;
-import org.example.shared.type.PaymentStatus;
+import org.example.shared.type.payment.PaymentMethod;
+import org.example.shared.type.payment.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

@@ -3,7 +3,7 @@ package org.example.shipping.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.ShippingStatus;
+import org.example.shared.type.shipping.ShippingStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -12,7 +12,7 @@ import org.example.shared.dto.PaymentEvent;
 import org.example.shared.dto.ProductEvent;
 import org.example.shared.exception.inventory.InsufficientStockException;
 import org.example.shared.exception.inventory.InventoryNotFoundException;
-import org.example.shared.type.InventoryAction;
+import org.example.shared.type.inventory.InventoryAction;
 import org.example.shared.util.IdGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

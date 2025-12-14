@@ -1,4 +1,4 @@
-package org.example.shared.type;
+package org.example.shared.type.inventory;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

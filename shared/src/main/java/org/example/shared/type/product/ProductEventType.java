@@ -1,4 +1,4 @@
-package org.example.shared.type;
+package org.example.shared.type.product;
 
 public enum ProductEventType {
     PRODUCT_CREATED,

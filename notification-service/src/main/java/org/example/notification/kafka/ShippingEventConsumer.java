@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.notification.config.KafkaTopics;
 import org.example.notification.service.NotificationService;
 import org.example.shared.dto.ShippingEvent;
-import org.example.shared.type.NotificationType;
+import org.example.shared.type.notification.NotificationType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;

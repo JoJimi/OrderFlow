@@ -1,6 +1,6 @@
 package org.example.shared.dto;
 
-import org.example.shared.type.ProductEventType;
+import org.example.shared.type.product.ProductEventType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

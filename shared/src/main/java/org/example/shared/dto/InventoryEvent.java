@@ -1,7 +1,7 @@
 package org.example.shared.dto;
 
-import org.example.shared.type.InventoryAction;
-import org.example.shared.type.InventoryEventType;
+import org.example.shared.type.inventory.InventoryAction;
+import org.example.shared.type.inventory.InventoryEventType;
 
 import java.time.LocalDateTime;
 

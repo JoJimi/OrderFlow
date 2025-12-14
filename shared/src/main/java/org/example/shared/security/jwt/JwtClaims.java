@@ -1,6 +1,6 @@
 package org.example.shared.security.jwt;
 
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.RoleType;
 
 import java.util.Date;
 

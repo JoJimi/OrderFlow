@@ -1,4 +1,4 @@
-package org.example.shared.type;
+package org.example.shared.type.common;
 
 public enum RoleType {
     ROLE_USER,

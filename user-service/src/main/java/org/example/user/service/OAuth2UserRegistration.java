@@ -2,8 +2,8 @@ package org.example.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.shared.type.LoginType;
-import org.example.shared.type.RoleType;
+import org.example.shared.type.common.LoginType;
+import org.example.shared.type.common.RoleType;
 import org.example.user.domain.User;
 import org.example.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;

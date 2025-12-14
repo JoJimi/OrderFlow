@@ -8,12 +8,10 @@ import org.example.shipping.dto.request.ShippingStartRequest;
 import org.example.shipping.dto.response.ShipmentResponse;
 import org.example.shipping.repository.ShipmentRepository;
 import org.example.shared.dto.PaymentEvent;
-import org.example.shared.type.ShippingStatus;
+import org.example.shared.type.shipping.ShippingStatus;
 import org.example.shared.util.IdGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor

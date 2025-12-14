@@ -3,7 +3,7 @@ package org.example.inventory.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.shared.entity.BaseEntity;
-import org.example.shared.type.InventoryAction;
+import org.example.shared.type.inventory.InventoryAction;
 
 @Entity
 @Table(name = "inventory_logs", indexes = {

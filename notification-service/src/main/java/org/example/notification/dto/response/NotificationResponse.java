@@ -1,7 +1,7 @@
 package org.example.notification.dto.response;
 
 import org.example.notification.domain.Notification;
-import org.example.shared.type.NotificationType;
+import org.example.shared.type.notification.NotificationType;
 
 import java.time.LocalDateTime;
 
