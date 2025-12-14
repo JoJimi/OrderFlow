@@ -13,6 +13,7 @@ import org.example.product.repository.ProductRepository;
 import org.example.shared.dto.ProductEvent;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
+import org.example.shared.exception.product.ProductNotFoundException;
 import org.example.shared.type.product.CategoryType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,7 +77,7 @@ public class ProductService {
 
         // 2. DB에서 조회
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(ProductNotFoundException::new);
 
         ProductResponse response = ProductResponse.from(product);
 
@@ -135,7 +136,7 @@ public class ProductService {
         log.info("상품 수정 - 상품 ID: {}", productId);
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(ProductNotFoundException::new);
 
         // 부분 수정 지원
         product.updateInfo(
@@ -168,7 +169,7 @@ public class ProductService {
         log.info("상품 삭제 - 상품 ID: {}", productId);
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(ProductNotFoundException::new);
 
         product.markAsDeleted(); // BaseEntity의 setDeleted(true) 호출
 

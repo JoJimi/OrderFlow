@@ -20,15 +20,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // 공통 설정 적용
+
         baseSecurityConfig.configureCommonSecurity(http, jwtAuthenticationFilter);
 
-        // EventLogging Service 전용 권한 설정
         return http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()       // 공통 인증 제외 경로
-                        .requestMatchers(HttpMethod.GET, "/api/events").authenticated()       // 전체 조회는 @PreAuthorize로 제어
-                        .requestMatchers(HttpMethod.GET, "/api/events/**").authenticated()    // 주문별 조회
+                        .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/events").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/events/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .build();

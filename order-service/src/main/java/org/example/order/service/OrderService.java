@@ -131,7 +131,6 @@ public class OrderService {
 
         // 주문 취소 (도메인 로직에서 상태 검증)
         order.cancel();
-
         orderRepository.save(order);
 
         // Kafka 이벤트 발행 (보상 트랜잭션)
@@ -163,7 +162,7 @@ public class OrderService {
         return itemRequests.stream()
                 .map(item -> {
                     // TODO: ProductService에서 실제 상품 정보 조회
-                    BigDecimal unitPrice = BigDecimal.valueOf(10000); // 임시 가격
+                    BigDecimal unitPrice = BigDecimal.valueOf(10000);
 
                     String orderItemId = IdGenerator.generateOrderItemId();
 
