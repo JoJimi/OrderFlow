@@ -1,4 +1,4 @@
-package org.example.shared.type;
+package org.example.shared.type.common;
 
 import java.util.Arrays;
 import java.util.Optional;
