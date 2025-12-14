@@ -85,32 +85,4 @@ public class ProductEventProducer {
             );
         }
     }
-
-    /**
-     * 동기식 이벤트 발행 (통합 테스트 전용)
-     * ⚠️ 프로덕션에서는 비동기 방식을 권장합니다.
-     */
-    public void publishEventSync(ProductEvent event) {
-        try {
-            SendResult<String, Object> result = kafkaTemplate.send(
-                    KafkaTopics.PRODUCT_EVENT,
-                    event.productId(),
-                    event
-            ).get();
-
-            log.info("[Kafka] 동기 이벤트 발행 성공 - ProductId: {}, Partition: {}, Offset: {}",
-                    event.productId(),
-                    result.getRecordMetadata().partition(),
-                    result.getRecordMetadata().offset()
-            );
-
-        } catch (Exception e) {
-            log.error("[Kafka] 동기 이벤트 발행 실패 - ProductId: {}, Error: {}",
-                    event.productId(),
-                    e.getMessage(),
-                    e
-            );
-            throw new RuntimeException("Kafka 이벤트 발행 실패", e);
-        }
-    }
 }
