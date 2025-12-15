@@ -18,6 +18,7 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "CMN005", "지원하지 않는 HTTP 메서드입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "CMN006", "접근이 거부되었습니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "CMN007", "요청한 리소스를 찾을 수 없습니다."),
+    EXTERNAL_SERVICE_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "CMN009", "외부 서비스가 일시적으로 사용 불가능합니다."),
 
     // ============================================
     // 인증/인가 에러 (AUTH) - 2000번대

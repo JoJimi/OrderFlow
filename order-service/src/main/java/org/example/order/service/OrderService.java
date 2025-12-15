@@ -2,10 +2,14 @@ package org.example.order.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.order.client.InventoryClient;
+import org.example.order.client.ProductClient;
 import org.example.order.domain.Order;
 import org.example.order.domain.OrderItem;
 import org.example.order.dto.request.OrderCreateRequest;
+import org.example.order.dto.response.InventoryInfoResponse;
 import org.example.order.dto.response.OrderResponse;
+import org.example.order.dto.response.ProductInfoResponse;
 import org.example.order.repository.OrderRepository;
 import org.example.shared.dto.OrderEvent;
 import org.example.shared.exception.BusinessException;
@@ -30,7 +34,8 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderEventProducer eventProducer;
-    // TODO: ProductService와 통신하여 상품 정보 및 가격 조회 (향후 FeignClient 사용)
+    private final ProductClient productClient;
+    private final InventoryClient inventoryClient;
 
     /**
      * 주문 생성
@@ -147,10 +152,24 @@ public class OrderService {
             throw new EmptyOrderItemsException();
         }
 
-        // TODO: 상품 존재 여부 및 재고 확인 (ProductService와 통신)
         for (OrderCreateRequest.OrderItemRequest item : request.items()) {
             if (item.quantity() <= 0) {
                 throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+            }
+
+            // 상품 존재 여부 확인
+            ProductInfoResponse product = productClient.getProduct(item.productId());
+            if (product == null) {
+                throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND,
+                        "상품 ID: " + item.productId());
+            }
+
+            // 재고 확인
+            InventoryInfoResponse inventory = inventoryClient.getInventory(item.productId());
+            if (inventory.availableStock() < item.quantity()) {
+                throw new BusinessException(ErrorCode.INSUFFICIENT_STOCK,
+                        String.format("상품 '%s'의 재고가 부족합니다. 요청: %d, 사용가능: %d",
+                                product.productName(), item.quantity(), inventory.availableStock()));
             }
         }
     }
@@ -161,8 +180,7 @@ public class OrderService {
     private List<OrderItem> createOrderItems(String orderId, List<OrderCreateRequest.OrderItemRequest> itemRequests) {
         return itemRequests.stream()
                 .map(item -> {
-                    // TODO: ProductService에서 실제 상품 정보 조회
-                    BigDecimal unitPrice = BigDecimal.valueOf(10000);
+                    ProductInfoResponse product = productClient.getProduct(item.productId());
 
                     String orderItemId = IdGenerator.generateOrderItemId();
 
@@ -170,7 +188,7 @@ public class OrderService {
                             .orderItemId(orderItemId)
                             .productId(item.productId())
                             .quantity(item.quantity())
-                            .unitPrice(unitPrice)
+                            .unitPrice(product.price())
                             .subtotal(BigDecimal.ZERO)
                             .build();
 

@@ -31,7 +31,10 @@ public record ProductResponse(
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         @Schema(description = "수정 시간", example = "2024-12-10 15:45:00")
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+
+        @Schema(description = "삭제 여부", example = "false")
+        boolean isDelete
 ) {
     public static ProductResponse from(Product product) {
         return new ProductResponse(
@@ -41,7 +44,8 @@ public record ProductResponse(
                 product.getPrice(),
                 product.getCategory(),
                 product.getCreatedAt(),
-                product.getUpdatedAt()
+                product.getUpdatedAt(),
+                product.isDeleted()
         );
     }
 }

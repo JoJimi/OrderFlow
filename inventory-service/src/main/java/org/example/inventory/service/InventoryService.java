@@ -170,7 +170,7 @@ public class InventoryService {
             // 실제로는 PaymentEvent에 orderItems 정보가 필요할 수 있습니다
             // 현재는 orderId로 예약된 재고를 찾아 차감하는 방식으로 구현
 
-            // TODO: 실제 구현에서는 Order Service에서 주문 항목 정보를 함께 전달받아야 합니다
+            // TODO: 실제 구현에서는 "Order Service"에서 주문 항목 정보를 함께 전달받아야 합니다
             // 현재는 간단히 orderId로 로그를 조회하여 처리
 
             log.info("재고 차감 처리 완료 - orderId: {}", event.orderId());
@@ -191,7 +191,7 @@ public class InventoryService {
                 event.orderId(), event.paymentId());
 
         try {
-            // TODO: 실제 구현에서는 Order Service에서 주문 항목 정보를 함께 전달받아야 합니다
+            // TODO: 실제 구현에서는 "Order Service"에서 주문 항목 정보를 함께 전달받아야 합니다
 
             log.info("재고 복구 처리 완료 - orderId: {}", event.orderId());
 

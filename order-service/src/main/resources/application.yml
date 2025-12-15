@@ -41,6 +41,34 @@ spring:
       key-deserializer: StringDeserializer
       value-deserializer: JsonDeserializer
 
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 5000
+          product-service:
+            logger-level: full
+          inventory-service:
+            logger-level: full
+      circuitbreaker:
+        enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      product-service:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      inventory-service:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+
 server:
   port: 8083
   servlet:
