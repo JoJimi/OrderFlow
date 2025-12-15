@@ -3,11 +3,14 @@ package org.example.inventory.kafka;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.inventory.config.KafkaTopics;
+import org.example.inventory.domain.InventoryLog;
 import org.example.inventory.service.InventoryService;
 import org.example.shared.dto.OrderEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * 주문 이벤트 구독자
@@ -59,6 +62,36 @@ public class OrderEventConsumer {
      */
     private void handleOrderCancelled(OrderEvent event) {
         log.info("주문 취소 이벤트 수신 - orderId: {}", event.orderId());
-        // TODO: 주문 취소 시 재고 복구 로직 구현
+
+        try {
+            // orderId로 예약된 재고 로그 조회
+            List<InventoryLog> reservedLogs = inventoryService.findReservedLogs(event.orderId());
+
+            if (reservedLogs.isEmpty()) {
+                log.warn("예약된 재고 로그가 없습니다 - orderId: {}", event.orderId());
+                return;
+            }
+
+            // 재고 복구
+            for (InventoryLog reservedLog : reservedLogs) {
+                String productId = reservedLog.getProductId();
+                Integer quantity = reservedLog.getQuantity();
+
+                inventoryService.restoreInventoryByProductId(
+                        productId,
+                        event.orderId(),
+                        quantity,
+                        "주문 취소로 인한 재고 복구"
+                );
+            }
+
+            log.info("주문 취소로 인한 재고 복구 완료 - orderId: {}, items: {}",
+                    event.orderId(), reservedLogs.size());
+
+        } catch (Exception e) {
+            log.error("주문 취소 재고 복구 중 오류 발생 - orderId: {}", event.orderId(), e);
+            // 주문 취소는 보상 트랜잭션이므로 실패 시 재시도 필요
+            throw new RuntimeException("주문 취소 재고 복구 실패", e);
+        }
     }
 }

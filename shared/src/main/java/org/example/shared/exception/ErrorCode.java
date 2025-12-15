@@ -85,6 +85,7 @@ public enum ErrorCode {
     INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "INV002", "재고가 부족합니다."),
     INVENTORY_LOCK_FAILED(HttpStatus.CONFLICT, "INV003", "재고 잠금에 실패했습니다."),
     NEGATIVE_STOCK_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "INV004", "재고는 음수가 될 수 없습니다."),
+    INVENTORY_RESERVED_CANNOT_DELETE(HttpStatus.CONFLICT, "INV005", "예약된 재고가 있어 삭제할 수 없습니다"),
 
     // ============================================
     // 배송 서비스 에러 (SHIP: Shipping) - 8000번대

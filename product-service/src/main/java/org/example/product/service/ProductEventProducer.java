@@ -10,10 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Product 이벤트 발행 서비스
- * Kafka를 통해 상품 관련 이벤트를 다른 서비스에 전파합니다.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -42,25 +38,33 @@ public class ProductEventProducer {
         publishEvent(event, "상품 삭제");
     }
 
+    /**
+     * 상품 대량 생성 이벤트 발행 ✅ 추가!
+     */
+    public void publishBulkCreatedEvent(int count) {
+        ProductEvent event = ProductEvent.bulkCreated(count);
+        publishEvent(event, "상품 대량 생성");
+    }
 
     /**
      * Kafka로 이벤트를 발행하는 공통 메서드
      */
     private void publishEvent(ProductEvent event, String eventTypeDescription) {
         try {
-            // 비동기로 메시지 전송
+            // 메시지 키: BULK_CREATED는 "bulk", 개별 상품은 productId
+            String messageKey = event.productId() != null ? event.productId() : "bulk";
+
             CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(
                     KafkaTopics.PRODUCT_EVENT,
-                    event.productId(),  // 메시지 키 (파티셔닝에 사용)
-                    event               // 메시지 값
+                    messageKey,  // ✅ 대량 생성은 "bulk" 키 사용
+                    event
             );
 
-            // 전송 성공 콜백
             future.whenComplete((result, ex) -> {
                 if (ex == null) {
                     log.info("[Kafka] {} 이벤트 발행 성공 - ProductId: {}, EventId: {}, Partition: {}, Offset: {}",
                             eventTypeDescription,
-                            event.productId(),
+                            event.productId() != null ? event.productId() : "BULK",
                             event.eventId(),
                             result.getRecordMetadata().partition(),
                             result.getRecordMetadata().offset()
@@ -68,7 +72,7 @@ public class ProductEventProducer {
                 } else {
                     log.error("[Kafka] {} 이벤트 발행 실패 - ProductId: {}, EventId: {}, Error: {}",
                             eventTypeDescription,
-                            event.productId(),
+                            event.productId() != null ? event.productId() : "BULK",
                             event.eventId(),
                             ex.getMessage(),
                             ex
@@ -79,7 +83,7 @@ public class ProductEventProducer {
         } catch (Exception e) {
             log.error("[Kafka] {} 이벤트 발행 중 예외 발생 - ProductId: {}, EventId: {}",
                     eventTypeDescription,
-                    event.productId(),
+                    event.productId() != null ? event.productId() : "BULK",
                     event.eventId(),
                     e
             );

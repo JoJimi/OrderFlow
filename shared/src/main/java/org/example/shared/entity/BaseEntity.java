@@ -24,5 +24,21 @@ public abstract class BaseEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "deleted", nullable = false)
     private boolean deleted = false;    // soft delete 플래그
+
+    /**
+     * 논리 삭제 (Soft Delete)
+     */
+    public void markAsDeleted() {
+        this.deleted = true;
+    }
+
+    public void restore() {
+        this.deleted = false;
+    }
+
+    public boolean isActive() {
+        return !this.deleted;
+    }
 }

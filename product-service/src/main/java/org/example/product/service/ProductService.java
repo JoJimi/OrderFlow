@@ -222,11 +222,17 @@ public class ProductService {
             }
         }
 
+        // 모든 배치 완료 후 대량 생성 이벤트 1번만 발행!
+        int totalCreated = totalCount - (failedBatches * batchSize);
+        if (successfulBatches > 0) {
+            eventProducer.publishBulkCreatedEvent(totalCreated);
+            log.info("상품 대량 생성 이벤트 발행 완료 - count: {}", totalCreated);
+        }
+
         // 캐시 초기화
         cacheService.evictAllProducts();
 
         long processingTime = System.currentTimeMillis() - startTime;
-        int totalCreated = totalCount - (failedBatches * batchSize);
 
         log.info("상품 대량 추가 완료 - 총 생성: {} 개, 소요 시간: {} ms ({} 초)",
                 totalCreated, processingTime, processingTime / 1000.0);
@@ -261,9 +267,6 @@ public class ProductService {
         }
 
         batchInsertRepository.batchInsert(products);
-
-        // 각 상품마다 PRODUCT_CREATED 이벤트 발행 (재고 초기화용)
-        products.forEach(this::publishProductCreatedEvent);
     }
 
     /**

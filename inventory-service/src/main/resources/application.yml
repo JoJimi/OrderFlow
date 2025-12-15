@@ -35,10 +35,22 @@ spring:
     producer:
       key-serializer: StringSerializer
       value-serializer: JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
     consumer:
       group-id: inventory-service-group
       key-deserializer: StringDeserializer
       value-deserializer: JsonDeserializer
+      auto-offset-reset: earliest  # dev: earliest, prod: latest
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.records: 100
+        max.poll.interval.ms: 300000
 
 server:
   port: 8085

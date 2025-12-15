@@ -10,8 +10,10 @@ import org.example.inventory.repository.InventoryRepository;
 import org.example.shared.dto.OrderEvent;
 import org.example.shared.dto.PaymentEvent;
 import org.example.shared.dto.ProductEvent;
+import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.inventory.InsufficientStockException;
 import org.example.shared.exception.inventory.InventoryNotFoundException;
+import org.example.shared.exception.inventory.InventoryReservedCannotDeleteException;
 import org.example.shared.type.inventory.InventoryAction;
 import org.example.shared.util.IdGenerator;
 import org.springframework.stereotype.Service;
@@ -166,14 +168,48 @@ public class InventoryService {
                 event.orderId(), event.paymentId());
 
         try {
-            // 주문 정보를 다시 조회해야 하는 경우를 대비
-            // 실제로는 PaymentEvent에 orderItems 정보가 필요할 수 있습니다
-            // 현재는 orderId로 예약된 재고를 찾아 차감하는 방식으로 구현
+            // 1. orderId로 RESERVE 액션의 로그 조회 (예약된 재고 정보)
+            List<InventoryLog> reservedLogs = inventoryLogRepository
+                    .findByOrderIdAndAction(event.orderId(), InventoryAction.RESERVE);
 
-            // TODO: 실제 구현에서는 "Order Service"에서 주문 항목 정보를 함께 전달받아야 합니다
-            // 현재는 간단히 orderId로 로그를 조회하여 처리
+            if (reservedLogs.isEmpty()) {
+                log.warn("예약된 재고 로그가 없습니다 - orderId: {}", event.orderId());
+                return;
+            }
 
-            log.info("재고 차감 처리 완료 - orderId: {}", event.orderId());
+            // 2. 각 상품별로 재고 차감
+            for (InventoryLog reservedLog : reservedLogs) {
+                String productId = reservedLog.getProductId();
+                Integer quantity = reservedLog.getQuantity();
+
+                Inventory inventory = inventoryRepository.findByProductId(productId)
+                        .orElseThrow(() -> {
+                            log.error("재고 정보가 존재하지 않습니다 - productId: {}", productId);
+                            return new InventoryNotFoundException();
+                        });
+
+                // 재고 차감 (예약 → 실제 차감)
+                inventory.deductStock(quantity);
+                inventoryRepository.save(inventory);
+
+                // 재고 로그 기록
+                createInventoryLog(inventory, event.orderId(), quantity,
+                        InventoryAction.DEDUCT, "결제 완료로 인한 재고 차감");
+
+                // 재고 차감 이벤트 발행
+                eventProducer.publishInventoryDeductedEvent(
+                        inventory.getInventoryId(),
+                        productId,
+                        event.orderId(),
+                        quantity
+                );
+
+                log.info("재고 차감 완료 - productId: {}, quantity: {}, remainingTotal: {}",
+                        productId, quantity, inventory.getTotalStock());
+            }
+
+            log.info("전체 재고 차감 완료 - orderId: {}, items: {}",
+                    event.orderId(), reservedLogs.size());
 
         } catch (Exception e) {
             log.error("재고 차감 중 오류 발생 - orderId: {}", event.orderId(), e);
@@ -187,13 +223,53 @@ public class InventoryService {
      */
     @Transactional
     public void restoreInventory(PaymentEvent event) {
-        log.info("재고 복구 시작 - orderId: {}, paymentId: {}",
-                event.orderId(), event.paymentId());
+        log.info("재고 복구 시작 - orderId: {}, paymentId: {}, reason: {}",
+                event.orderId(), event.paymentId(), event.failureReason());
 
         try {
-            // TODO: 실제 구현에서는 "Order Service"에서 주문 항목 정보를 함께 전달받아야 합니다
+            // 1. orderId로 RESERVE 액션의 로그 조회 (예약된 재고 정보)
+            List<InventoryLog> reservedLogs = inventoryLogRepository
+                    .findByOrderIdAndAction(event.orderId(), InventoryAction.RESERVE);
 
-            log.info("재고 복구 처리 완료 - orderId: {}", event.orderId());
+            if (reservedLogs.isEmpty()) {
+                log.warn("예약된 재고 로그가 없습니다 - orderId: {}", event.orderId());
+                return;
+            }
+
+            // 2. 각 상품별로 재고 복구
+            for (InventoryLog reservedLog : reservedLogs) {
+                String productId = reservedLog.getProductId();
+                Integer quantity = reservedLog.getQuantity();
+
+                Inventory inventory = inventoryRepository.findByProductId(productId)
+                        .orElseThrow(() -> {
+                            log.error("재고 정보가 존재하지 않습니다 - productId: {}", productId);
+                            return new InventoryNotFoundException();
+                        });
+
+                // 재고 복구 (예약 → 사용가능)
+                inventory.restoreStock(quantity);
+                inventoryRepository.save(inventory);
+
+                // 재고 로그 기록
+                createInventoryLog(inventory, event.orderId(), quantity,
+                        InventoryAction.RESTORE,
+                        String.format("결제 실패로 인한 재고 복구 - 사유: %s", event.failureReason()));
+
+                // 재고 복구 이벤트 발행
+                eventProducer.publishInventoryRestoredEvent(
+                        inventory.getInventoryId(),
+                        productId,
+                        event.orderId(),
+                        quantity
+                );
+
+                log.info("재고 복구 완료 - productId: {}, quantity: {}, availableStock: {}",
+                        productId, quantity, inventory.getAvailableStock());
+            }
+
+            log.info("전체 재고 복구 완료 - orderId: {}, items: {}",
+                    event.orderId(), reservedLogs.size());
 
         } catch (Exception e) {
             log.error("재고 복구 중 오류 발생 - orderId: {}", event.orderId(), e);
@@ -256,6 +332,104 @@ public class InventoryService {
         }
 
         log.info("대량 재고 초기화 완료 - count: {}", count);
+    }
+
+    /**
+     * 주문의 예약된 재고 로그 조회
+     */
+    @Transactional(readOnly = true)
+    public List<InventoryLog> findReservedLogs(String orderId) {
+        return inventoryLogRepository.findByOrderIdAndAction(orderId, InventoryAction.RESERVE);
+    }
+
+    /**
+     * 상품별 재고 복구 (주문 취소용)
+     */
+    @Transactional
+    public void restoreInventoryByProductId(String productId, String orderId,
+                                            Integer quantity, String reason) {
+        log.info("재고 복구 - productId: {}, orderId: {}, quantity: {}",
+                productId, orderId, quantity);
+
+        Inventory inventory = inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> {
+                    log.error("재고 정보가 존재하지 않습니다 - productId: {}", productId);
+                    return new InventoryNotFoundException();
+                });
+
+        // 재고 복구
+        inventory.restoreStock(quantity);
+        inventoryRepository.save(inventory);
+
+        // 재고 로그 기록
+        createInventoryLog(inventory, orderId, quantity, InventoryAction.RESTORE, reason);
+
+        // 재고 복구 이벤트 발행
+        eventProducer.publishInventoryRestoredEvent(
+                inventory.getInventoryId(),
+                productId,
+                orderId,
+                quantity
+        );
+
+        log.info("재고 복구 완료 - productId: {}, availableStock: {}",
+                productId, inventory.getAvailableStock());
+    }
+
+    /**
+     * 상품 삭제 시 재고 논리 삭제
+     * ProductDeleted 이벤트 수신 시 호출
+     */
+    @Transactional
+    public void markInventoryAsDeleted(String productId, String reason) {
+        log.info("재고 논리 삭제 시작 - productId: {}", productId);
+
+        try {
+            // 1. 재고 조회
+            Inventory inventory = inventoryRepository.findByProductId(productId)
+                    .orElseThrow(() -> {
+                        log.warn("재고 정보가 존재하지 않습니다 - productId: {}", productId);
+                        return new InventoryNotFoundException();
+                    });
+
+            // 2. 예약된 재고 확인
+            if (inventory.getReservedStock() > 0) {
+                log.error("예약된 재고가 있어 삭제 불가 - productId: {}, reservedStock: {}, availableStock: {}",
+                        productId, inventory.getReservedStock(), inventory.getAvailableStock());
+
+                throw new InventoryReservedCannotDeleteException();
+            }
+
+            // 3. 논리 삭제
+            int totalStock = inventory.getTotalStock();
+            inventory.markAsDeleted();
+            inventoryRepository.save(inventory);
+
+            // 4. 재고 로그 기록
+            createInventoryLog(
+                    inventory,
+                    null,
+                    totalStock,
+                    InventoryAction.DEDUCT,
+                    reason
+            );
+
+            log.info("재고 논리 삭제 완료 - productId: {}, inventoryId: {}, 기존재고: {}",
+                    productId, inventory.getInventoryId(), totalStock);
+
+        } catch (InventoryNotFoundException e) {
+            log.warn("재고 정보가 존재하지 않아 삭제를 건너뜁니다 - productId: {}", productId);
+            throw e;
+
+        } catch (BusinessException e) {
+            log.error("재고 삭제 중 비즈니스 오류 - productId: {}, error: {}",
+                    productId, e.getMessage());
+            throw e;
+
+        } catch (Exception e) {
+            log.error("재고 논리 삭제 중 예상치 못한 오류 - productId: {}", productId, e);
+            throw new RuntimeException("재고 논리 삭제 처리 중 오류 발생", e);
+        }
     }
 
     /**
