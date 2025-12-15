@@ -36,6 +36,8 @@ public class KafkaConfig {
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         config.put(ProducerConfig.ACKS_CONFIG, "all");
         config.put(ProducerConfig.RETRIES_CONFIG, 3);
+        config.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 1000);
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaProducerFactory<>(config);
     }
@@ -57,7 +59,6 @@ public class KafkaConfig {
         config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "org.example.shared.dto");
         config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "org.example.shared.dto.PaymentEvent");
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
@@ -68,6 +69,9 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+
+        factory.setConcurrency(3);
+
         return factory;
     }
 }

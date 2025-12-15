@@ -42,6 +42,7 @@ public class ShippingService {
         Shipment shipment = Shipment.builder()
                 .shipmentId(shipmentId)
                 .orderId(event.orderId())
+                .userId(event.userId())
                 .shippingStatus(ShippingStatus.SHIPPING_PREPARING)
                 .build();
 

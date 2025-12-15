@@ -31,6 +31,9 @@ public class Shipment extends BaseEntity {
     @Column(name = "order_id", nullable = false, unique = true, length = 50)
     private String orderId;
 
+    @Column(name = "user_id", nullable = false, length = 50)
+    private String userId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "shipping_status", nullable = false, length = 30)
     @Builder.Default

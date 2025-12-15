@@ -32,15 +32,17 @@ public class PaymentEventConsumer {
 
             switch (event.eventType()) {
                 case PAYMENT_COMPLETED -> handlePaymentCompleted(event);
-                case PAYMENT_FAILED -> log.info("결제 실패 이벤트 - orderId: {}", event.orderId());
-                default -> log.warn("처리되지 않은 이벤트 타입: {}", event.eventType());
+                case PAYMENT_FAILED -> handlePaymentFailed(event);
+                case PAYMENT_CANCELLED -> handlePaymentCancelled(event); // ✅ 추가
+                default -> log.debug("처리되지 않은 이벤트 타입: {}", event.eventType());
             }
 
             ack.acknowledge();
 
         } catch (Exception e) {
             log.error("결제 이벤트 처리 중 오류 발생 - orderId: {}", event.orderId(), e);
-            // TODO: 재시도 로직 또는 Dead Letter Queue 처리
+
+            ack.acknowledge();
         }
     }
 
@@ -52,5 +54,20 @@ public class PaymentEventConsumer {
                 event.orderId(), event.paymentId());
 
         shippingService.prepareShipping(event);
+    }
+
+    /**
+     * PaymentFailed 이벤트 처리 (로그만)
+     */
+    private void handlePaymentFailed(PaymentEvent event) {
+        log.info("결제 실패 이벤트 - orderId: {}, reason: {}",
+                event.orderId(), event.failureReason());
+    }
+
+    /**
+     * PaymentCancelled 이벤트 처리 (배송 취소)
+     */
+    private void handlePaymentCancelled(PaymentEvent event) {
+        log.info("결제 취소 이벤트 - orderId: {}", event.orderId());
     }
 }

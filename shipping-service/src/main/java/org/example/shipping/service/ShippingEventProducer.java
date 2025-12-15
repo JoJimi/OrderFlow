@@ -36,7 +36,7 @@ public class ShippingEventProducer {
         ShippingEvent event = ShippingEvent.started(
                 shipment.getShipmentId(),
                 shipment.getOrderId(),
-                null,
+                shipment.getUserId(),
                 shipment.getTrackingNumber(),
                 shipment.getCarrier(),
                 shipment.getEstimatedDeliveryDate()
@@ -51,7 +51,7 @@ public class ShippingEventProducer {
         ShippingEvent event = ShippingEvent.completed(
                 shipment.getShipmentId(),
                 shipment.getOrderId(),
-                null,
+                shipment.getUserId(),
                 shipment.getTrackingNumber(),
                 shipment.getActualDeliveryDate()
         );

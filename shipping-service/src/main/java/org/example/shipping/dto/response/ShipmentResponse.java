@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public record ShipmentResponse(
         String shipmentId,
         String orderId,
+        String userId,
         ShippingStatus shippingStatus,
         String trackingNumber,
         String carrier,
@@ -21,6 +22,7 @@ public record ShipmentResponse(
         return new ShipmentResponse(
                 shipment.getShipmentId(),
                 shipment.getOrderId(),
+                shipment.getUserId(),
                 shipment.getShippingStatus(),
                 shipment.getTrackingNumber(),
                 shipment.getCarrier(),
