@@ -34,12 +34,11 @@ public class OrderEventConsumer {
                 case ORDER_CANCELLED -> handleOrderCancelled(event);
                 default -> log.warn("처리되지 않은 이벤트 타입: {}", event.eventType());
             }
-
             ack.acknowledge();
 
         } catch (Exception e) {
             log.error("주문 이벤트 처리 중 오류 발생 - orderId: {}", event.orderId(), e);
-            // TODO: 재시도 로직 또는 Dead Letter Queue 처리
+            ack.acknowledge();
         }
     }
 

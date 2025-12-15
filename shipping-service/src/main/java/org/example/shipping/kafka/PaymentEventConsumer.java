@@ -33,15 +33,13 @@ public class PaymentEventConsumer {
             switch (event.eventType()) {
                 case PAYMENT_COMPLETED -> handlePaymentCompleted(event);
                 case PAYMENT_FAILED -> handlePaymentFailed(event);
-                case PAYMENT_CANCELLED -> handlePaymentCancelled(event); // ✅ 추가
+                case PAYMENT_CANCELLED -> handlePaymentCancelled(event);
                 default -> log.debug("처리되지 않은 이벤트 타입: {}", event.eventType());
             }
-
             ack.acknowledge();
 
         } catch (Exception e) {
             log.error("결제 이벤트 처리 중 오류 발생 - orderId: {}", event.orderId(), e);
-
             ack.acknowledge();
         }
     }
