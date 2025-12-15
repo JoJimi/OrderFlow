@@ -7,8 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum OrderEventType {
     ORDER_CREATED("주문 생성"),
-    ORDER_CANCELLED("주문 취소"),
-    ORDER_STATUS_CHANGED("주문 상태 변경");
+    ORDER_CANCELLED("주문 취소");
 
     private final String description;
 }

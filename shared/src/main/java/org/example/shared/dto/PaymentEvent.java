@@ -1,15 +1,15 @@
 package org.example.shared.dto;
 
+import org.example.shared.type.payment.PaymentEventType;
 import org.example.shared.type.payment.PaymentMethod;
-import org.example.shared.type.payment.PaymentStatus;
+import org.example.shared.util.IdGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public record PaymentEvent(
         String eventId,
-        PaymentStatus eventType,
+        PaymentEventType eventType,
         String paymentId,
         String orderId,
         String userId,
@@ -34,8 +34,8 @@ public record PaymentEvent(
             String transactionId
     ) {
         return new PaymentEvent(
-                UUID.randomUUID().toString(),
-                PaymentStatus.PAYMENT_COMPLETED,
+                IdGenerator.generatePaymentId(),
+                PaymentEventType.PAYMENT_COMPLETED,
                 paymentId,
                 orderId,
                 userId,
@@ -55,8 +55,8 @@ public record PaymentEvent(
             String failureReason
     ) {
         return new PaymentEvent(
-                UUID.randomUUID().toString(),
-                PaymentStatus.PAYMENT_FAILED,
+                IdGenerator.generatePaymentId(),
+                PaymentEventType.PAYMENT_FAILED,
                 paymentId,
                 orderId,
                 userId,
@@ -64,6 +64,26 @@ public record PaymentEvent(
                 null,
                 null,
                 failureReason,
+                LocalDateTime.now()
+        );
+    }
+
+    public static PaymentEvent cancelled(
+            String paymentId,
+            String orderId,
+            String userId,
+            BigDecimal amount
+    ) {
+        return new PaymentEvent(
+                IdGenerator.generatePaymentId(),
+                PaymentEventType.PAYMENT_CANCELLED,
+                paymentId,
+                orderId,
+                userId,
+                amount,
+                null,
+                null,
+                "주문 취소로 인한 결제 취소",
                 LocalDateTime.now()
         );
     }

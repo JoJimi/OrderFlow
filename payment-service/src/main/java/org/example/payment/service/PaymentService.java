@@ -61,6 +61,38 @@ public class PaymentService {
     }
 
     /**
+     * 결제 취소 처리 (OrderCancelled 이벤트 수신 시 호출)
+     */
+    @Transactional
+    public void cancelPayment(String orderId) {
+        log.info("결제 취소 처리 시작 - orderId: {}", orderId);
+
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(PaymentNotFoundException::new);
+
+        // 이미 완료된 결제는 취소 불가
+        if (payment.getPaymentStatus() == PaymentStatus.PAYMENT_COMPLETED) {
+            log.warn("이미 완료된 결제는 취소할 수 없습니다 - orderId: {}, paymentId: {}",
+                    orderId, payment.getPaymentId());
+            // TODO: 환불 프로세스 시작 (향후 구현)
+            return;
+        }
+
+        // PAYMENT_PENDING 또는 PAYMENT_FAILED 상태만 취소 가능
+        if (payment.getPaymentStatus() == PaymentStatus.PAYMENT_PENDING) {
+            payment.fail("주문 취소로 인한 결제 취소");
+            paymentRepository.save(payment);
+
+            eventProducer.publishPaymentCancelledEvent(payment);
+
+            log.info("결제 취소 완료 - orderId: {}, paymentId: {}", orderId, payment.getPaymentId());
+        } else {
+            log.info("이미 실패한 결제 - orderId: {}, status: {}",
+                    orderId, payment.getPaymentStatus());
+        }
+    }
+
+    /**
      * 결제 성공 처리
      */
     private void handlePaymentSuccess(Payment payment, String transactionId) {

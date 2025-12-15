@@ -59,17 +59,4 @@ public record OrderEvent(
                 LocalDateTime.now()
         );
     }
-
-    public static OrderEvent statusChanged(String orderId, String userId, String newStatus) {
-        return new OrderEvent(
-                UUID.randomUUID().toString(),
-                OrderEventType.ORDER_STATUS_CHANGED,
-                orderId,
-                userId,
-                null,
-                null,
-                null,
-                LocalDateTime.now()
-        );
-    }
 }

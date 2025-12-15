@@ -34,7 +34,6 @@ public class OrderEventConsumer {
             switch (event.eventType()) {
                 case ORDER_CREATED -> handleOrderCreated(event);
                 case ORDER_CANCELLED -> handleOrderCancelled(event);
-                case ORDER_STATUS_CHANGED -> handleOrderStatusChanged(event);
                 default -> log.warn("처리되지 않은 이벤트 타입: {}", event.eventType());
             }
 
@@ -85,13 +84,5 @@ public class OrderEventConsumer {
                 NotificationType.ORDER,
                 event.orderId()
         );
-    }
-
-    /**
-     * OrderStatusChanged 이벤트 처리
-     */
-    private void handleOrderStatusChanged(OrderEvent event) {
-        log.info("주문 상태 변경 이벤트 수신 - orderId: {}", event.orderId());
-        // 필요시 알림 생성
     }
 }

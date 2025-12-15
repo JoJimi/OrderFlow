@@ -34,7 +34,21 @@ public class PaymentEventProducer {
                 payment.getTransactionId()
         );
 
-        publishEvent(event);
+        publishEvent(event, "결제 완료");
+    }
+
+    /**
+     * PaymentCancelled 이벤트 발행
+     */
+    public void publishPaymentCancelledEvent(Payment payment) {
+        PaymentEvent event = PaymentEvent.cancelled(
+                payment.getPaymentId(),
+                payment.getOrderId(),
+                payment.getUserId(),
+                payment.getAmount()
+        );
+
+        publishEvent(event, "결제 취소");
     }
 
     /**
@@ -49,23 +63,31 @@ public class PaymentEventProducer {
                 payment.getFailureReason()
         );
 
-        publishEvent(event);
+        publishEvent(event, "결제 실패");
     }
 
     /**
      * Kafka 이벤트 발행
      */
-    private void publishEvent(PaymentEvent event) {
+    private void publishEvent(PaymentEvent event, String eventDescription) {
         CompletableFuture<SendResult<String, Object>> future =
                 kafkaTemplate.send(KafkaTopics.PAYMENT_EVENT, event.orderId(), event);
 
         future.whenComplete((result, ex) -> {
             if (ex == null) {
-                log.info("결제 이벤트 발행 성공 - eventType: {}, paymentId: {}, orderId: {}",
-                        event.eventType(), event.paymentId(), event.orderId());
+                log.info("[Kafka] {} 이벤트 발행 성공 - paymentId: {}, orderId: {}, eventType: {}, partition: {}, offset: {}",
+                        eventDescription,
+                        event.paymentId(),
+                        event.orderId(),
+                        event.eventType(),
+                        result.getRecordMetadata().partition(),
+                        result.getRecordMetadata().offset());
             } else {
-                log.error("결제 이벤트 발행 실패 - eventType: {}, paymentId: {}",
-                        event.eventType(), event.paymentId(), ex);
+                log.error("[Kafka] {} 이벤트 발행 실패 - paymentId: {}, orderId: {}",
+                        eventDescription,
+                        event.paymentId(),
+                        event.orderId(),
+                        ex);
             }
         });
     }
