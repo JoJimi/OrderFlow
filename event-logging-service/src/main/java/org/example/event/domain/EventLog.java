@@ -11,7 +11,7 @@ import org.example.shared.type.common.EventStatus;
         @Index(name = "idx_event_type", columnList = "event_type"),
         @Index(name = "idx_service", columnList = "service"),
         @Index(name = "idx_status", columnList = "status"),
-        @Index(name = "idx_timestamp", columnList = "timestamp")
+        @Index(name = "idx_created_at", columnList = "created_at")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

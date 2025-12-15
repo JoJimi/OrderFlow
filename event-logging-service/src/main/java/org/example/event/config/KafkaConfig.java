@@ -33,6 +33,10 @@ public class KafkaConfig {
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        config.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
+        config.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 10000);
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
+        config.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000);
 
         return new DefaultKafkaConsumerFactory<>(config);
     }
@@ -43,7 +47,7 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
 
         return factory;
     }

@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.event.domain.EventLog;
 import org.example.event.dto.response.EventLogResponse;
 import org.example.event.repository.EventLogRepository;
-import org.example.shared.dto.OrderEvent;
 import org.example.shared.type.common.EventStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,21 +25,21 @@ public class EventLogService {
     private final ObjectMapper objectMapper;
 
     /**
-     * 이벤트 로그 저장
+     * 이벤트 로그 저장 (제네릭)
      */
     @Transactional
-    public EventLog saveEventLog(OrderEvent event, String service) {
+    public <T> EventLog saveEventLog(T event, String eventId, String orderId, String eventType, String service) {
         log.info("이벤트 로그 저장 - EventId: {}, EventType: {}, Service: {}",
-                event.eventId(), event.eventType(), service);
+                eventId, eventType, service);
 
         try {
             // 이벤트 데이터를 JSON 문자열로 변환
             String eventData = objectMapper.writeValueAsString(event);
 
             EventLog eventLog = EventLog.builder()
-                    .eventId(event.eventId())
-                    .orderId(event.orderId())
-                    .eventType(event.eventType().name())
+                    .eventId(eventId)
+                    .orderId(orderId)
+                    .eventType(eventType)
                     .eventData(eventData)
                     .service(service)
                     .status(EventStatus.SUCCESS)
@@ -52,13 +51,13 @@ public class EventLogService {
             return savedLog;
 
         } catch (JsonProcessingException e) {
-            log.error("이벤트 데이터 JSON 변환 실패 - EventId: {}", event.eventId(), e);
+            log.error("이벤트 데이터 JSON 변환 실패 - EventId: {}", eventId, e);
 
             // JSON 변환 실패 시에도 로그는 저장 (데이터는 null)
             EventLog eventLog = EventLog.builder()
-                    .eventId(event.eventId())
-                    .orderId(event.orderId())
-                    .eventType(event.eventType().name())
+                    .eventId(eventId)
+                    .orderId(orderId)
+                    .eventType(eventType)
                     .eventData(null)
                     .service(service)
                     .status(EventStatus.FAILED)
