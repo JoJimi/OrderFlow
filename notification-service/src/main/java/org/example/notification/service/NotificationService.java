@@ -12,6 +12,7 @@ import org.example.shared.type.notification.NotificationType;
 import org.example.shared.util.IdGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,16 +53,17 @@ public class NotificationService {
         // DB 저장
         notificationRepository.save(notification);
 
-        // 알림 전송 (비동기로 처리하는 것이 좋지만 현재는 동기)
-        sendNotification(notification);
+        // 비동기로 알림 전송
+        sendNotificationAsync(notification);
 
         log.info("알림 생성 완료 - notificationId: {}", notificationId);
     }
 
     /**
-     * 알림 전송
+     * 알림 전송 (비동기)
      */
-    private void sendNotification(Notification notification) {
+    @Async
+    protected void sendNotificationAsync(Notification notification) {
         for (NotificationSender sender : notificationSenders) {
             try {
                 sender.send(notification);
@@ -127,20 +129,14 @@ public class NotificationService {
 
     /**
      * 모든 알림 읽음 처리
+     * Bulk Update로 개선
      */
     @Transactional
     public void markAllAsRead(String userId) {
         log.info("모든 알림 읽음 처리 - userId: {}", userId);
 
-        Page<Notification> unreadNotifications = notificationRepository
-                .findByUserIdAndIsRead(userId, false, Pageable.unpaged());
+        int updatedCount = notificationRepository.markAllAsReadByUserId(userId);
 
-        unreadNotifications.forEach(notification -> {
-            notification.markAsRead();
-            notificationRepository.save(notification);
-        });
-
-        log.info("모든 알림 읽음 처리 완료 - userId: {}, count: {}",
-                userId, unreadNotifications.getTotalElements());
+        log.info("모든 알림 읽음 처리 완료 - userId: {}, count: {}", userId, updatedCount);
     }
 }

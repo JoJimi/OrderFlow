@@ -4,6 +4,7 @@ import org.example.notification.domain.Notification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,4 +18,8 @@ public interface SpringDataNotificationRepository extends JpaRepository<Notifica
 
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.isRead = false AND n.deleted = false")
     long countUnreadByUserId(@Param("userId") String userId);
+
+    @Modifying
+    @Query("UPDATE Notification n SET n.isRead = true, n.readAt = CURRENT_TIMESTAMP WHERE n.userId = :userId AND n.isRead = false AND n.deleted = false")
+    int markAllAsReadByUserId(@Param("userId") String userId);
 }

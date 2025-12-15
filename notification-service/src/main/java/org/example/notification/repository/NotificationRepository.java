@@ -12,4 +12,5 @@ public interface NotificationRepository {
     Page<Notification> findByUserId(String userId, Pageable pageable);
     Page<Notification> findByUserIdAndIsRead(String userId, boolean isRead, Pageable pageable);
     long countUnreadByUserId(String userId);
+    int markAllAsReadByUserId(String userId);
 }

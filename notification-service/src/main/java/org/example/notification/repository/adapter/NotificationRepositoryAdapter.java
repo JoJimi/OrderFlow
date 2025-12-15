@@ -40,4 +40,9 @@ public class NotificationRepositoryAdapter implements NotificationRepository {
     public long countUnreadByUserId(String userId) {
         return jpaRepository.countUnreadByUserId(userId);
     }
+
+    @Override
+    public int markAllAsReadByUserId(String userId) {
+        return jpaRepository.markAllAsReadByUserId(userId);
+    }
 }

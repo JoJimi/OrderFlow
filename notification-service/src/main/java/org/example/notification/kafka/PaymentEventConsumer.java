@@ -40,8 +40,9 @@ public class PaymentEventConsumer {
             ack.acknowledge();
 
         } catch (Exception e) {
-            log.error("결제 이벤트 처리 중 오류 발생 - orderId: {}", event.orderId(), e);
-            // TODO: 재시도 로직 또는 Dead Letter Queue 처리
+            log.error("결제 이벤트 처리 중 오류 발생 - eventType: {}, orderId: {}, eventId: {}",
+                    event.eventType(), event.orderId(), event.eventId(), e);
+            ack.acknowledge();
         }
     }
 
