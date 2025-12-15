@@ -75,7 +75,7 @@ public class IdGenerator {
      * 이벤트 로그 ID 생성
      * @return EVENT-01HQVX3K7N9XQJ5Y8W2S4P 형식
      */
-    public static String generateEventLogId() {
+    public static String generateEventId() {
         return "EVENT-" + ulid.nextULID();
     }
 

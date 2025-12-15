@@ -2,10 +2,12 @@ package org.example.shared.dto;
 
 import org.example.shared.type.inventory.InventoryAction;
 import org.example.shared.type.inventory.InventoryEventType;
+import org.example.shared.util.IdGenerator;
 
 import java.time.LocalDateTime;
 
 public record InventoryEvent(
+        String eventId,
         String inventoryId,
         String productId,
         String orderId,
@@ -25,6 +27,7 @@ public record InventoryEvent(
             Integer quantity
     ) {
         return new InventoryEvent(
+                IdGenerator.generateEventId(),
                 inventoryId,
                 productId,
                 orderId,
@@ -43,6 +46,7 @@ public record InventoryEvent(
             Integer availableStock
     ) {
         return new InventoryEvent(
+                IdGenerator.generateEventId(),
                 null,
                 productId,
                 orderId,
@@ -61,6 +65,7 @@ public record InventoryEvent(
             Integer quantity
     ) {
         return new InventoryEvent(
+                IdGenerator.generateEventId(),
                 inventoryId,
                 productId,
                 orderId,
@@ -79,6 +84,7 @@ public record InventoryEvent(
             Integer quantity
     ) {
         return new InventoryEvent(
+                IdGenerator.generateEventId(),
                 inventoryId,
                 productId,
                 orderId,

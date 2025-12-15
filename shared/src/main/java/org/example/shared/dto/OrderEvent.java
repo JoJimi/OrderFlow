@@ -2,11 +2,11 @@ package org.example.shared.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.example.shared.type.order.OrderEventType;
+import org.example.shared.util.IdGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OrderEvent(
@@ -36,7 +36,7 @@ public record OrderEvent(
     public static OrderEvent created(String orderId, String userId, BigDecimal totalPrice,
                                      List<OrderItemInfo> items, ShippingInfo shippingInfo) {
         return new OrderEvent(
-                UUID.randomUUID().toString(),
+                IdGenerator.generateEventId(),
                 OrderEventType.ORDER_CREATED,
                 orderId,
                 userId,
@@ -49,7 +49,7 @@ public record OrderEvent(
 
     public static OrderEvent cancelled(String orderId, String userId) {
         return new OrderEvent(
-                UUID.randomUUID().toString(),
+                IdGenerator.generateEventId(),
                 OrderEventType.ORDER_CANCELLED,
                 orderId,
                 userId,

@@ -34,7 +34,7 @@ public record PaymentEvent(
             String transactionId
     ) {
         return new PaymentEvent(
-                IdGenerator.generatePaymentId(),
+                IdGenerator.generateEventId(),
                 PaymentEventType.PAYMENT_COMPLETED,
                 paymentId,
                 orderId,
@@ -55,7 +55,7 @@ public record PaymentEvent(
             String failureReason
     ) {
         return new PaymentEvent(
-                IdGenerator.generatePaymentId(),
+                IdGenerator.generateEventId(),
                 PaymentEventType.PAYMENT_FAILED,
                 paymentId,
                 orderId,
@@ -75,7 +75,7 @@ public record PaymentEvent(
             BigDecimal amount
     ) {
         return new PaymentEvent(
-                IdGenerator.generatePaymentId(),
+                IdGenerator.generateEventId(),
                 PaymentEventType.PAYMENT_CANCELLED,
                 paymentId,
                 orderId,

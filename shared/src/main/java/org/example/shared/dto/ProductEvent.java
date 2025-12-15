@@ -1,19 +1,20 @@
 package org.example.shared.dto;
 
 import org.example.shared.type.product.ProductEventType;
+import org.example.shared.util.IdGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record ProductEvent(
+        String eventId,
         ProductEventType eventType,
         String productId,
         String productName,
         String description,
         BigDecimal price,
         String category,
-        LocalDateTime eventTimestamp,
-        String eventId
+        LocalDateTime eventTimestamp
 ) {
 
     public static ProductEvent created(
@@ -24,14 +25,14 @@ public record ProductEvent(
             String category
     ) {
         return new ProductEvent(
+                IdGenerator.generateEventId(),
                 ProductEventType.PRODUCT_CREATED,
                 productId,
                 productName,
                 description,
                 price,
                 category,
-                LocalDateTime.now(),
-                generateEventId()
+                LocalDateTime.now()
         );
     }
 
@@ -43,31 +44,27 @@ public record ProductEvent(
             String category
     ) {
         return new ProductEvent(
+                IdGenerator.generateEventId(),
                 ProductEventType.PRODUCT_UPDATED,
                 productId,
                 productName,
                 description,
                 price,
                 category,
-                LocalDateTime.now(),
-                generateEventId()
+                LocalDateTime.now()
         );
     }
 
     public static ProductEvent deleted(String productId) {
         return new ProductEvent(
+                IdGenerator.generateEventId(),
                 ProductEventType.PRODUCT_DELETED,
                 productId,
                 null,
                 null,
                 null,
                 null,
-                LocalDateTime.now(),
-                generateEventId()
+                LocalDateTime.now()
         );
-    }
-
-    private static String generateEventId() {
-        return java.util.UUID.randomUUID().toString();
     }
 }

@@ -2,11 +2,13 @@ package org.example.shared.dto;
 
 import org.example.shared.type.shipping.ShippingEventType;
 import org.example.shared.type.shipping.ShippingStatus;
+import org.example.shared.util.IdGenerator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record ShippingEvent(
+        String eventId,
         String shipmentId,
         String orderId,
         String userId,
@@ -24,6 +26,7 @@ public record ShippingEvent(
             String userId
     ) {
         return new ShippingEvent(
+                IdGenerator.generateEventId(),
                 shipmentId,
                 orderId,
                 userId,
@@ -46,6 +49,7 @@ public record ShippingEvent(
             LocalDate estimatedDeliveryDate
     ) {
         return new ShippingEvent(
+                IdGenerator.generateEventId(),
                 shipmentId,
                 orderId,
                 userId,
@@ -67,6 +71,7 @@ public record ShippingEvent(
             LocalDateTime actualDeliveryDate
     ) {
         return new ShippingEvent(
+                IdGenerator.generateEventId(),
                 shipmentId,
                 orderId,
                 userId,
