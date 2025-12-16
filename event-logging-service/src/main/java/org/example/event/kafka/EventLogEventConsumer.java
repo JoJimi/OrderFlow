@@ -1,9 +1,10 @@
-package org.example.event.service;
+package org.example.event.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.event.service.EventLogService;
 import org.example.shared.dto.InventoryEvent;
 import org.example.shared.dto.OrderEvent;
 import org.example.shared.dto.PaymentEvent;
