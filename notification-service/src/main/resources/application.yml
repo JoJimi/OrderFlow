@@ -32,13 +32,8 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-    producer:
-      key-serializer: StringSerializer
-      value-serializer: JsonSerializer
     consumer:
       group-id: notification-service-group
-      key-deserializer: StringDeserializer
-      value-deserializer: JsonDeserializer
 
 server:
   port: 8087
