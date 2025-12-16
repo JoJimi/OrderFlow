@@ -46,9 +46,8 @@ public class Notification extends BaseEntity {
     private LocalDateTime readAt;
 
     public void markAsRead() {
-        if (this.isRead) {
-            return; // 이미 읽음 처리됨
-        }
+        if (this.isRead) return;
+
         this.isRead = true;
         this.readAt = LocalDateTime.now();
     }
