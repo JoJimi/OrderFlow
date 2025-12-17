@@ -39,7 +39,7 @@ public class ProductEventProducer {
     }
 
     /**
-     * 상품 대량 생성 이벤트 발행 ✅ 추가!
+     * 상품 대량 생성 이벤트 발행
      */
     public void publishBulkCreatedEvent(int count) {
         ProductEvent event = ProductEvent.bulkCreated(count);
@@ -56,7 +56,7 @@ public class ProductEventProducer {
 
             CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(
                     KafkaTopics.PRODUCT_EVENT,
-                    messageKey,  // ✅ 대량 생성은 "bulk" 키 사용
+                    messageKey,
                     event
             );
 

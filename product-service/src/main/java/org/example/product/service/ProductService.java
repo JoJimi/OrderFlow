@@ -265,7 +265,6 @@ public class ProductService {
                     .build();
             products.add(product);
         }
-
         batchInsertRepository.batchInsert(products);
     }
 

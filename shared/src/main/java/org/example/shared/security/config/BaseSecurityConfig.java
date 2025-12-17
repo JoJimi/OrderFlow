@@ -2,12 +2,12 @@ package org.example.shared.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.shared.security.filter.JwtAuthenticationFilter;
 import org.example.shared.security.handler.JwtAccessDeniedHandler;
 import org.example.shared.security.handler.JwtAuthenticationEntryPoint;
 import org.example.shared.security.jwt.JwtTokenValidator;
 import org.example.shared.security.service.TokenBlacklistChecker;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +27,12 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 모든 마이크로서비스에서 공통으로 사용하는 Base Security 설정
  */
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -58,19 +60,25 @@ public class BaseSecurityConfig {
 
     /**
      * JwtAuthenticationFilter 빈 생성
-     * - TokenBlacklistChecker: 선택적 (user-service만 사용)
-     * - UserDetailsLoader: 선택적 (user-service만 사용)
+     * - Optional을 사용하여 선택적 의존성 처리
+     * - TokenBlacklistChecker: user-service만 제공
+     * - UserDetailsService: user-service만 제공
      */
     @Bean
     @ConditionalOnMissingBean
     public JwtAuthenticationFilter jwtAuthenticationFilter(
-            @Autowired(required = false) TokenBlacklistChecker blacklistChecker,
-            @Autowired(required = false) UserDetailsService userDetailsService) {
+            Optional<TokenBlacklistChecker> blacklistChecker,
+            Optional<UserDetailsService> userDetailsService) {
+
+        log.info("🔧 JwtAuthenticationFilter 빈 생성");
+        log.info("  - TokenBlacklistChecker: {}", blacklistChecker.isPresent() ? "있음" : "없음");
+        log.info("  - UserDetailsService: {}", userDetailsService.isPresent() ? "있음" : "없음");
+
         return new JwtAuthenticationFilter(
                 jwtTokenValidator,
-                blacklistChecker,
+                blacklistChecker.orElse(null),
                 objectMapper,
-                userDetailsService
+                userDetailsService.orElse(null)
         );
     }
 
@@ -103,16 +111,16 @@ public class BaseSecurityConfig {
      */
     public void configureCommonSecurity(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(CsrfConfigurer::disable)
-            .httpBasic(HttpBasicConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 세션 비활성화 (JWT 사용)
-            .securityContext(context -> context.securityContextRepository(nullSecurityContextRepository())) // SecurityContext를 세션에 저장하지 않음
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(x -> {
-                x.authenticationEntryPoint(jwtAuthenticationEntryPoint);
-                x.accessDeniedHandler(jwtAccessDeniedHandler);
-            });
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(CsrfConfigurer::disable)
+                .httpBasic(HttpBasicConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .securityContext(context -> context.securityContextRepository(nullSecurityContextRepository()))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(x -> {
+                    x.authenticationEntryPoint(jwtAuthenticationEntryPoint);
+                    x.accessDeniedHandler(jwtAccessDeniedHandler);
+                });
     }
 }

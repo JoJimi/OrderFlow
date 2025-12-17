@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.inventory.domain.Inventory;
 import org.example.inventory.domain.InventoryLog;
 import org.example.inventory.dto.response.InventoryResponse;
+import org.example.inventory.repository.InventoryBatchInsertRepository;
 import org.example.inventory.repository.InventoryLogRepository;
 import org.example.inventory.repository.InventoryRepository;
 import org.example.shared.dto.OrderEvent;
@@ -17,6 +18,7 @@ import org.example.shared.exception.inventory.InventoryReservedCannotDeleteExcep
 import org.example.shared.type.inventory.InventoryAction;
 import org.example.shared.util.IdGenerator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryLogRepository inventoryLogRepository;
     private final InventoryEventProducer eventProducer;
+    private final InventoryBatchInsertRepository batchInsertRepository;
 
     /**
      * 상품 생성 시 재고 초기화
@@ -67,6 +70,82 @@ public class InventoryService {
 
         log.info("재고 초기화 완료 - productId: {}, inventoryId: {}, stock: {}",
                 event.productId(), inventoryId, defaultStock);
+    }
+
+    /**
+     * 대량 초기화 메서드 - JDBC Batch 사용 (고성능)
+     */
+    @Transactional
+    public void bulkInitializeInventory(int count) {
+        log.info("대량 재고 초기화 시작 (JDBC Batch) - count: {}", count);
+
+        long startTime = System.currentTimeMillis();
+
+        int batchSize = 1000;
+        int totalBatches = (int) Math.ceil((double) count / batchSize);
+        int successfulBatches = 0;
+        int failedBatches = 0;
+        List<Integer> failedBatchNumbers = new ArrayList<>();
+
+        for (int batchNum = 0; batchNum < totalBatches; batchNum++) {
+            int startIdx = batchNum * batchSize;
+            int endIdx = Math.min(startIdx + batchSize, count);
+
+            try {
+                saveBatchWithJdbc(startIdx, endIdx);
+                successfulBatches++;
+
+                if ((batchNum + 1) % 10 == 0) {
+                    log.info("진행 상황: {} / {} 배치 완료 ({} %)",
+                            batchNum + 1, totalBatches,
+                            (int)((batchNum + 1) * 100.0 / totalBatches));
+                }
+
+            } catch (Exception e) {
+                log.error("배치 {} 저장 실패", batchNum + 1, e);
+                failedBatches++;
+                failedBatchNumbers.add(batchNum + 1);
+            }
+        }
+
+        long processingTime = System.currentTimeMillis() - startTime;
+
+        int totalCreated = count - (failedBatches * batchSize);
+        log.info("대량 재고 초기화 완료 - 총 생성: {} 개, 소요 시간: {} ms ({} 초), " +
+                        "성공: {} 배치, 실패: {} 배치",
+                totalCreated, processingTime, processingTime / 1000.0,
+                successfulBatches, failedBatches);
+
+        if (failedBatches > 0) {
+            log.warn("실패한 배치 번호: {}", failedBatchNumbers);
+        }
+    }
+
+    /**
+     * JDBC Batch로 배치 저장 (독립 트랜잭션)
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveBatchWithJdbc(int startIdx, int endIdx) {
+        List<Inventory> inventories = new ArrayList<>(endIdx - startIdx);
+        int defaultStock = 100;
+
+        for (int i = startIdx; i < endIdx; i++) {
+            String productId = "SEED-1-" + String.format("%06d", i + 1);
+
+            String inventoryId = IdGenerator.generateInventoryId();
+            Inventory inventory = Inventory.builder()
+                    .inventoryId(inventoryId)
+                    .productId(productId)
+                    .totalStock(defaultStock)
+                    .reservedStock(0)
+                    .availableStock(defaultStock)
+                    .build();
+
+            inventories.add(inventory);
+        }
+
+        // JDBC Batch Insert 실행
+        batchInsertRepository.batchInsert(inventories);
     }
 
     /**
@@ -288,50 +367,6 @@ public class InventoryService {
                 .orElseThrow(InventoryNotFoundException::new);
 
         return InventoryResponse.from(inventory);
-    }
-
-    /**
-     * 대량 초기화 메서드 추가
-     */
-    @Transactional
-    public void bulkInitializeInventory(int count) {
-        log.info("대량 재고 초기화 시작 - count: {}", count);
-
-        List<Inventory> inventories = new ArrayList<>();
-        int defaultStock = 100;
-
-        for (int i = 1; i <= count; i++) {
-            String productId = "SEED-1-" + String.format("%06d", i);
-
-            // 이미 존재하면 스킵
-            if (inventoryRepository.existsByProductId(productId)) {
-                continue;
-            }
-
-            String inventoryId = IdGenerator.generateInventoryId();
-            Inventory inventory = Inventory.builder()
-                    .inventoryId(inventoryId)
-                    .productId(productId)
-                    .totalStock(defaultStock)
-                    .reservedStock(0)
-                    .availableStock(defaultStock)
-                    .build();
-
-            inventories.add(inventory);
-
-            // 1000개씩 배치로 저장 (메모리 관리)
-            if (inventories.size() >= 1000) {
-                inventoryRepository.saveAll(inventories);
-                inventories.clear();
-            }
-        }
-
-        // 남은 것들 저장
-        if (!inventories.isEmpty()) {
-            inventoryRepository.saveAll(inventories);
-        }
-
-        log.info("대량 재고 초기화 완료 - count: {}", count);
     }
 
     /**

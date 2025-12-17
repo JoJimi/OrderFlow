@@ -28,7 +28,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다 (USER)")
+    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다")
     public ResponseEntity<OrderResponse> createOrder(
             @CurrentUser SecurityUser securityUser,
             @Valid @RequestBody OrderCreateRequest request
@@ -54,7 +54,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    @Operation(summary = "주문 상세 조회", description = "특정 주문의 상세 정보를 조회합니다 (USER)")
+    @Operation(summary = "주문 상세 조회", description = "특정 주문의 상세 정보를 조회합니다")
     public ResponseEntity<OrderResponse> getOrder(
             @CurrentUser SecurityUser securityUser,
             @PathVariable String orderId

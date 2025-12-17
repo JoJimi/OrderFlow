@@ -39,7 +39,6 @@ public class ProductEventConsumer {
                 case PRODUCT_BULK_CREATED -> handleProductBulkCreated(event);
                 default -> log.warn("처리되지 않은 이벤트 타입: {}", event.eventType());
             }
-
             ack.acknowledge();
 
         } catch (Exception e) {
@@ -91,7 +90,7 @@ public class ProductEventConsumer {
     }
 
     /**
-     * ProductDeleted 이벤트 처리 → 재고 논리 삭제 ✅
+     * ProductDeleted 이벤트 처리 → 재고 논리 삭제
      */
     private void handleProductDeleted(ProductEvent event) {
         log.info("상품 삭제 이벤트 처리 시작 - productId: {}", event.productId());

@@ -34,6 +34,16 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer:
       group-id: inventory-service-group
+      auto-offset-reset: latest
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /static/**
+
+  web:
+    resources:
+      add-mappings: true
+      static-locations: classpath:/static/
 
 server:
   port: 8085
