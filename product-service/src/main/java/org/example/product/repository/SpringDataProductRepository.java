@@ -13,14 +13,14 @@ import java.util.Optional;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, String> {
 
-    Page<Product> findByIsDeletedFalse(Pageable pageable);
+    Page<Product> findByDeletedFalse(Pageable pageable);
 
-    Page<Product> findByIsDeletedFalseAndCategory(CategoryType category, Pageable pageable);
+    Page<Product> findByDeletedFalseAndCategory(CategoryType category, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.deleted = false AND p.productName LIKE %:keyword%")
     Page<Product> searchByProductName(@Param("keyword") String keyword, Pageable pageable);
 
-    Optional<Product> findByProductIdAndIsDeletedFalse(String productId);
+    Optional<Product> findByProductIdAndDeletedFalse(String productId);
 
     @Query("SELECT COUNT(p) FROM Product p WHERE p.deleted = false AND p.category = :category")
     long countByCategory(@Param("category") CategoryType category);

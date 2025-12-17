@@ -43,6 +43,12 @@ server:
       enabled: true
   shutdown: graceful
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration:
+    accessToken: 900000
+    refreshToken: 604800000
+
 eureka:
   client:
     register-with-eureka: true

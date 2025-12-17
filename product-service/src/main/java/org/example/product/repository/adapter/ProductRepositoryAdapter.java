@@ -20,17 +20,17 @@ public class ProductRepositoryAdapter implements ProductRepository {
 
     @Override
     public Optional<Product> findById(String productId) {
-        return springDataProductRepository.findByProductIdAndIsDeletedFalse(productId);
+        return springDataProductRepository.findByProductIdAndDeletedFalse(productId);
     }
 
     @Override
     public Page<Product> findAll(Pageable pageable) {
-        return springDataProductRepository.findByIsDeletedFalse(pageable);
+        return springDataProductRepository.findByDeletedFalse(pageable);
     }
 
     @Override
     public Page<Product> findByCategory(CategoryType category, Pageable pageable) {
-        return springDataProductRepository.findByIsDeletedFalseAndCategory(category, pageable);
+        return springDataProductRepository.findByDeletedFalseAndCategory(category, pageable);
     }
 
     @Override
