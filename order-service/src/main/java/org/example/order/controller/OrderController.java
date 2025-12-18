@@ -10,6 +10,7 @@ import org.example.order.dto.response.OrderResponse;
 import org.example.order.service.OrderService;
 import org.example.shared.security.annotation.CurrentUser;
 import org.example.shared.security.userdetails.SecurityUser;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,7 +42,7 @@ public class OrderController {
     @Operation(summary = "주문 목록 조회", description = "사용자 본인의 주문 목록을 조회합니다 (USER) / 전체 주문 목록 조회 (ADMIN)")
     public ResponseEntity<Page<OrderResponse>> getOrders(
             @CurrentUser SecurityUser securityUser,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<OrderResponse> orders;
         if ("ROLE_ADMIN".equals(securityUser.getRole())) {

@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
         fallbackFactory = ProductClientFallbackFactory.class
 )
 public interface ProductClient {
-    @GetMapping("api/products/{productId}")
+    @GetMapping("/api/products/{productId}")
     ProductInfoResponse getProduct(@PathVariable("productId") String productId);
 }

@@ -14,8 +14,10 @@ import org.example.order.repository.OrderRepository;
 import org.example.shared.dto.OrderEvent;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
+import org.example.shared.exception.inventory.InsufficientStockException;
 import org.example.shared.exception.order.EmptyOrderItemsException;
 import org.example.shared.exception.order.OrderAccessDeniedException;
+import org.example.shared.exception.product.ProductNotFoundException;
 import org.example.shared.type.order.OrderStatus;
 import org.example.shared.util.IdGenerator;
 import org.springframework.data.domain.Page;
@@ -160,16 +162,14 @@ public class OrderService {
             // 상품 존재 여부 확인
             ProductInfoResponse product = productClient.getProduct(item.productId());
             if (product == null) {
-                throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND,
-                        "상품 ID: " + item.productId());
+                throw new ProductNotFoundException();
             }
 
             // 재고 확인
             InventoryInfoResponse inventory = inventoryClient.getInventory(item.productId());
             if (inventory.availableStock() < item.quantity()) {
-                throw new BusinessException(ErrorCode.INSUFFICIENT_STOCK,
-                        String.format("상품 '%s'의 재고가 부족합니다. 요청: %d, 사용가능: %d",
-                                product.productName(), item.quantity(), inventory.availableStock()));
+                throw new InsufficientStockException(String.format("상품 '%s'의 재고가 부족합니다. 요청: %d, 사용가능: %d",
+                        product.productName(), item.quantity(), inventory.availableStock()));
             }
         }
     }

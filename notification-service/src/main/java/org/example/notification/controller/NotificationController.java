@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -109,6 +110,7 @@ public class NotificationController {
     }
 
     @GetMapping("/connection-status")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "SSE 연결 상태", description = "현재 서버의 SSE 연결 수를 반환합니다 (ADMIN)")
     public ResponseEntity<Map<String, Object>> getConnectionStatus() {
         Map<String, Object> status = Map.of(

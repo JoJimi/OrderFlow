@@ -2,21 +2,18 @@ package org.example.shipping.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.example.shared.security.config.BaseSecurityConfig;
 import org.example.shared.security.filter.JwtAuthenticationFilter;
 import org.example.shared.security.jwt.JwtTokenValidator;
+import org.example.shared.type.common.RoleType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Slf4j
 @Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -24,33 +21,35 @@ public class SecurityConfig {
     private final JwtTokenValidator jwtTokenValidator;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Shipping-Service 전용 JwtAuthenticationFilter
-     * BaseSecurityConfig의 빈 생성을 우회하고 명시적으로 null 주입
-     */
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        log.info("🔧 Shipping-Service: JwtAuthenticationFilter 생성 (UserDetailsService=null, TokenBlacklistChecker=null)");
-
-        return new JwtAuthenticationFilter(
-                jwtTokenValidator,
-                null,  // TokenBlacklistChecker - User Service만 사용
-                objectMapper,
-                null   // UserDetailsService - User Service만 사용
-        );
+        return new JwtAuthenticationFilter(jwtTokenValidator, null, objectMapper, null);
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Profile("dev")     // 개발 환경
+    public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
         baseSecurityConfig.configureCommonSecurity(http, jwtAuthenticationFilter());
 
         return http
                 .authorizeHttpRequests(auth -> auth
-                        // 공통 인증 제외 경로 (Swagger, Actuator)
                         .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()
-                        // 배송 관련 모든 API는 인증 필요
-                        .requestMatchers("/api/shipping/**").authenticated()
-                        // 나머지는 인증 필요
+                        .requestMatchers("/api/shipments/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .build();
+    }
+
+    @Bean
+    @Profile("prod")    // 운영 환경
+    public SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
+        baseSecurityConfig.configureCommonSecurity(http, jwtAuthenticationFilter());
+
+        return http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(BaseSecurityConfig.COMMON_ALLOWLIST).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/shipments/**").permitAll()               // 조회만 허용
+                        .requestMatchers("/api/shipments/**").hasAuthority(RoleType.ROLE_ADMIN.name())  // 변경은 관리자만
                         .anyRequest().authenticated()
                 )
                 .build();
