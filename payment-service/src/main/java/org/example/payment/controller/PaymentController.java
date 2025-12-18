@@ -9,6 +9,7 @@ import org.example.payment.dto.response.PaymentResponse;
 import org.example.payment.service.PaymentService;
 import org.example.shared.security.annotation.CurrentUser;
 import org.example.shared.security.userdetails.SecurityUser;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -40,7 +41,7 @@ public class PaymentController {
     @Operation(summary = "결제 목록 조회", description = "사용자 본인의 결제 목록을 조회합니다 (USER) / 전체 결제 목록 조회 (ADMIN)")
     public ResponseEntity<Page<PaymentResponse>> getPayments(
             @CurrentUser SecurityUser securityUser,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<PaymentResponse> payments;
         if ("ROLE_ADMIN".equals(securityUser.getRole())) {

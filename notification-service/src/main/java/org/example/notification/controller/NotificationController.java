@@ -11,6 +11,7 @@ import org.example.notification.service.NotificationService;
 import org.example.notification.service.sse.SseEmitterService;
 import org.example.shared.security.annotation.CurrentUser;
 import org.example.shared.security.userdetails.SecurityUser;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,7 +39,7 @@ public class NotificationController {
     @Operation(summary = "알림 목록 조회", description = "사용자 본인의 알림 목록을 조회합니다 (USER)")
     public ResponseEntity<Page<NotificationResponse>> getNotifications(
             @CurrentUser SecurityUser securityUser,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         log.info("알림 목록 조회 요청 - userId: {}", securityUser.getUserId());
 
@@ -52,7 +53,7 @@ public class NotificationController {
     @Operation(summary = "안읽은 알림 목록 조회", description = "사용자 본인의 안읽은 알림만 조회합니다 (USER)")
     public ResponseEntity<Page<NotificationResponse>> getUnreadNotifications(
             @CurrentUser SecurityUser securityUser,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @ParameterObject  @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         log.info("안읽은 알림 목록 조회 요청 - userId: {}", securityUser.getUserId());
 
@@ -110,7 +111,7 @@ public class NotificationController {
     }
 
     @GetMapping("/connection-status")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "SSE 연결 상태", description = "현재 서버의 SSE 연결 수를 반환합니다 (ADMIN)")
     public ResponseEntity<Map<String, Object>> getConnectionStatus() {
         Map<String, Object> status = Map.of(

@@ -66,7 +66,7 @@ public class ProductController {
     @Operation(summary = "상품 상세 조회", description = "상품 ID로 상세 정보를 조회합니다")
     @GetMapping("/{productId}")
     public ResponseEntity<ProductResponse> getProduct(
-            @Parameter(description = "상품 ID", example = "PROD-12345")
+            @Parameter(description = "상품 ID", example = "SEED-1-000001")
             @PathVariable String productId
     ) {
         return ResponseEntity.ok(productService.getProduct(productId));
@@ -75,12 +75,9 @@ public class ProductController {
     @Operation(summary = "상품 검색", description = "상품명으로 상품을 검색합니다")
     @GetMapping("/search")
     public ResponseEntity<Page<ProductResponse>> searchProducts(
-            @Parameter(description = "검색 키워드", example = "스마트폰")
-            @RequestParam String keyword,
-            @Parameter(description = "페이지 번호", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기", example = "20")
-            @RequestParam(defaultValue = "20") int size
+            @Parameter(description = "검색 키워드", example = "스마트폰") @RequestParam String keyword,
+            @Parameter(description = "페이지 번호", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "20") @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(productService.searchProducts(keyword, pageable));
@@ -100,8 +97,7 @@ public class ProductController {
     @PutMapping("/{productId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> updateProduct(
-            @Parameter(description = "상품 ID", example = "PROD-12345")
-            @PathVariable String productId,
+            @Parameter(description = "상품 ID", example = "SEED-1-000001") @PathVariable String productId,
             @Valid @RequestBody ProductUpdateRequest request
     ) {
         return ResponseEntity.ok(productService.updateProduct(productId, request));
@@ -111,8 +107,7 @@ public class ProductController {
     @DeleteMapping("/{productId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(
-            @Parameter(description = "상품 ID", example = "PROD-12345")
-            @PathVariable String productId
+            @Parameter(description = "상품 ID", example = "SEED-1-000001") @PathVariable String productId
     ) {
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
