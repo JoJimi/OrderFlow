@@ -67,7 +67,8 @@ public class KafkaConfig {
         config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "org.example.shared.dto");
         config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-
+        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "org.example.shared.dto.OrderEvent");
+        
         return new DefaultKafkaConsumerFactory<>(config);
     }
 

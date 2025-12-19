@@ -85,7 +85,6 @@ public class ProductController {
 
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다 (관리자 전용)")
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(
             @Valid @RequestBody ProductCreateRequest request
     ) {
@@ -95,7 +94,6 @@ public class ProductController {
 
     @Operation(summary = "상품 수정", description = "상품 정보를 수정합니다 (관리자 전용)")
     @PutMapping("/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> updateProduct(
             @Parameter(description = "상품 ID", example = "SEED-1-000001") @PathVariable String productId,
             @Valid @RequestBody ProductUpdateRequest request
@@ -105,7 +103,6 @@ public class ProductController {
 
     @Operation(summary = "상품 삭제", description = "상품을 삭제합니다 (논리 삭제, 관리자 전용)")
     @DeleteMapping("/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(
             @Parameter(description = "상품 ID", example = "SEED-1-000001") @PathVariable String productId
     ) {

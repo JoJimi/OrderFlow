@@ -26,6 +26,22 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+    @PostMapping("/{orderId}/start")
+    @Operation(
+            summary = "결제 시작",
+            description = "PAYMENT_PENDING 상태의 결제를 실제로 실행합니다 (80% 성공 / 20% 실패)"
+    )
+    public ResponseEntity<PaymentResponse> startPayment(
+            @CurrentUser SecurityUser securityUser,
+            @PathVariable String orderId
+    ) {
+        log.info("결제 시작 API 호출 - orderId: {}, userId: {}", orderId, securityUser.getUserId());
+
+        PaymentResponse response = paymentService.startPayment(orderId, securityUser.getUserId());
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{orderId}")
     @Operation(summary = "주문별 결제 조회", description = "특정 주문의 결제 정보를 조회합니다 (USER)")
     public ResponseEntity<PaymentResponse> getPaymentByOrderId(

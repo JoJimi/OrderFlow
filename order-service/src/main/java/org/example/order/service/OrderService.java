@@ -17,6 +17,7 @@ import org.example.shared.exception.ErrorCode;
 import org.example.shared.exception.inventory.InsufficientStockException;
 import org.example.shared.exception.order.EmptyOrderItemsException;
 import org.example.shared.exception.order.OrderAccessDeniedException;
+import org.example.shared.exception.order.OrderNotFoundException;
 import org.example.shared.exception.product.ProductNotFoundException;
 import org.example.shared.type.order.OrderStatus;
 import org.example.shared.util.IdGenerator;
@@ -129,7 +130,7 @@ public class OrderService {
         log.info("주문 취소 - 주문 ID: {}, 사용자 ID: {}", orderId, userId);
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+                .orElseThrow(OrderNotFoundException::new);
 
         // 본인 주문인지 확인
         if (!order.getUserId().equals(userId)) {

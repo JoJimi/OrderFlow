@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
         name = "inventory-service",
+        url = "http://localhost:8085",
         fallbackFactory = InventoryClientFallbackFactory.class
 )
 public interface InventoryClient {

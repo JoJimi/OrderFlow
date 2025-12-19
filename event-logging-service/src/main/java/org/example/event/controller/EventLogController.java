@@ -28,7 +28,6 @@ public class EventLogController {
     private final EventLogService eventLogService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "전체 이벤트 로그 조회", description = "모든 이벤트 로그를 조회합니다 (ADMIN)")
     public ResponseEntity<Page<EventLogResponse>> getAllEventLogs(
             @ParameterObject @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
@@ -57,7 +56,6 @@ public class EventLogController {
     }
 
     @GetMapping("/search/by-event-type")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "이벤트 타입별 조회", description = "특정 타입의 이벤트 로그를 조회합니다 (ADMIN)")
     public ResponseEntity<Page<EventLogResponse>> getEventLogsByEventType(
             @Parameter(description = "이벤트 타입 (예: OrderCreated, PaymentCompleted)")
@@ -69,7 +67,6 @@ public class EventLogController {
     }
 
     @GetMapping("/search/by-service")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "서비스별 조회", description = "특정 서비스에서 발생한 이벤트 로그를 조회합니다 (ADMIN)")
     public ResponseEntity<Page<EventLogResponse>> getEventLogsByService(
             @Parameter(description = "서비스 이름 (예: order-service, payment-service)")

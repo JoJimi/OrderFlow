@@ -484,7 +484,6 @@ public class InventoryService {
                 .build();
 
         inventory.addInventoryLog(inventoryLog);
-        inventoryLogRepository.save(inventoryLog);
 
         log.info("재고 로그 생성 완료 - logId: {}, action: {}, quantity: {}",
                 logId, action, quantity);

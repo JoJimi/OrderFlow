@@ -24,7 +24,7 @@ public class OrderEventConsumer {
     @KafkaListener(
             topics = KafkaTopics.ORDER_EVENT,
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "orderEventListenerFactory"
     )
     public void consumeOrderEvent(OrderEvent event, Acknowledgment ack) {
         try {

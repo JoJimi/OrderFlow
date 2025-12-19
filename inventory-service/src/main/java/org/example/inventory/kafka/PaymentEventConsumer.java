@@ -24,7 +24,7 @@ public class PaymentEventConsumer {
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_EVENT,
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "paymentEventListenerFactory"
     )
     public void consumePaymentEvent(PaymentEvent event, Acknowledgment ack) {
         try {
@@ -36,12 +36,11 @@ public class PaymentEventConsumer {
                 case PAYMENT_FAILED -> handlePaymentFailed(event);
                 default -> log.warn("처리되지 않은 이벤트 타입: {}", event.eventType());
             }
-
             ack.acknowledge();
 
         } catch (Exception e) {
             log.error("결제 이벤트 처리 중 오류 발생 - orderId: {}", event.orderId(), e);
-            // TODO: 재시도 로직 또는 Dead Letter Queue 처리
+            ack.acknowledge();
         }
     }
 

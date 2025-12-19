@@ -25,7 +25,7 @@ public class ProductEventConsumer {
     @KafkaListener(
             topics = KafkaTopics.PRODUCT_EVENT,
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "productEventListenerFactory"
     )
     public void consumeProductEvent(ProductEvent event, Acknowledgment ack) {
         try {
@@ -43,7 +43,6 @@ public class ProductEventConsumer {
 
         } catch (Exception e) {
             log.error("상품 이벤트 처리 중 오류 발생 - productId: {}", event.productId(), e);
-
             ack.acknowledge();
         }
     }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.payment.domain.Payment;
 import org.example.payment.dto.response.PaymentResponse;
 import org.example.payment.repository.PaymentRepository;
+import org.example.shared.exception.payment.PaymentAlreadyCompletedException;
 import org.example.shared.exception.payment.PaymentNotFoundException;
 import org.example.shared.type.payment.PaymentMethod;
 import org.example.shared.type.payment.PaymentStatus;
@@ -26,11 +27,12 @@ public class PaymentService {
     private final PaymentEventProducer eventProducer;
 
     /**
-     * 결제 처리 (OrderCreated 이벤트 수신 시 호출)
+     * 결제 레코드 생성 (OrderCreated 이벤트 수신 시 호출)
+     * - 결제를 실행하지 않고 PAYMENT_PENDING 상태로만 저장
      */
     @Transactional
-    public void processPayment(String orderId, String userId, BigDecimal amount) {
-        log.info("결제 처리 시작 - orderId: {}, userId: {}, amount: {}", orderId, userId, amount);
+    public void createPaymentRecord(String orderId, String userId, BigDecimal amount) {
+        log.info("결제 레코드 생성 - orderId: {}, userId: {}, amount: {}", orderId, userId, amount);
 
         // 1. 결제 ID 생성
         String paymentId = IdGenerator.generatePaymentId();
@@ -46,18 +48,56 @@ public class PaymentService {
                 .build();
 
         // 3. DB 저장
-        Payment savedPayment = paymentRepository.save(payment);
-        log.info("결제 요청 저장 완료 - paymentId: {}, status: PAYMENT_PENDING", paymentId);
+        paymentRepository.save(payment);
+        log.info("결제 레코드 생성 완료 - paymentId: {}, status: PAYMENT_PENDING", paymentId);
+    }
+
+    /**
+     * 결제 시작 API (사용자가 수동으로 호출)
+     * - PAYMENT_PENDING 상태의 결제를 실제로 실행
+     */
+    @Transactional
+    public PaymentResponse startPayment(String orderId, String userId) {
+        log.info("결제 시작 요청 - orderId: {}, userId: {}", orderId, userId);
+
+        // 1. 결제 정보 조회
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(PaymentNotFoundException::new);
+
+        // 2. 본인 확인
+        if (!payment.getUserId().equals(userId)) {
+            log.warn("결제 권한 없음 - orderId: {}, requestUserId: {}, paymentUserId: {}",
+                    orderId, userId, payment.getUserId());
+            throw new PaymentNotFoundException();
+        }
+
+        // 3. 결제 상태 확인 (PAYMENT_PENDING만 결제 가능)
+        if (payment.getPaymentStatus() != PaymentStatus.PAYMENT_PENDING) {
+            log.warn("이미 처리된 결제 - orderId: {}, status: {}", orderId, payment.getPaymentStatus());
+            throw new PaymentAlreadyCompletedException();
+        }
 
         // 4. 외부 결제 API 호출 (시뮬레이션)
-        PaymentProcessor.PaymentResult result = paymentProcessor.process(orderId, amount);
+        log.info("외부 결제 처리 시작 - paymentId: {}, amount: {}",
+                payment.getPaymentId(), payment.getAmount());
+
+        PaymentProcessor.PaymentResult result = paymentProcessor.process(
+                payment.getOrderId(),
+                payment.getAmount()
+        );
 
         // 5. 결제 결과에 따른 처리
         if (result.success()) {
-            handlePaymentSuccess(savedPayment, result.transactionId());
+            handlePaymentSuccess(payment, result.transactionId());
         } else {
-            handlePaymentFailure(savedPayment, result.failureReason());
+            handlePaymentFailure(payment, result.failureReason());
         }
+
+        // 6. 업데이트된 결제 정보 반환
+        Payment updatedPayment = paymentRepository.findById(payment.getPaymentId())
+                .orElseThrow(PaymentNotFoundException::new);
+
+        return PaymentResponse.from(updatedPayment);
     }
 
     /**

@@ -21,7 +21,6 @@ public class InventoryController {
     private final InventoryService inventoryService;
 
     @GetMapping("/{productId}")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "재고 조회", description = "특정 상품의 재고 정보를 조회합니다 (ADMIN)")
     public ResponseEntity<InventoryResponse> getInventory(@PathVariable String productId) {
         log.info("재고 조회 요청 - productId: {}", productId);

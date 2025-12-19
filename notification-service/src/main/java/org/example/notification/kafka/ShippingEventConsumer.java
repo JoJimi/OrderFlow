@@ -24,7 +24,7 @@ public class ShippingEventConsumer {
     @KafkaListener(
             topics = KafkaTopics.SHIPPING_EVENT,
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "shippingEventListenerFactory"
     )
     public void consumeShippingEvent(ShippingEvent event, Acknowledgment ack) {
         try {

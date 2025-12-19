@@ -24,7 +24,7 @@ public class PaymentEventConsumer {
     @KafkaListener(
             topics = KafkaTopics.PAYMENT_EVENT,
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "paymentEventListenerFactory"
     )
     public void consumePaymentEvent(PaymentEvent event, Acknowledgment ack) {
         try {

@@ -64,21 +64,21 @@ spring:
 resilience4j:
   circuitbreaker:
     instances:
-      product-service:
+      ProductClient:
         sliding-window-size: 10
         minimum-number-of-calls: 5
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
-      inventory-service:
+      InventoryClient:
         sliding-window-size: 10
         minimum-number-of-calls: 5
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
   timelimiter:
     instances:
-      product-service:
+      ProductClient:
         timeout-duration: 15s
-      inventory-service:
+      InventoryClient:
         timeout-duration: 15s
 
 server:

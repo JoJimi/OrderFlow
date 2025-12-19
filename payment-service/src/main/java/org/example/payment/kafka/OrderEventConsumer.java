@@ -49,11 +49,13 @@ public class OrderEventConsumer {
         log.info("주문 생성 이벤트 처리 - orderId: {}, userId: {}, totalPrice: {}",
                 event.orderId(), event.userId(), event.totalPrice());
 
-        paymentService.processPayment(
+        paymentService.createPaymentRecord(
                 event.orderId(),
                 event.userId(),
                 event.totalPrice()
         );
+
+        log.info("결제 레코드 생성 완료 - orderId: {} (결제 대기 중)", event.orderId());
     }
 
     /**

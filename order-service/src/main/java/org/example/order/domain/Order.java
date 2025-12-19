@@ -71,7 +71,7 @@ public class Order extends BaseEntity {
     }
 
     public boolean isCancellable() {
-        return this.orderStatus == OrderStatus.ORDER_CREATED;
+        return (this.orderStatus == OrderStatus.ORDER_CREATED || this.orderStatus == OrderStatus.PAYMENT_PENDING);
     }
 
     public void cancel() {

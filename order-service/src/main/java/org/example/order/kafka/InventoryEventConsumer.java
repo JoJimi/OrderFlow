@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.order.domain.Order;
 import org.example.order.repository.OrderRepository;
 import org.example.shared.dto.InventoryEvent;
-import org.example.shared.exception.BusinessException;
-import org.example.shared.exception.ErrorCode;
 import org.example.shared.exception.order.OrderNotFoundException;
 import org.example.shared.type.order.OrderStatus;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,7 +22,7 @@ public class InventoryEventConsumer {
     @KafkaListener(
             topics = "inventory-event",
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            containerFactory = "inventoryEventListenerFactory"
     )
     @Transactional
     public void consumeInventoryEvent(InventoryEvent event, Acknowledgment ack) {
@@ -79,15 +77,27 @@ public class InventoryEventConsumer {
      * 재고 차감 완료 (결제 완료 후)
      */
     private void handleInventoryDeducted(InventoryEvent event) {
+        Order order = orderRepository.findById(event.orderId())
+                .orElseThrow(OrderNotFoundException::new);
+
+        order.updateStatus(OrderStatus.PAYMENT_COMPLETED);
+        orderRepository.save(order);
+
         log.info("재고 차감 완료 - orderId: {}, productId: {}, quantity: {}, action: {}",
-                event.orderId(), event.productId(), event.quantity(), event.action());        // 필요시 추가 로직
+                event.orderId(), event.productId(), event.quantity(), event.action());
     }
 
     /**
      * 재고 복구 완료 (결제 실패 후)
      */
     private void handleInventoryRestored(InventoryEvent event) {
+        Order order = orderRepository.findById(event.orderId())
+                .orElseThrow(OrderNotFoundException::new);
+
+        order.updateStatus(OrderStatus.PAYMENT_FAILED);
+        orderRepository.save(order);
+
         log.info("재고 복구 완료 - orderId: {}, productId: {}, quantity: {}, reason: {}",
-                event.orderId(), event.productId(), event.quantity(), event.reason());        // 필요시 추가 로직
+                event.orderId(), event.productId(), event.quantity(), event.reason());
     }
 }
