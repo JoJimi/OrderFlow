@@ -37,22 +37,22 @@ public class FallbackController {
         return createFallbackResponse("Payment Service");
     }
 
-    @GetMapping("/inventory-service")  // ← 추가
+    @GetMapping("/inventory-service")
     public ResponseEntity<Map<String, Object>> inventoryServiceFallback() {
         return createFallbackResponse("Inventory Service");
     }
 
-    @GetMapping("/shipping-service")  // ← 추가
+    @GetMapping("/shipping-service")
     public ResponseEntity<Map<String, Object>> shippingServiceFallback() {
         return createFallbackResponse("Shipping Service");
     }
 
-    @GetMapping("/notification-service")  // ← 추가
+    @GetMapping("/notification-service")
     public ResponseEntity<Map<String, Object>> notificationServiceFallback() {
         return createFallbackResponse("Notification Service");
     }
 
-    @GetMapping("/event-logging-service")  // ← 추가
+    @GetMapping("/event-logging-service")
     public ResponseEntity<Map<String, Object>> eventLoggingServiceFallback() {
         return createFallbackResponse("Event Logging Service");
     }

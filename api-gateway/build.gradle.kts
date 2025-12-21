@@ -14,14 +14,3 @@ dependencies {
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
     mainClass.set("org.example.api.ApiGatewayApplication")
 }
-
-// Spring Cloud 버전 관리 추가
-ext {
-    set("springCloudVersion", "2023.0.3")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
-    }
-}
