@@ -52,11 +52,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         // 5. DB에 사용자 등록 또는 업데이트
         User user = registration.registerOrUpdate(
-                loginType,
-                providerId,
-                kakaoInfo.email(),
-                kakaoInfo.nickname()
-        );
+                loginType, providerId, kakaoInfo.email(), kakaoInfo.nickname());
 
         // 6. 권한 부여
         List<GrantedAuthority> authorities = List.of(

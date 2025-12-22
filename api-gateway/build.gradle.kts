@@ -12,5 +12,5 @@ dependencies {
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
-    mainClass.set("org.example.api.ApiGatewayApplication")
+    mainClass.set("org.example.gateway.ApiGatewayApplication")
 }

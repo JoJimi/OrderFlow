@@ -39,12 +39,12 @@ spring:
 
       routes:
         # User Service
-        - id: user-service
+        - id: user-service-swagger
           uri: lb://user-service
           predicates:
-            - Path=/api/v1/users/**
+            - Path=/user-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: userCircuitBreaker
@@ -54,21 +54,13 @@ spring:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
 
-        # User Service Swagger API Docs
-        - id: user-service-swagger
-          uri: lb://user-service
-          predicates:
-            - Path=/api/v1/users/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/users/v3/api-docs, /v3/api-docs
-
         # Product Service
-        - id: product-service
+        - id: product-service-swagger
           uri: lb://product-service
           predicates:
-            - Path=/api/v1/products/**
+            - Path=/product-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: productCircuitBreaker
@@ -78,21 +70,13 @@ spring:
                 redis-rate-limiter.replenishRate: 20
                 redis-rate-limiter.burstCapacity: 40
 
-        # Product Service Swagger API Docs
-        - id: product-service-swagger
-          uri: lb://product-service
-          predicates:
-            - Path=/api/v1/products/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/products/v3/api-docs, /v3/api-docs
-
         # Order Service
-        - id: order-service
+        - id: order-service-swagger
           uri: lb://order-service
           predicates:
-            - Path=/api/v1/orders/**
+            - Path=/order-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: orderCircuitBreaker
@@ -102,21 +86,13 @@ spring:
                 redis-rate-limiter.replenishRate: 15
                 redis-rate-limiter.burstCapacity: 30
 
-        # Order Service Swagger API Docs
-        - id: order-service-swagger
-          uri: lb://order-service
-          predicates:
-            - Path=/api/v1/orders/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/orders/v3/api-docs, /v3/api-docs
-
         # Payment Service
-        - id: payment-service
+        - id: payment-service-swagger
           uri: lb://payment-service
           predicates:
-            - Path=/api/v1/payments/**
+            - Path=/payment-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: paymentCircuitBreaker
@@ -126,21 +102,13 @@ spring:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
 
-        # Payment Service Swagger API Docs
-        - id: payment-service-swagger
-          uri: lb://payment-service
-          predicates:
-            - Path=/api/v1/payments/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/payments/v3/api-docs, /v3/api-docs
-
         # Inventory Service
-        - id: inventory-service
+        - id: inventory-service-swagger
           uri: lb://inventory-service
           predicates:
-            - Path=/api/v1/inventory/**
+            - Path=/inventory-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: inventoryCircuitBreaker
@@ -150,21 +118,13 @@ spring:
                 redis-rate-limiter.replenishRate: 15
                 redis-rate-limiter.burstCapacity: 30
 
-        # Inventory Service Swagger API Docs
-        - id: inventory-service-swagger
-          uri: lb://inventory-service
-          predicates:
-            - Path=/api/v1/inventory/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/inventory/v3/api-docs, /v3/api-docs
-
         # Shipping Service
-        - id: shipping-service
+        - id: shipping-service-swagger
           uri: lb://shipping-service
           predicates:
-            - Path=/api/v1/shipping/**
+            - Path=/shipping-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: shippingCircuitBreaker
@@ -174,21 +134,13 @@ spring:
                 redis-rate-limiter.replenishRate: 10
                 redis-rate-limiter.burstCapacity: 20
 
-        # Shipping Service Swagger API Docs
-        - id: shipping-service-swagger
-          uri: lb://shipping-service
-          predicates:
-            - Path=/api/v1/shipping/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/shipping/v3/api-docs, /v3/api-docs
-
         # Notification Service
-        - id: notification-service
+        - id: notification-service-swagger
           uri: lb://notification-service
           predicates:
-            - Path=/api/v1/notifications/**
+            - Path=/notification-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: notificationCircuitBreaker
@@ -198,21 +150,13 @@ spring:
                 redis-rate-limiter.replenishRate: 20
                 redis-rate-limiter.burstCapacity: 40
 
-        # Notification Service Swagger API Docs
-        - id: notification-service-swagger
-          uri: lb://notification-service
-          predicates:
-            - Path=/api/v1/notifications/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/notifications/v3/api-docs, /v3/api-docs
-
         # Event Logging Service
-        - id: event-logging-service
+        - id: event-logging-service-swagger
           uri: lb://event-logging-service
           predicates:
-            - Path=/api/v1/events/**
+            - Path=/event-logging-service/v3/api-docs
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: eventLoggingCircuitBreaker
@@ -221,14 +165,6 @@ spring:
               args:
                 redis-rate-limiter.replenishRate: 30
                 redis-rate-limiter.burstCapacity: 60
-
-        # Event Logging Service Swagger API Docs
-        - id: event-logging-service-swagger
-          uri: lb://event-logging-service
-          predicates:
-            - Path=/api/v1/events/v3/api-docs/**
-          filters:
-            - RewritePath=/api/v1/events/v3/api-docs, /v3/api-docs
 
       default-filters:
         - name: Retry
@@ -242,26 +178,28 @@ spring:
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+    display-request-duration: true
     urls:
       - name: user-service
-        url: /api/v1/users/v3/api-docs
+        url: /user-service/v3/api-docs
       - name: product-service
-        url: /api/v1/products/v3/api-docs
+        url: /product-service/v3/api-docs
       - name: order-service
-        url: /api/v1/orders/v3/api-docs
+        url: /order-service/v3/api-docs
       - name: payment-service
-        url: /api/v1/payments/v3/api-docs
+        url: /payment-service/v3/api-docs
       - name: inventory-service
-        url: /api/v1/inventory/v3/api-docs
+        url: /inventory-service/v3/api-docs
       - name: shipping-service
-        url: /api/v1/shipping/v3/api-docs
+        url: /shipping-service/v3/api-docs
       - name: notification-service
-        url: /api/v1/notifications/v3/api-docs
+        url: /notification-service/v3/api-docs
       - name: event-logging-service
-        url: /api/v1/events/v3/api-docs
+        url: /event-logging-service/v3/api-docs
 
 server:
   port: 8080
