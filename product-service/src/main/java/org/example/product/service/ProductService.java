@@ -11,8 +11,6 @@ import org.example.product.dto.response.ProductResponse;
 import org.example.product.repository.ProductBatchInsertRepository;
 import org.example.product.repository.ProductRepository;
 import org.example.shared.dto.ProductEvent;
-import org.example.shared.exception.BusinessException;
-import org.example.shared.exception.ErrorCode;
 import org.example.shared.exception.product.ProductNotFoundException;
 import org.example.shared.type.product.CategoryType;
 import org.springframework.data.domain.Page;
