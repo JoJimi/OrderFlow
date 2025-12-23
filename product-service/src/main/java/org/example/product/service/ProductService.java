@@ -69,16 +69,18 @@ public class ProductService {
         log.info("상품 상세 조회 - 상품 ID: {}", productId);
 
         // 1. 캐시에서 조회
+        long startTime = System.currentTimeMillis();
         ProductResponse cachedProduct = cacheService.getProductFromCache(productId);
         if (cachedProduct != null) {
-            log.debug("캐시에서 상품 조회 성공 - 상품 ID: {}", productId);
+            log.info("[Cache HIT] ID: {}, 소요시간: {}ms", productId, System.currentTimeMillis() - startTime);
             return cachedProduct;
         }
 
         // 2. DB에서 조회
+        startTime = System.currentTimeMillis();
         Product product = productRepository.findById(productId)
                 .orElseThrow(ProductNotFoundException::new);
-
+        log.info("[Cache MISS] ID: {}, 소요시간: {}ms", productId, System.currentTimeMillis() - startTime);
         ProductResponse response = ProductResponse.from(product);
 
         // 3. 캐시에 저장

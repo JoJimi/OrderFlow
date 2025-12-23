@@ -45,12 +45,7 @@ public class ProductCacheService {
             String key = PRODUCT_CACHE_PREFIX + productId;
             String value = redisTemplate.opsForValue().get(key);
 
-            if (value == null) {
-                log.debug("캐시 미스: {}", productId);
-                return null;
-            }
-
-            log.debug("캐시 히트: {}", productId);
+            if (value == null) return null;
             return objectMapper.readValue(value, ProductResponse.class);
         } catch (JsonProcessingException e) {
             log.error("상품 캐시 조회 중 JSON 변환 실패: {}", productId, e);

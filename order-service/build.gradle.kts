@@ -4,6 +4,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {

@@ -48,15 +48,14 @@ spring:
     openfeign:
       client:
         config:
-          default:
-            connect-timeout: 5000
-            read-timeout: 10000
           product-service:
             logger-level: full
-            read-timeout: 15000
+            read-timeout: 3000
+            connect-timeout: 1000
           inventory-service:
             logger-level: full
-            read-timeout: 15000
+            read-timeout: 3000
+            connect-timeout: 1000
       circuitbreaker:
         enabled: true
 
@@ -76,9 +75,17 @@ resilience4j:
   timelimiter:
     instances:
       ProductClient:
-        timeout-duration: 15s
+        timeout-duration: 3s
       InventoryClient:
-        timeout-duration: 15s
+        timeout-duration: 3s
+  bulkhead:
+    instances:
+      ProductClient:
+        max-concurrent-calls: 20
+        max-wait-duration: 100ms
+      InventoryClient:
+        max-concurrent-calls: 20
+        max-wait-duration: 100ms
 
 server:
   port: 8083
