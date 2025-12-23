@@ -64,7 +64,6 @@ public class ProductBatchInsertRepository {
             }
         });
 
-        log.debug("JDBC Batch Insert 완료 - {} 개 상품 저장", products.size());
         return results;
     }
 
