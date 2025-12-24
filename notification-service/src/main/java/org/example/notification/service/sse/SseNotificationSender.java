@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.notification.domain.Notification;
 import org.example.notification.dto.response.NotificationResponse;
-import org.example.notification.service.NotificationSender;
+import org.example.notification.service.sender.NotificationSender;
 import org.example.notification.service.redis.RedisNotificationPublisher;
 import org.springframework.stereotype.Component;
 

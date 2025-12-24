@@ -6,6 +6,7 @@ import org.example.notification.domain.Notification;
 import org.example.notification.dto.response.NotificationResponse;
 import org.example.notification.dto.response.UnreadCountResponse;
 import org.example.notification.repository.NotificationRepository;
+import org.example.notification.service.sender.NotificationSender;
 import org.example.shared.exception.notification.InvalidRecipientException;
 import org.example.shared.exception.notification.NotificationSendFailedException;
 import org.example.shared.type.notification.NotificationType;

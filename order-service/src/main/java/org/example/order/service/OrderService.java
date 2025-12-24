@@ -9,6 +9,8 @@ import org.example.order.dto.request.OrderCreateRequest;
 import org.example.order.dto.response.ProductInfoResponse;
 import org.example.order.dto.response.OrderResponse;
 import org.example.order.repository.OrderRepository;
+import org.example.order.service.redis.ProductCacheService;
+import org.example.order.kafka.producer.OrderEventProducer;
 import org.example.shared.dto.OrderEvent;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;

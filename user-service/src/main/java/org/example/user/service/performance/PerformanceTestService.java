@@ -3,7 +3,7 @@ package org.example.user.service.performance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.user.domain.User;
-import org.example.user.dto.cache.UserCacheDto;
+import org.example.user.dto.redis.UserCacheDto;
 import org.example.user.repository.SpringDataUserRepository;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

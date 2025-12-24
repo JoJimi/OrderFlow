@@ -6,6 +6,7 @@ import org.example.shared.exception.shipping.ShippingNotFoundException;
 import org.example.shipping.domain.Shipment;
 import org.example.shipping.dto.request.ShippingStartRequest;
 import org.example.shipping.dto.response.ShipmentResponse;
+import org.example.shipping.kafka.producer.ShippingEventProducer;
 import org.example.shipping.repository.ShipmentRepository;
 import org.example.shared.dto.PaymentEvent;
 import org.example.shared.type.shipping.ShippingStatus;

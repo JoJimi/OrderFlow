@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.payment.domain.Payment;
 import org.example.payment.dto.response.PaymentResponse;
+import org.example.payment.kafka.producer.PaymentEventProducer;
 import org.example.payment.repository.PaymentRepository;
+import org.example.payment.service.simulator.PaymentSimulator;
 import org.example.shared.exception.payment.PaymentAlreadyCompletedException;
 import org.example.shared.exception.payment.PaymentNotFoundException;
 import org.example.shared.type.payment.PaymentMethod;
@@ -23,7 +25,7 @@ import java.math.BigDecimal;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final PaymentProcessor paymentProcessor;
+    private final PaymentSimulator paymentSimulator;
     private final PaymentEventProducer eventProducer;
 
     /**
@@ -81,7 +83,7 @@ public class PaymentService {
         log.info("외부 결제 처리 시작 - paymentId: {}, amount: {}",
                 payment.getPaymentId(), payment.getAmount());
 
-        PaymentProcessor.PaymentResult result = paymentProcessor.process(
+        PaymentSimulator.PaymentResult result = paymentSimulator.process(
                 payment.getOrderId(),
                 payment.getAmount()
         );
