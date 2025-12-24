@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,5 +36,15 @@ public class OrderRepositoryAdapter implements OrderRepository {
     @Override
     public Page<Order> findAll(Pageable pageable) {
         return springDataOrderRepository.findAllActiveOrders(pageable);
+    }
+
+    @Override
+    public List<String> findPopularProductIds(LocalDateTime since, int limit) {
+        return springDataOrderRepository.findPopularProductIds(since, limit);
+    }
+
+    @Override
+    public long countOrdersSince(LocalDateTime since) {
+        return springDataOrderRepository.countOrdersSince(since);
     }
 }

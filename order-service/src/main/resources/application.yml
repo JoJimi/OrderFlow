@@ -40,6 +40,11 @@ spring:
       add-mappings: true
       static-locations: classpath:/static/
 
+  task:
+    scheduling:
+      pool:
+        size: 5
+
   cloud:
     openfeign:
       client:
@@ -114,11 +119,19 @@ management:
   endpoints:
     web:
       base-path: /actuator
-  health:
-    livenessState:
-      enabled: true
-    readinessState:
-      enabled: true
+      exposure:
+        include: health,info,prometheus,metrics  # Prometheus 메트릭 노출
+    health:
+      livenessState:
+        enabled: true
+      readinessState:
+        enabled: true
+    metrics:
+      tags:
+        application: ${spring.application.name}
+      export:
+        prometheus:
+          enabled: true
 
 logging:
   pattern:
