@@ -11,8 +11,8 @@ spring:
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
+      maximum-pool-size: 100                  # 동시에 DB에 접근할 수 있는 수
+      minimum-idle: 20
       connection-timeout: 30000
 
   jpa:
@@ -50,12 +50,8 @@ spring:
         config:
           product-service:
             logger-level: full
-            read-timeout: 3000
-            connect-timeout: 1000
-          inventory-service:
-            logger-level: full
-            read-timeout: 3000
-            connect-timeout: 1000
+            read-timeout: 10000           # 상품 정보를 줄 때까지 10초 기다림
+            connect-timeout: 5000
       circuitbreaker:
         enabled: true
 
@@ -63,14 +59,14 @@ resilience4j:
   circuitbreaker:
     instances:
       ProductClient:
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        sliding-window-size: 100          # 최근 100건의 요청 결과를 보고 판단
+        minimum-number-of-calls: 20
+        failure-rate-threshold: 50        # 50%의 에러가 나면 차단
+        wait-duration-in-open-state: 60s
       InventoryClient:
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        failure-rate-threshold: 50
+        sliding-window-size: 50
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 70
         wait-duration-in-open-state: 10s
   timelimiter:
     instances:
@@ -81,11 +77,11 @@ resilience4j:
   bulkhead:
     instances:
       ProductClient:
-        max-concurrent-calls: 20
-        max-wait-duration: 100ms
+        max-concurrent-calls: 50          # 동시에 호출할 수 있는 스레드 개수를 50개로 제한
+        max-wait-duration: 500ms
       InventoryClient:
-        max-concurrent-calls: 20
-        max-wait-duration: 100ms
+        max-concurrent-calls: 50
+        max-wait-duration: 500ms
 
 server:
   port: 8083
@@ -99,10 +95,10 @@ eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 5
+    registry-fetch-interval-seconds: 30           # 30초마다 나 살아 있어 라는 신호를 보냄
   instance:
     prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 5
+    lease-renewal-interval-in-seconds: 30         # 30초마다 나 살아 있어 라는 신호를 보냄
     lease-expiration-duration-in-seconds: 10
     metadata-map:
       management.port: ${management.server.port}

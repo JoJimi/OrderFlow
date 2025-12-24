@@ -19,6 +19,17 @@ spring:
       ddl-auto: create
     show-sql: true
 
+kafka:
+  topics:
+    order-event: order-event
+    payment-event: payment-event
+  consumer:
+    # Consumer 처리 시뮬레이션 지연 시간 (밀리초)
+    # 10ms = 초당 약 100개 처리 (concurrency=3이면 300개/s)
+    # 50ms = 초당 약 20개 처리 (concurrency=3이면 60개/s)
+    # 100ms = 초당 약 10개 처리 (concurrency=3이면 30개/s)
+    processing-delay-ms: 10
+
 jwt:
   secret: ${JWT_SECRET}
   expiration:
@@ -44,7 +55,7 @@ management:
 logging:
   level:
     root: INFO
-    org.example.user: DEBUG
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.example.payment: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO

@@ -2,19 +2,16 @@ package org.example.order.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.order.client.InventoryClient;
 import org.example.order.client.ProductClient;
 import org.example.order.domain.Order;
 import org.example.order.domain.OrderItem;
 import org.example.order.dto.request.OrderCreateRequest;
-import org.example.order.dto.response.InventoryInfoResponse;
-import org.example.order.dto.response.OrderResponse;
 import org.example.order.dto.response.ProductInfoResponse;
+import org.example.order.dto.response.OrderResponse;
 import org.example.order.repository.OrderRepository;
 import org.example.shared.dto.OrderEvent;
 import org.example.shared.exception.BusinessException;
 import org.example.shared.exception.ErrorCode;
-import org.example.shared.exception.inventory.InsufficientStockException;
 import org.example.shared.exception.order.EmptyOrderItemsException;
 import org.example.shared.exception.order.OrderAccessDeniedException;
 import org.example.shared.exception.order.OrderNotFoundException;
@@ -38,23 +35,25 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderEventProducer eventProducer;
     private final ProductClient productClient;
-    private final InventoryClient inventoryClient;
+    private final ProductCacheService productCacheService;  // ✅ 캐시 서비스 추가
 
     /**
-     * 주문 생성
+     * 주문 생성 (하이브리드 방식)
+     * - 상품 정보: Redis 캐시 → Product Service (fallback)
+     * - 재고 검증: 비동기 (Inventory Service가 Kafka로 처리)
      */
     @Transactional
     public OrderResponse createOrder(String userId, OrderCreateRequest request) {
         log.info("주문 생성 시작 - 사용자 ID: {}, 항목 수: {}", userId, request.items().size());
 
-        // 1. 입력값 검증
-        validateOrderRequest(request);
+        // 1. 기본 입력값 검증
+        validateBasicOrderRequest(request);
 
         // 2. 주문 ID 생성
         String orderId = IdGenerator.generateOrderId();
 
-        // 3. 주문 항목 생성
-        List<OrderItem> orderItems = createOrderItems(orderId, request.items());
+        // 3. 주문 항목 생성 (캐시 우선, 미스 시 Product Service 호출)
+        List<OrderItem> orderItems = createOrderItemsWithCache(request.items());
 
         // 4. 총액 계산
         BigDecimal totalPrice = calculateTotalPrice(orderItems);
@@ -76,7 +75,7 @@ public class OrderService {
         // 7. 주문 저장
         Order savedOrder = orderRepository.save(order);
 
-        // 8. Kafka 이벤트 발행
+        // 8. Kafka 이벤트 발행 (Inventory가 재고 검증)
         publishOrderCreatedEvent(savedOrder);
 
         log.info("주문 생성 완료 - 주문 ID: {}, 총액: {}", orderId, totalPrice);
@@ -148,9 +147,9 @@ public class OrderService {
     }
 
     /**
-     * 주문 요청 검증
+     * 기본 입력값 검증
      */
-    private void validateOrderRequest(OrderCreateRequest request) {
+    private void validateBasicOrderRequest(OrderCreateRequest request) {
         if (request.items().isEmpty()) {
             throw new EmptyOrderItemsException();
         }
@@ -160,40 +159,50 @@ public class OrderService {
                 throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
             }
 
-            // 상품 존재 여부 확인
-            ProductInfoResponse product = productClient.getProduct(item.productId());
-            if (product == null) {
-                throw new ProductNotFoundException();
-            }
-
-            // 재고 확인
-            InventoryInfoResponse inventory = inventoryClient.getInventory(item.productId());
-            if (inventory.availableStock() < item.quantity()) {
-                throw new InsufficientStockException(String.format("상품 '%s'의 재고가 부족합니다. 요청: %d, 사용가능: %d",
-                        product.productName(), item.quantity(), inventory.availableStock()));
+            if (item.productId() == null || item.productId().isBlank()) {
+                throw new IllegalArgumentException("상품 ID는 필수입니다.");
             }
         }
     }
 
     /**
-     * 주문 항목 생성
+     * 주문 항목 생성 (캐시 우선 조회)
      */
-    private List<OrderItem> createOrderItems(String orderId, List<OrderCreateRequest.OrderItemRequest> itemRequests) {
+    private List<OrderItem> createOrderItemsWithCache(
+            List<OrderCreateRequest.OrderItemRequest> itemRequests) {
+
         return itemRequests.stream()
                 .map(item -> {
-                    ProductInfoResponse product = productClient.getProduct(item.productId());
+                    // 1. Redis 캐시에서 먼저 조회
+                    ProductInfoResponse product = productCacheService
+                            .getProductFromCache(item.productId());
 
+                    // 2. 캐시 미스 시 Product Service 호출
+                    if (product == null) {
+                        log.debug("캐시 미스 - Product Service 호출: {}", item.productId());
+                        product = productClient.getProduct(item.productId());
+
+                        if (product == null) {
+                            throw new ProductNotFoundException();
+                        }
+
+                        // 3. 조회한 상품 정보를 캐시에 저장
+                        productCacheService.cacheProduct(item.productId(), product);
+                    }
+
+                    // 4. OrderItem 생성
                     String orderItemId = IdGenerator.generateOrderItemId();
+                    BigDecimal subtotal = product.price()
+                            .multiply(BigDecimal.valueOf(item.quantity()));
 
                     OrderItem orderItem = OrderItem.builder()
                             .orderItemId(orderItemId)
                             .productId(item.productId())
                             .quantity(item.quantity())
                             .unitPrice(product.price())
-                            .subtotal(BigDecimal.ZERO)
+                            .subtotal(subtotal)
                             .build();
 
-                    orderItem.calculateSubtotal();
                     return orderItem;
                 })
                 .collect(Collectors.toList());

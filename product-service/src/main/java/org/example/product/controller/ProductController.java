@@ -122,6 +122,6 @@ public class ProductController {
         ProductBulkInitRequest finalRequest = request != null
                 ? request
                 : new ProductBulkInitRequest();
-        return ResponseEntity.ok(productService.bulkInitProductsJpaLoop(finalRequest));
+        return ResponseEntity.ok(productService.bulkInitProducts(finalRequest));
     }
 }
