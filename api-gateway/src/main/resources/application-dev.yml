@@ -22,8 +22,8 @@ eureka:
 logging:
   level:
     root: INFO
-    org.example.gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web: DEBUG
-    reactor.netty: DEBUG
-    com.netflix.discovery: DEBUG
+    org.example.gateway: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web: INFO
+    reactor.netty: INFO
+    com.netflix.discovery: INFO
