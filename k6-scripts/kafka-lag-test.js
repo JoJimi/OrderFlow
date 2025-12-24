@@ -9,7 +9,7 @@ export const options = {
     ],
 };
 
-const ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidG9rZW5fdHlwZSI6ImFjY2Vzc1Rva2VuIiwiZmFtIjoiZGNiNWM0NzQtMWQ4ZS00M2UwLTkzMmMtZjRkNzZkODEyYTBkIiwicm9sZSI6IlJPTEVfQURNSU4iLCJpYXQiOjE3NjY1MzY3ODIsImV4cCI6MTc2NjU0MDM4Mn0.0yOG9EKn_oDj8Eqvo_N7uXTS_9U2w4eSVWixRpttuu0';
+const ACCESS_TOKEN = '';
 const BASE_URL = 'http://127.0.0.1:8083';
 
 // 자주 사용되는 상품 ID (캐시 HIT 확률 높음)

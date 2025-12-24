@@ -43,6 +43,10 @@ management:
     health:
       show-details: always
 
+test:
+  delay:
+    enabled: true
+
 logging:
   level:
     root: INFO

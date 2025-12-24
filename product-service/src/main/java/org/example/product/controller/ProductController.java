@@ -12,6 +12,7 @@ import org.example.product.dto.request.ProductUpdateRequest;
 import org.example.product.dto.response.ProductBulkInitResponse;
 import org.example.product.dto.response.ProductResponse;
 import org.example.product.service.ProductService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,10 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final ProductService productService;
+
+    @Value("${test.delay.enabled:false}")
+    private boolean delayEnabled;
+
 
     @GetMapping
     @Operation(summary = "전체 상품 목록 조회", description = "모든 상품을 페이지네이션하여 조회합니다")
@@ -69,6 +74,19 @@ public class ProductController {
             @Parameter(description = "상품 ID", example = "SEED-1-000001")
             @PathVariable String productId
     ) {
+/**
+*         테스트용 지연 주입
+*         if (delayEnabled) {
+*             try {
+*                 log.warn("⏱️ 테스트용 2초 지연 시작 - productId: {}", productId);
+*                 Thread.sleep(2000);
+*                 log.warn("⏱️ 테스트용 2초 지연 종료 - productId: {}", productId);
+*             } catch (InterruptedException e) {
+*                 Thread.currentThread().interrupt();
+*             }
+*         }
+*/
+
         return ResponseEntity.ok(productService.getProduct(productId));
     }
 

@@ -46,28 +46,47 @@ spring:
         config:
           product-service:
             logger-level: full
-            read-timeout: 5000            # 상품 정보를 줄 때까지 10초 기다림
+            read-timeout: 5000            # 상품 정보를 줄 때까지 5초 기다림
             connect-timeout: 5000
       circuitbreaker:
         enabled: true
+        alphanumeric-ids:
+          enabled: true
 
 resilience4j:
   circuitbreaker:
-    instances:
-      ProductClient:
-        sliding-window-size: 100          # 최근 100건의 요청 결과를 보고 판단
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 100
         minimum-number-of-calls: 20
-        failure-rate-threshold: 50        # 50%의 에러가 나면 차단
+        slow-call-rate-threshold: 100
+        slow-call-duration-threshold: 3s
+        failure-rate-threshold: 50
         wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+    instances:
+      ProductClient:
+        base-config: default
+
   timelimiter:
+    configs:
+      default:
+        timeout-duration: 4s
     instances:
       ProductClient:
-        timeout-duration: 3s
+        base-config: default
+
   bulkhead:
+    configs:
+      default:
+        max-concurrent-calls: 50
+        max-wait-duration: 500ms
     instances:
       ProductClient:
-        max-concurrent-calls: 50          # 동시에 호출할 수 있는 스레드 개수를 50개로 제한
-        max-wait-duration: 500ms
+        base-config: default
 
 server:
   port: 8083
