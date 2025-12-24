@@ -37,7 +37,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderEventProducer eventProducer;
     private final ProductClient productClient;
-    private final ProductCacheService productCacheService;  // ✅ 캐시 서비스 추가
+    private final ProductCacheService productCacheService;
 
     /**
      * 주문 생성 (하이브리드 방식)

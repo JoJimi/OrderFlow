@@ -74,19 +74,6 @@ public class ProductController {
             @Parameter(description = "상품 ID", example = "SEED-1-000001")
             @PathVariable String productId
     ) {
-/**
-*         테스트용 지연 주입
-*         if (delayEnabled) {
-*             try {
-*                 log.warn("⏱️ 테스트용 2초 지연 시작 - productId: {}", productId);
-*                 Thread.sleep(2000);
-*                 log.warn("⏱️ 테스트용 2초 지연 종료 - productId: {}", productId);
-*             } catch (InterruptedException e) {
-*                 Thread.currentThread().interrupt();
-*             }
-*         }
-*/
-
         return ResponseEntity.ok(productService.getProduct(productId));
     }
 
