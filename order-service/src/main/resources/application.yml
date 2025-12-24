@@ -10,10 +10,6 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 100                  # 동시에 DB에 접근할 수 있는 수
-      minimum-idle: 20
-      connection-timeout: 30000
 
   jpa:
     properties:
@@ -50,7 +46,7 @@ spring:
         config:
           product-service:
             logger-level: full
-            read-timeout: 10000           # 상품 정보를 줄 때까지 10초 기다림
+            read-timeout: 5000            # 상품 정보를 줄 때까지 10초 기다림
             connect-timeout: 5000
       circuitbreaker:
         enabled: true
@@ -63,24 +59,14 @@ resilience4j:
         minimum-number-of-calls: 20
         failure-rate-threshold: 50        # 50%의 에러가 나면 차단
         wait-duration-in-open-state: 60s
-      InventoryClient:
-        sliding-window-size: 50
-        minimum-number-of-calls: 10
-        failure-rate-threshold: 70
-        wait-duration-in-open-state: 10s
   timelimiter:
     instances:
       ProductClient:
-        timeout-duration: 3s
-      InventoryClient:
         timeout-duration: 3s
   bulkhead:
     instances:
       ProductClient:
         max-concurrent-calls: 50          # 동시에 호출할 수 있는 스레드 개수를 50개로 제한
-        max-wait-duration: 500ms
-      InventoryClient:
-        max-concurrent-calls: 50
         max-wait-duration: 500ms
 
 server:
@@ -99,7 +85,7 @@ eureka:
   instance:
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 30         # 30초마다 나 살아 있어 라는 신호를 보냄
-    lease-expiration-duration-in-seconds: 10
+    lease-expiration-duration-in-seconds: 90      # 근데 내 소식이 90초 동안 안들리면 죽은 것으로 간주해줘!
     metadata-map:
       management.port: ${management.server.port}
 

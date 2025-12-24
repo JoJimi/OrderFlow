@@ -3,6 +3,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/order_db
     username: orderflow
     password: orderflow123
+    hikari:
+      maximum-pool-size: 100          # 동시에 DB에 접근할 수 있는 수 (아직 단일 서버라 100개 유지)
+      minimum-idle: 20
+      connection-timeout: 30000
 
   data:
     redis:
