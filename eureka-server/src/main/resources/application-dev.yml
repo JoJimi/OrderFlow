@@ -1,4 +1,4 @@
-# eureka-server의 application-dev.yml
+# eureka-server application-dev.yml
 eureka:
   instance:
     hostname: localhost

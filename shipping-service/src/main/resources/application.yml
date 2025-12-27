@@ -3,31 +3,25 @@ spring:
     name: shipping-service
 
   profiles:
-    active: dev
+    active: prod
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:5432/shipping_db
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+  data:
+    redis:
+      database: 5
+      timeout: 3000
 
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_batch_fetch_size: 100
     open-in-view: false
 
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
-      database: 5
-      timeout: 3000
-
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    bootstrap-servers: localhost:9092
     consumer:
       group-id: shipping-service-group
 
@@ -48,21 +42,21 @@ server:
       enabled: true
   shutdown: graceful
 
+kafka:
+  topics:
+    payment-event: payment-event
+
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 5
+    registry-fetch-interval-seconds: 30
   instance:
     prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 5
-    lease-expiration-duration-in-seconds: 10
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
     metadata-map:
       management.port: ${management.server.port}
-
-kafka:
-  topics:
-    payment-event: payment-event
 
 management:
   server:

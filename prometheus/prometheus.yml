@@ -1,0 +1,91 @@
+# prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'orderflow-docker'
+    environment: 'development'
+
+scrape_configs:
+  # Eureka Server
+  - job_name: 'eureka-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['eureka-server:8761']
+        labels:
+          service: 'eureka-server'
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'api-gateway-1:9080'
+          - 'api-gateway-2:9080'
+          - 'api-gateway-3:9080'
+        labels:
+          service: 'api-gateway'
+
+  # User Service
+  - job_name: 'user-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['user-service:9081']
+        labels:
+          service: 'user-service'
+
+  # Product Service
+  - job_name: 'product-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['product-service:9082']
+        labels:
+          service: 'product-service'
+
+  # Order Service
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['order-service:9083']
+        labels:
+          service: 'order-service'
+
+  # Payment Service
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['payment-service:9084']
+        labels:
+          service: 'payment-service'
+
+  # Inventory Service
+  - job_name: 'inventory-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['inventory-service:9085']
+        labels:
+          service: 'inventory-service'
+
+  # Shipping Service
+  - job_name: 'shipping-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['shipping-service:9086']
+        labels:
+          service: 'shipping-service'
+
+  # Notification Service
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:9087']
+        labels:
+          service: 'notification-service'
+
+  # Event Logging Service
+  - job_name: 'event-logging-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['event-logging-service:9088']
+        labels:
+          service: 'event-logging-service'

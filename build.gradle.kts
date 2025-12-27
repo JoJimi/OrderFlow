@@ -43,6 +43,8 @@ subprojects {
 
 		testImplementation("org.springframework.boot:spring-boot-starter-test")
 		testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+		implementation("io.micrometer:micrometer-registry-prometheus")
 	}
 
 	the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
@@ -90,6 +92,10 @@ listOf(
 
 			// Swagger/OpenAPI
 			implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${property("springdocVersion")}")
+
+			// cache
+			implementation("com.github.ben-manes.caffeine:caffeine")
+			implementation("org.springframework.boot:spring-boot-starter-cache")
 
 			runtimeOnly("org.postgresql:postgresql")
 		}

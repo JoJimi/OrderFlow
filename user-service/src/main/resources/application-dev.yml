@@ -1,3 +1,4 @@
+# User-Service application-dev.yml
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/user_db
@@ -13,17 +14,16 @@ spring:
       host: localhost
       port: 6379
       password:
-      database: 0
-
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      auto-offset-reset: latest
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: latest
 
 app:
   admin:

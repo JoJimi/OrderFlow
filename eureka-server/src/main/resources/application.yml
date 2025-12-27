@@ -1,15 +1,14 @@
-# eureka-server? application.yml
+# eureka-server application.yml
 spring:
   application:
     name: eureka-server
 
   profiles:
-    active: dev
+    active: prod
 
 server:
   port: 8761
 
-# ? ?? ??? (???? ??)
 eureka:
   client:
     register-with-eureka: false
