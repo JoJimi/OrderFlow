@@ -56,11 +56,34 @@ subprojects {
 	tasks.withType<Test> {
 		useJUnitPlatform()
 	}
+
+	if (name != "shared") {
+		tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+			enabled = true
+		}
+
+		tasks.named<Jar>("jar") {
+			enabled = false
+		}
+	}
 }
 
 // shared 라이브러리는 특별히 처리
 project(":shared") {
 	apply(plugin = "java-library")
+}
+
+listOf("eureka-server", "api-gateway").forEach { service ->
+	project(":$service") {
+		dependencies {
+			implementation("org.springframework.boot:spring-boot-starter-web")
+			implementation("org.springframework.boot:spring-boot-starter-actuator")
+			implementation("me.paulschwarz:spring-dotenv:4.0.0")
+
+			// Swagger/OpenAPI
+			implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${property("springdocVersion")}")
+		}
+	}
 }
 
 // ⭐ JPA가 필요한 마이크로서비스들 (DB 사용)

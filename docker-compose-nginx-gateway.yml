@@ -2,8 +2,10 @@
 services:
   eureka-server:
     build:
-      context: ./eureka-server
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: eureka-server
     container_name: orderFlow-eureka-server
     ports:
       - "8761:8761"
@@ -45,8 +47,10 @@ services:
 
   api-gateway-1:
     build:
-      context: ./api-gateway
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: api-gateway
     container_name: orderFlow-api-gateway-1
     env_file:
       - .env
@@ -69,13 +73,15 @@ services:
 
   api-gateway-2:
     build:
-      context: ./api-gateway
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: api-gateway
     container_name: orderFlow-api-gateway-2
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: prod  # ← 추가
+      SPRING_PROFILES_ACTIVE: prod
       EUREKA_INSTANCE_HOSTNAME: api-gateway-2
     depends_on:
       redis:
@@ -93,8 +99,10 @@ services:
 
   api-gateway-3:
     build:
-      context: ./api-gateway
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: api-gateway
     container_name: orderFlow-api-gateway-3
     env_file:
       - .env
@@ -189,7 +197,7 @@ services:
 
   postgres:
     container_name: orderFlow-postgres
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     restart: unless-stopped
     ports:
       - "5432:5432"
@@ -199,7 +207,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init-database.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./database/init-databases.sql:/docker-entrypoint-initdb.d/init-db.sql
     networks:
       - orderFlow-network
     healthcheck:
@@ -210,8 +218,10 @@ services:
 
   user-service:
     build:
-      context: ./user-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: user-service
     container_name: orderFlow-user-service
     env_file:
       - .env
@@ -238,8 +248,10 @@ services:
 
   product-service:
     build:
-      context: ./product-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: product-service
     container_name: orderFlow-product-service
     env_file:
       - .env
@@ -266,8 +278,10 @@ services:
 
   order-service:
     build:
-      context: ./order-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: order-service
     container_name: orderFlow-order-service
     env_file:
       - .env
@@ -294,8 +308,10 @@ services:
 
   payment-service:
     build:
-      context: ./payment-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: payment-service
     container_name: orderFlow-payment-service
     env_file:
       - .env
@@ -322,8 +338,10 @@ services:
 
   inventory-service:
     build:
-      context: ./inventory-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: inventory-service
     container_name: orderFlow-inventory-service
     env_file:
       - .env
@@ -350,8 +368,10 @@ services:
 
   shipping-service:
     build:
-      context: ./shipping-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: shipping-service
     container_name: orderFlow-shipping-service
     env_file:
       - .env
@@ -378,8 +398,10 @@ services:
 
   notification-service:
     build:
-      context: ./notification-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: notification-service
     container_name: orderFlow-notification-service
     env_file:
       - .env
@@ -406,8 +428,10 @@ services:
 
   event-logging-service:
     build:
-      context: ./event-logging-service
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: event-logging-service
     container_name: orderFlow-event-logging-service
     env_file:
       - .env

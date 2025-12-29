@@ -26,12 +26,10 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
 }
 
-// bootJar 태스크 비활성화 (shared는 실행 가능한 jar가 아님)
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     enabled = false
 }
 
-// 일반 jar 태스크 활성화
 tasks.named<Jar>("jar") {
     enabled = true
 }
