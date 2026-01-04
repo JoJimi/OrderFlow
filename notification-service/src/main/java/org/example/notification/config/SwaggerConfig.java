@@ -44,12 +44,9 @@ public class SwaggerConfig {
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
                 .servers(List.of(
-                        new Server()
-                                .url("http://localhost:" + serverPort)
-                                .description("Local Development Server"),
-                        new Server()
-                                .url("http://localhost:8080")
-                                .description("API Gateway")
+                        new Server().url("http://localhost/notification-service").description("Nginx Gateway"),
+                        new Server().url("http://localhost:" + serverPort).description("Local Development Server"),
+                        new Server().url("http://localhost:8080/notification-service").description("API Gateway")
                 ))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication", securityScheme))

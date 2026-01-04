@@ -44,6 +44,8 @@ subprojects {
 		testImplementation("org.springframework.boot:spring-boot-starter-test")
 		testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+		implementation("me.paulschwarz:spring-dotenv:4.0.0")
+
 		implementation("io.micrometer:micrometer-registry-prometheus")
 	}
 
@@ -73,20 +75,7 @@ project(":shared") {
 	apply(plugin = "java-library")
 }
 
-listOf("eureka-server", "api-gateway").forEach { service ->
-	project(":$service") {
-		dependencies {
-			implementation("org.springframework.boot:spring-boot-starter-web")
-			implementation("org.springframework.boot:spring-boot-starter-actuator")
-			implementation("me.paulschwarz:spring-dotenv:4.0.0")
-
-			// Swagger/OpenAPI
-			implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${property("springdocVersion")}")
-		}
-	}
-}
-
-// ⭐ JPA가 필요한 마이크로서비스들 (DB 사용)
+// JPA가 필요한 마이크로서비스들 (DB 사용)
 listOf(
 		"user-service",
 		"product-service",

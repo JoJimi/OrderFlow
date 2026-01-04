@@ -33,9 +33,7 @@ public class SwaggerConfig {
                                 .name("OrderFlow Team")
                                 .email("team@orderflow.com")))
                 .servers(List.of(
-                        new Server()
-                                .url("http://localhost:" + serverPort)
-                                .description("API Gateway Server")))
+                        new Server().url("http://localhost:" + serverPort).description("API Gateway Server")))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication",
                                 new SecurityScheme()

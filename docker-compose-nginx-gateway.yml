@@ -2,8 +2,8 @@
 services:
   eureka-server:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./eureka-server
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: eureka-server
     container_name: orderFlow-eureka-server
@@ -19,7 +19,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 40s
+      start_period: 100s
 
   nginx:
     build:
@@ -41,14 +41,15 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
     volumes:
       - ./ssl:/etc/nginx/ssl:ro
       - nginx_logs:/var/log/nginx
 
   api-gateway-1:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./api-gateway
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: api-gateway
     container_name: orderFlow-api-gateway-1
@@ -66,15 +67,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   api-gateway-2:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./api-gateway
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: api-gateway
     container_name: orderFlow-api-gateway-2
@@ -92,15 +94,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   api-gateway-3:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./api-gateway
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: api-gateway
     container_name: orderFlow-api-gateway-3
@@ -118,10 +121,11 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   redis:
     container_name: orderFlow-redis
@@ -181,8 +185,8 @@ services:
       test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
       interval: 10s
       timeout: 10s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 180s
     command: >
       bash -c "
         # Kafka 스토리지 포맷 (최초 1회만 실행)
@@ -218,8 +222,8 @@ services:
 
   user-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./user-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: user-service
     container_name: orderFlow-user-service
@@ -241,15 +245,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9081/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   product-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./product-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: product-service
     container_name: orderFlow-product-service
@@ -271,15 +276,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9082/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   order-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./order-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: order-service
     container_name: orderFlow-order-service
@@ -301,15 +307,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9083/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   payment-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./payment-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: payment-service
     container_name: orderFlow-payment-service
@@ -331,15 +338,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9084/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   inventory-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./inventory-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: inventory-service
     container_name: orderFlow-inventory-service
@@ -361,15 +369,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9085/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   shipping-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./shipping-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: shipping-service
     container_name: orderFlow-shipping-service
@@ -391,15 +400,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9086/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   notification-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./notification-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: notification-service
     container_name: orderFlow-notification-service
@@ -421,15 +431,16 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9087/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   event-logging-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./event-logging-service
+      dockerfile: ../Dockerfile
       args:
         SERVICE_NAME: event-logging-service
     container_name: orderFlow-event-logging-service
@@ -451,10 +462,11 @@ services:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9088/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8088/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
 
   prometheus:
     image: prom/prometheus:latest

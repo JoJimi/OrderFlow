@@ -105,11 +105,9 @@ eureka:
     lease-renewal-interval-in-seconds: 30         # 30초마다 나 살아 있어 라는 신호를 보냄
     lease-expiration-duration-in-seconds: 90      # 근데 내 소식이 90초 동안 안들리면 죽은 것으로 간주해줘!
     metadata-map:
-      management.port: ${management.server.port}
+      management.port: ${server.port}
 
 management:
-  server:
-    port: 9083
   endpoints:
     web:
       base-path: /actuator

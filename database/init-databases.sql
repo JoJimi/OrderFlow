@@ -1,22 +1,53 @@
 -- 데이터베이스 생성
-CREATE DATABASE IF NOT EXISTS user_db;
-CREATE DATABASE IF NOT EXISTS product_db;
-CREATE DATABASE IF NOT EXISTS order_db;
-CREATE DATABASE IF NOT EXISTS payment_db;
-CREATE DATABASE IF NOT EXISTS inventory_db;
-CREATE DATABASE IF NOT EXISTS shipping_db;
-CREATE DATABASE IF NOT EXISTS notification_db;
-CREATE DATABASE IF NOT EXISTS event_logging_db;
+CREATE DATABASE user_db;
+CREATE DATABASE product_db;
+CREATE DATABASE order_db;
+CREATE DATABASE payment_db;
+CREATE DATABASE inventory_db;
+CREATE DATABASE shipping_db;
+CREATE DATABASE notification_db;
+CREATE DATABASE event_logging_db;
 
--- 권한 부여
-GRANT ALL PRIVILEGES ON DATABASE user_db TO orderflow;
-GRANT ALL PRIVILEGES ON DATABASE product_db TO orderflow;
-GRANT ALL PRIVILEGES ON DATABASE order_db TO orderflow;
-GRANT ALL PRIVILEGES ON DATABASE payment_db TO orderflow;
-GRANT ALL PRIVILEGES ON DATABASE inventory_db TO orderflow;
-GRANT ALL PRIVILEGES ON DATABASE shipping_db TO orderflow;
-GRANT ALL PRIVILEGES ON DATABASE notification_db TO orderflow;
-GRANT ALL PRIVILEGES ON DATABASE event_logging_db TO orderflow;
+-- 각 데이터베이스에 연결하여 권한 부여
+\c user_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
+
+\c product_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
+
+\c order_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
+
+\c payment_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
+
+\c inventory_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
+
+\c shipping_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
+
+\c notification_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
+
+\c event_logging_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO orderflow;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO orderflow;
 
 -- ========================================
 -- User Service Database (user_db)
@@ -151,8 +182,8 @@ CREATE TABLE inventory (
         CONSTRAINT uq_product_id UNIQUE (product_id)
 );
 
-CREATE INDEX idx_product_id ON inventory(product_id);
-CREATE INDEX idx_last_updated ON inventory(last_updated);
+CREATE INDEX idx_inventory_product_id ON inventory(product_id);
+CREATE INDEX idx_inventory_last_updated ON inventory(last_updated);
 
 CREATE TABLE inventory_logs (
         log_id VARCHAR(50) PRIMARY KEY,
@@ -169,10 +200,10 @@ CREATE TABLE inventory_logs (
         CONSTRAINT fk_inventory_log_inventory FOREIGN KEY (inventory_id) REFERENCES inventory(inventory_id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_inventory_id ON inventory_logs(inventory_id);
-CREATE INDEX idx_product_id ON inventory_logs(product_id);
-CREATE INDEX idx_order_id ON inventory_logs(order_id);
-CREATE INDEX idx_timestamp ON inventory_logs(timestamp);
+CREATE INDEX idx_log_inventory_id ON inventory_logs(inventory_id);
+CREATE INDEX idx_log_product_id ON inventory_logs(product_id);
+CREATE INDEX idx_log_order_id ON inventory_logs(order_id);
+CREATE INDEX idx_log_timestamp ON inventory_logs(timestamp);
 
 -- ========================================
 -- Shipping Service Database (shipping_db)
