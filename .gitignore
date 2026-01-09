@@ -39,3 +39,5 @@ out/
 .env
 **/application-prod.yml
 /logs/
+
+/k8s/config/secret.yml

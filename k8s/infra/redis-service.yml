@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: orderflow
+  name: redis
+  labels:
+    part-of: orderflow
+    component: cache
+    name: redis
+    instance: orderflow-redis
+    version: "7"
+    managed-by: kubectl
+spec:
+  selector:
+    part-of: orderflow
+    component: cache
+    name: redis
+    instance: orderflow-redis
+  ports:
+    - port: 6379
+      targetPort: redis
+      name: redis
+  type: ClusterIP

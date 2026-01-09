@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: orderflow
+  name: orderflow-eureka-server
+  labels:
+    part-of: orderflow
+    component: discovery
+    name: eureka-server
+    instance: orderflow-eureka-server
+    version: "1.0.0"
+    managed-by: kubectl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      part-of: orderflow
+      component: discovery
+      name: eureka-server
+      instance: orderflow-eureka-server
+  template:
+    metadata:
+      labels:
+        part-of: orderflow
+        component: discovery
+        name: eureka-server
+        instance: orderflow-eureka-server
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: eureka-server
+          image: jimineutron/orderflow-eureka-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8761
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: "eureka-server"
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

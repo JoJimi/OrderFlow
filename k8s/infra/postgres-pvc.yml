@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: orderflow
+  name: orderflow-postgres-data
+  labels:
+    part-of: orderflow
+    component: database
+    name: postgres
+    instance: orderflow-postgres
+    version: "15"
+    managed-by: kubectl
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path

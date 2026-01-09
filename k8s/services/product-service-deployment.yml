@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: orderflow
+  name: orderflow-product-service
+  labels:
+    part-of: orderflow
+    component: backend-server
+    name: product-service
+    instance: orderflow-product-service
+    version: "1.0.0"
+    managed-by: kubectl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      part-of: orderflow
+      component: backend-server
+      name: product-service
+      instance: orderflow-product-service
+  template:
+    metadata:
+      labels:
+        part-of: orderflow
+        component: backend-server
+        name: product-service
+        instance: orderflow-product-service
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: product-service
+          image: jimineutron/orderflow-product-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+              name: http
+          envFrom:
+            - configMapRef:
+                name: orderflow-config
+            - secretRef:
+                name: orderflow-secret
+          env:
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
