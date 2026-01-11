@@ -18,12 +18,40 @@ spec:
     - group: ''
       kind: Namespace
 ---
+# PostgreSQL Init ConfigMap (먼저 배포)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql-init
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: orderflow
+  source:
+    repoURL: https://github.com/JoJimi/OrderFlow
+    targetRevision: main
+    path: k8s/infra/postgresql
+    directory:
+      include: 'init-configmap.yaml'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
 # PostgreSQL Application
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: postgresql
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: orderflow
   source:
@@ -31,7 +59,6 @@ spec:
     chart: postgresql
     targetRevision: 15.5.38
     helm:
-      valueFiles: []
       values: |
         global:
           postgresql:
@@ -52,24 +79,7 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           initdb:
-            scripts:
-              init-databases.sql: |
-                CREATE DATABASE user_db;
-                GRANT ALL PRIVILEGES ON DATABASE user_db TO orderflow;
-                CREATE DATABASE product_db;
-                GRANT ALL PRIVILEGES ON DATABASE product_db TO orderflow;
-                CREATE DATABASE order_db;
-                GRANT ALL PRIVILEGES ON DATABASE order_db TO orderflow;
-                CREATE DATABASE payment_db;
-                GRANT ALL PRIVILEGES ON DATABASE payment_db TO orderflow;
-                CREATE DATABASE inventory_db;
-                GRANT ALL PRIVILEGES ON DATABASE inventory_db TO orderflow;
-                CREATE DATABASE shipping_db;
-                GRANT ALL PRIVILEGES ON DATABASE shipping_db TO orderflow;
-                CREATE DATABASE notification_db;
-                GRANT ALL PRIVILEGES ON DATABASE notification_db TO orderflow;
-                CREATE DATABASE event_db;
-                GRANT ALL PRIVILEGES ON DATABASE event_db TO orderflow;
+            scriptsConfigMap: postgresql-init-scripts
         metrics:
           enabled: false
   destination:
