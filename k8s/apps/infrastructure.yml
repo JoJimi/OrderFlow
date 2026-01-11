@@ -1,0 +1,193 @@
+# App of Apps - Infrastructure
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: orderflow
+  namespace: argocd
+spec:
+  description: OrderFlow E-commerce Project
+  sourceRepos:
+    - 'https://github.com/JoJimi/OrderFlow'
+    - 'https://charts.bitnami.com/bitnami'
+  destinations:
+    - namespace: orderflow
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+---
+# PostgreSQL Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql
+  namespace: argocd
+spec:
+  project: orderflow
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: postgresql
+    targetRevision: 15.5.38
+    helm:
+      valueFiles: []
+      values: |
+        global:
+          postgresql:
+            auth:
+              postgresPassword: "orderflow123"
+              username: "orderflow"
+              password: "orderflow123"
+              database: "orderflow"
+        primary:
+          persistence:
+            enabled: true
+            size: 5Gi
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          initdb:
+            scripts:
+              init-databases.sql: |
+                CREATE DATABASE user_db;
+                GRANT ALL PRIVILEGES ON DATABASE user_db TO orderflow;
+                CREATE DATABASE product_db;
+                GRANT ALL PRIVILEGES ON DATABASE product_db TO orderflow;
+                CREATE DATABASE order_db;
+                GRANT ALL PRIVILEGES ON DATABASE order_db TO orderflow;
+                CREATE DATABASE payment_db;
+                GRANT ALL PRIVILEGES ON DATABASE payment_db TO orderflow;
+                CREATE DATABASE inventory_db;
+                GRANT ALL PRIVILEGES ON DATABASE inventory_db TO orderflow;
+                CREATE DATABASE shipping_db;
+                GRANT ALL PRIVILEGES ON DATABASE shipping_db TO orderflow;
+                CREATE DATABASE notification_db;
+                GRANT ALL PRIVILEGES ON DATABASE notification_db TO orderflow;
+                CREATE DATABASE event_db;
+                GRANT ALL PRIVILEGES ON DATABASE event_db TO orderflow;
+        metrics:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+# Redis Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis
+  namespace: argocd
+spec:
+  project: orderflow
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: redis
+    targetRevision: 19.6.4
+    helm:
+      values: |
+        architecture: standalone
+        auth:
+          enabled: false
+        master:
+          persistence:
+            enabled: true
+            size: 1Gi
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+        metrics:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+# Kafka Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka
+  namespace: argocd
+spec:
+  project: orderflow
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: kafka
+    targetRevision: 30.1.5
+    helm:
+      values: |
+        listeners:
+          client:
+            protocol: PLAINTEXT
+          controller:
+            protocol: PLAINTEXT
+          interbroker:
+            protocol: PLAINTEXT
+        controller:
+          replicaCount: 1
+          persistence:
+            enabled: true
+            size: 5Gi
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+        broker:
+          replicaCount: 0
+        kraft:
+          enabled: true
+        zookeeper:
+          enabled: false
+        provisioning:
+          enabled: true
+          topics:
+            - name: order-events
+              partitions: 3
+              replicationFactor: 1
+            - name: payment-events
+              partitions: 3
+              replicationFactor: 1
+            - name: inventory-events
+              partitions: 3
+              replicationFactor: 1
+            - name: shipping-events
+              partitions: 3
+              replicationFactor: 1
+            - name: product-events
+              partitions: 3
+              replicationFactor: 1
+            - name: notification-events
+              partitions: 3
+              replicationFactor: 1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

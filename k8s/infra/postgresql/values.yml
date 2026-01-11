@@ -1,0 +1,59 @@
+# PostgreSQL Helm values for OrderFlow
+global:
+  postgresql:
+    auth:
+      postgresPassword: "orderflow123"
+      username: "orderflow"
+      password: "orderflow123"
+      database: "orderflow"
+
+primary:
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  initdb:
+    scripts:
+      init-databases.sql: |
+        -- User Service Database
+        CREATE DATABASE user_db;
+        GRANT ALL PRIVILEGES ON DATABASE user_db TO orderflow;
+        
+        -- Product Service Database
+        CREATE DATABASE product_db;
+        GRANT ALL PRIVILEGES ON DATABASE product_db TO orderflow;
+        
+        -- Order Service Database
+        CREATE DATABASE order_db;
+        GRANT ALL PRIVILEGES ON DATABASE order_db TO orderflow;
+        
+        -- Payment Service Database
+        CREATE DATABASE payment_db;
+        GRANT ALL PRIVILEGES ON DATABASE payment_db TO orderflow;
+        
+        -- Inventory Service Database
+        CREATE DATABASE inventory_db;
+        GRANT ALL PRIVILEGES ON DATABASE inventory_db TO orderflow;
+        
+        -- Shipping Service Database
+        CREATE DATABASE shipping_db;
+        GRANT ALL PRIVILEGES ON DATABASE shipping_db TO orderflow;
+        
+        -- Notification Service Database
+        CREATE DATABASE notification_db;
+        GRANT ALL PRIVILEGES ON DATABASE notification_db TO orderflow;
+        
+        -- Event Logging Service Database
+        CREATE DATABASE event_db;
+        GRANT ALL PRIVILEGES ON DATABASE event_db TO orderflow;
+
+metrics:
+  enabled: false
