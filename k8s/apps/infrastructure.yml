@@ -30,7 +30,7 @@ spec:
   project: orderflow
   source:
     repoURL: https://github.com/JoJimi/OrderFlow
-    targetRevision: main
+    targetRevision: develop
     path: k8s/infra/postgresql
     directory:
       include: 'init-configmap.yaml'
