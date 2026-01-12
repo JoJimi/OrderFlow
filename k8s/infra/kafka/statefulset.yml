@@ -16,6 +16,13 @@ spec:
     spec:
       securityContext:
         fsGroup: 1000
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: [ "sh", "-c", "chown -R 1000:1000 /tmp/kraft-combined-logs" ]
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /tmp/kraft-combined-logs
       containers:
         - name: kafka
           image: confluentinc/cp-kafka:7.8.0
