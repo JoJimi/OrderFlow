@@ -30,9 +30,9 @@ spec:
             - name: KAFKA_PROCESS_ROLES
               value: "broker,controller"
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "1@kafka:9093"
+              value: "1@localhost:9093"
             - name: KAFKA_LISTENERS
-              value: "PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+              value: "PLAINTEXT://:29092,PLAINTEXT_HOST://:9092,CONTROLLER://:9093"
             - name: KAFKA_ADVERTISED_LISTENERS
               value: "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
@@ -55,6 +55,18 @@ spec:
               value: "/var/lib/kafka/data"
             - name: CLUSTER_ID
               value: "MkU3OEVBNTcwNTJENDM2Qk"
+          command:
+            - bash
+            - -c
+            - |
+              # KRaft 스토리지 포맷 (최초 1회)
+              if [ ! -f /var/lib/kafka/data/.formatted ]; then
+                echo "Formatting Kafka storage..."
+                kafka-storage format -t $CLUSTER_ID -c /etc/kafka/kafka.properties --ignore-formatted
+                touch /var/lib/kafka/data/.formatted
+              fi
+              # Kafka 실행
+              /etc/confluent/docker/run
           volumeMounts:
             - name: kafka-data
               mountPath: /var/lib/kafka/data
@@ -71,7 +83,7 @@ spec:
                 - kafka-broker-api-versions
                 - --bootstrap-server
                 - localhost:9092
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 10
           livenessProbe:
@@ -80,7 +92,7 @@ spec:
                 - kafka-broker-api-versions
                 - --bootstrap-server
                 - localhost:9092
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 30
             timeoutSeconds: 10
       volumes:
