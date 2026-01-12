@@ -33,7 +33,14 @@ spec:
             - |
               if [ ! -f /tmp/kraft-combined-logs/.formatted ]; then
                 echo "Formatting KRaft storage..."
-                kafka-storage format -t MkU3OEVBNTcwNTJENDM2Qk -c /etc/kafka/kafka.properties --ignore-formatted
+                cat > /tmp/kraft.properties << EOF
+              node.id=1
+              process.roles=broker,controller
+              controller.listener.names=CONTROLLER
+              controller.quorum.voters=1@localhost:9093
+              log.dirs=/tmp/kraft-combined-logs
+              EOF
+                kafka-storage format -t MkU3OEVBNTcwNTJENDM2Qk -c /tmp/kraft.properties --ignore-formatted
                 touch /tmp/kraft-combined-logs/.formatted
                 echo "Format complete."
               else
