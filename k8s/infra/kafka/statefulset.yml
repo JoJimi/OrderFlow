@@ -39,6 +39,7 @@ spec:
               controller.listener.names=CONTROLLER
               controller.quorum.voters=1@localhost:9093
               listeners=PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+              advertised.listeners=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
               listener.security.protocol.map=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
               log.dirs=/tmp/kraft-combined-logs
               EOF
