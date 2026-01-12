@@ -14,6 +14,25 @@ spec:
       labels:
         app: kafka
     spec:
+      initContainers:
+        - name: kafka-init
+          image: confluentinc/cp-kafka:7.8.0
+          command:
+            - bash
+            - -c
+            - |
+              echo "=== Kafka Init Container ==="
+              if [ ! -f /var/lib/kafka/data/.formatted ]; then
+                echo "Formatting Kafka storage..."
+                kafka-storage format -t MkU3OEVBNTcwNTJENDM2Qk -c /etc/kafka/kafka.properties --ignore-formatted || true
+                touch /var/lib/kafka/data/.formatted
+                echo "Kafka storage formatted."
+              else
+                echo "Kafka storage already formatted."
+              fi
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/lib/kafka/data
       containers:
         - name: kafka
           image: confluentinc/cp-kafka:7.8.0
@@ -55,18 +74,6 @@ spec:
               value: "/var/lib/kafka/data"
             - name: CLUSTER_ID
               value: "MkU3OEVBNTcwNTJENDM2Qk"
-          command:
-            - bash
-            - -c
-            - |
-              # KRaft 스토리지 포맷 (최초 1회)
-              if [ ! -f /var/lib/kafka/data/.formatted ]; then
-                echo "Formatting Kafka storage..."
-                kafka-storage format -t $CLUSTER_ID -c /etc/kafka/kafka.properties --ignore-formatted
-                touch /var/lib/kafka/data/.formatted
-              fi
-              # Kafka 실행
-              /etc/confluent/docker/run
           volumeMounts:
             - name: kafka-data
               mountPath: /var/lib/kafka/data
