@@ -25,31 +25,23 @@ spec:
             - |
               if [ ! -f /var/lib/kafka/data/.formatted ]; then
                 echo "Formatting KRaft storage..."
-                KAFKA_CLUSTER_ID="MkU3OEVBNTcwNTJENDM2Qk"
-                kafka-storage format -t $KAFKA_CLUSTER_ID -c /etc/kafka/kraft/server.properties --ignore-formatted 2>/dev/null || \
-                kafka-storage format -t $KAFKA_CLUSTER_ID --cluster-id $KAFKA_CLUSTER_ID -c /tmp/kraft.properties --ignore-formatted 2>/dev/null || \
-                echo "Format skipped or already done"
+                cat > /tmp/kraft.properties << EOF
+              node.id=1
+              process.roles=broker,controller
+              controller.listener.names=CONTROLLER
+              controller.quorum.voters=1@localhost:9093
+              listeners=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+              advertised.listeners=PLAINTEXT://kafka:9092
+              listener.security.protocol.map=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+              inter.broker.listener.name=PLAINTEXT
+              log.dirs=/var/lib/kafka/data
+              EOF
+                kafka-storage format -t MkU3OEVBNTcwNTJENDM2Qk -c /tmp/kraft.properties --ignore-formatted
                 touch /var/lib/kafka/data/.formatted
+                echo "Format complete."
+              else
+                echo "Already formatted, skipping."
               fi
-          env:
-            - name: KAFKA_NODE_ID
-              value: "1"
-            - name: KAFKA_PROCESS_ROLES
-              value: "broker,controller"
-            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "1@localhost:9093"
-            - name: KAFKA_LISTENERS
-              value: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-            - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka:9092"
-            - name: KAFKA_CONTROLLER_LISTENER_NAMES
-              value: "CONTROLLER"
-            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
-            - name: KAFKA_INTER_BROKER_LISTENER_NAME
-              value: "PLAINTEXT"
-            - name: CLUSTER_ID
-              value: "MkU3OEVBNTcwNTJENDM2Qk"
           volumeMounts:
             - name: kafka-data
               mountPath: /var/lib/kafka/data
