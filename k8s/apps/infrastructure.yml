@@ -22,13 +22,11 @@ metadata:
   name: orderflow-infra
   namespace: argocd
 spec:
-  project: orderflow
+  project: default
   source:
     repoURL: https://github.com/JoJimi/OrderFlow
     targetRevision: develop
     path: k8s/infra
-    directory:
-      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: orderflow
@@ -38,3 +36,10 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+    - group: ""
+      kind: PersistentVolumeClaim
+      jsonPointers:
+        - /spec/volumeName
