@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: order-service
   namespace: orderflow
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   replicas: 1
   selector:
@@ -16,6 +18,7 @@ spec:
       containers:
         - name: order-service
           image: jimineutron/orderflow-order-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
           envFrom:
@@ -23,31 +26,38 @@ spec:
                 name: orderflow-config
             - secretRef:
                 name: orderflow-secrets
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx384m"
           resources:
             requests:
               memory: "512Mi"
-              cpu: "250m"
+              cpu: "400m"
             limits:
               memory: "768Mi"
-              cpu: "500m"
+              cpu: "800m"
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8083
-            periodSeconds: 10
-            failureThreshold: 3
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            timeoutSeconds: 5
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8083
-            periodSeconds: 10
-            failureThreshold: 3
+            initialDelaySeconds: 180
+            periodSeconds: 30
+            timeoutSeconds: 5
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: order-service
   namespace: orderflow
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   selector:
     app: order-service
