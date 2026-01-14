@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-logging-service
+  namespace: orderflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-logging-service
+  template:
+    metadata:
+      labels:
+        app: event-logging-service
+    spec:
+      containers:
+        - name: event-logging-service
+          image: jimineutron/orderflow-event-logging-service:latest
+          ports:
+            - containerPort: 8088
+          envFrom:
+            - configMapRef:
+                name: orderflow-config
+            - secretRef:
+                name: orderflow-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8088
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8088
+            initialDelaySeconds: 90
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-logging-service
+  namespace: orderflow
+spec:
+  selector:
+    app: event-logging-service
+  ports:
+    - port: 8088
+      targetPort: 8088
+  type: ClusterIP

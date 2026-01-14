@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderflow-services
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/JoJimi/OrderFlow
+    targetRevision: develop
+    path: k8s/services
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
