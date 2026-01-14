@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/JoJimi/OrderFlow.git
+    repoURL: https://github.com/JoJimi/OrderFlow
     targetRevision: develop
     path: k8s/services
     directory:
