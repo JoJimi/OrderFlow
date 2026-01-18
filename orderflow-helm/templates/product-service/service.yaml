@@ -1,0 +1,21 @@
+  {{- if .Values.productService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: product-service
+    component: service
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.syncWaves.services }}"
+spec:
+  type: ClusterIP
+  selector:
+    app: product-service
+  ports:
+    - name: http
+      port: {{ .Values.productService.port }}
+      targetPort: {{ .Values.productService.port }}
+      protocol: TCP
+        {{- end }}

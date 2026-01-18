@@ -1,0 +1,87 @@
+  {{- if .Values.userService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: user-service
+    component: service
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.syncWaves.services }}"
+spec:
+  replicas: {{ .Values.userService.replicas }}
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      initContainers:
+        # PostgreSQL 준비 대기
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nc -z postgres:5432; do echo waiting for postgres; sleep 2; done']
+        # Eureka Server 준비 대기
+        - name: wait-for-eureka
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nc -z eureka-server:8761; do echo waiting for eureka; sleep 2; done']
+        # Redis 준비 대기
+        - name: wait-for-redis
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nc -z redis:6379; do echo waiting for redis; sleep 2; done']
+
+      containers:
+        - name: user-service
+          image: {{ .Values.registry }}/user-service:latest
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.userService.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: orderflow-config
+            - secretRef:
+                name: orderflow-secret
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: EUREKA_INSTANCE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "user_db"
+          resources:
+            requests:
+              memory: {{ .Values.userService.resources.requests.memory }}
+              cpu: {{ .Values.userService.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.userService.resources.limits.memory }}
+              cpu: {{ .Values.userService.resources.limits.cpu }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+      terminationGracePeriodSeconds: 30
+        {{- end }}

@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderflow
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/JoJimi/OrderFlow
+    targetRevision: develop
+    path: orderflow-helm
+    helm:
+      releaseName: orderflow
+      values: |
+        # Override values here if needed
+        namespace: orderflow
+        
+        # Infrastructure
+        postgresql:
+          enabled: true
+        redis:
+          enabled: true
+        kafka:
+          enabled: true
+        
+        # Services
+        eurekaServer:
+          enabled: true
+        userService:
+          enabled: true
+        productService:
+          enabled: true
+        inventoryService:
+          enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderflow
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+    # Sync waves를 통한 단계적 배포
+    # 0: Infrastructure (PostgreSQL, Redis, Kafka)
+    # 1: Discovery (Eureka Server)
+    # 2: Services (User, Product, Inventory)
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  # 헬스 체크 설정
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas

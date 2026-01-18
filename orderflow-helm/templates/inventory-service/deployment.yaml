@@ -1,0 +1,87 @@
+  {{- if .Values.inventoryService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: inventory-service
+    component: service
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.syncWaves.services }}"
+spec:
+  replicas: {{ .Values.inventoryService.replicas }}
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nc -z postgres:5432; do echo waiting for postgres; sleep 2; done']
+        - name: wait-for-eureka
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nc -z eureka-server:8761; do echo waiting for eureka; sleep 2; done']
+        - name: wait-for-redis
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nc -z redis:6379; do echo waiting for redis; sleep 2; done']
+        - name: wait-for-kafka
+          image: busybox:1.28
+          command: ['sh', '-c', 'until nc -z kafka:29092; do echo waiting for kafka; sleep 2; done']
+
+      containers:
+        - name: inventory-service
+          image: {{ .Values.registry }}/inventory-service:latest
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.inventoryService.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: orderflow-config
+            - secretRef:
+                name: orderflow-secret
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: EUREKA_INSTANCE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "inventory_db"
+          resources:
+            requests:
+              memory: {{ .Values.inventoryService.resources.requests.memory }}
+              cpu: {{ .Values.inventoryService.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.inventoryService.resources.limits.memory }}
+              cpu: {{ .Values.inventoryService.resources.limits.cpu }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+      terminationGracePeriodSeconds: 30
+        {{- end }}

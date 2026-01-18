@@ -1,0 +1,142 @@
+# OrderFlow Helm Chart Values
+# 리소스 제약 환경(6GB VM)을 고려한 설정
+
+# 공통 설정
+namespace: orderflow
+imagePullPolicy: IfNotPresent
+replicaCount: 1
+
+# 이미지 레지스트리
+registry: jimineutron
+
+# PostgreSQL 설정
+postgresql:
+  enabled: true
+  image: postgres:15-alpine
+  port: 5432
+  database:
+    name: orderflow
+    user: orderflow
+    password: orderflow123
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  storage:
+    size: 2Gi
+    # Minikube에서 hostPath 사용
+    storageClass: standard
+
+# Redis 설정
+redis:
+  enabled: true
+  image: redis:7-alpine
+  port: 6379
+  password: ""
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  storage:
+    size: 1Gi
+    storageClass: standard
+
+# Kafka 설정
+kafka:
+  enabled: true
+  image: confluentinc/cp-kafka:7.8.0
+  port: 29092
+  externalPort: 9092
+  brokerCount: 1
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  storage:
+    size: 2Gi
+    storageClass: standard
+
+# Eureka Server 설정
+eurekaServer:
+  enabled: true
+  image: jimineutron/orderflow-eureka-server:latest
+  port: 8761
+  replicas: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# User Service 설정
+userService:
+  enabled: true
+  image: jimineutron/user-service:latest
+  port: 8081
+  replicas: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Product Service 설정
+productService:
+  enabled: true
+  image: jimineutron/product-service:latest
+  port: 8082
+  replicas: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Inventory Service 설정
+inventoryService:
+  enabled: true
+  image: jimineutron/inventory-service:latest
+  port: 8085
+  replicas: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# 환경 변수
+env:
+  SPRING_PROFILES_ACTIVE: prod
+  POSTGRES_USER: orderflow
+  POSTGRES_PASSWORD: orderflow123
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+  JWT_SECRET: vL8+Aol/uV7b6eXETCjjHZasMx2Zx2/zLRXwB/BG3gQBeRpSVm04TZUYsFP9WkuLEEtX+wwWd8hqYSCD5Lxg9w==
+  JWT_ACCESS_EXPIRATION: "1800000"
+  JWT_REFRESH_EXPIRATION: "604800000"
+  FRONT_BASE_URL: http://localhost:3000
+
+# Sync Wave를 통한 배포 순서 제어
+syncWaves:
+  infrastructure: "0"    # PostgreSQL, Redis, Kafka
+  discovery: "1"         # Eureka Server
+  services: "2"          # User, Product, Inventory Services

@@ -1,0 +1,19 @@
+  {{- if .Values.kafka.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: kafka
+    component: messaging
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.syncWaves.infrastructure }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.kafka.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.kafka.storage.size }}
+        {{- end }}

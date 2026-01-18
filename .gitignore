@@ -40,4 +40,4 @@ out/
 **/application-prod.yml
 /logs/
 
-/k8s/services/secrets.yml
+/orderflow-helm/templates/secret.yaml

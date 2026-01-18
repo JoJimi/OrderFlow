@@ -1,0 +1,68 @@
+  {{- if .Values.eurekaServer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: eureka-server
+    component: discovery
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.syncWaves.discovery }}"
+spec:
+  replicas: {{ .Values.eurekaServer.replicas }}
+  selector:
+    matchLabels:
+      app: eureka-server
+  template:
+    metadata:
+      labels:
+        app: eureka-server
+    spec:
+      containers:
+        - name: eureka-server
+          image: {{ .Values.registry }}/orderflow-eureka-server:latest
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: eureka
+              containerPort: {{ .Values.eurekaServer.port }}
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: EUREKA_INSTANCE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+              value: "false"
+            - name: EUREKA_CLIENT_FETCH_REGISTRY
+              value: "false"
+          resources:
+            requests:
+              memory: {{ .Values.eurekaServer.resources.requests.memory }}
+              cpu: {{ .Values.eurekaServer.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.eurekaServer.resources.limits.memory }}
+              cpu: {{ .Values.eurekaServer.resources.limits.cpu }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: eureka
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: eureka
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 30
+        {{- end }}

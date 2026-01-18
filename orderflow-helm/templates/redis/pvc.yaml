@@ -1,0 +1,19 @@
+  {{- if .Values.redis.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: redis
+    component: cache
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .Values.syncWaves.infrastructure }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.redis.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.storage.size }}
+        {{- end }}
