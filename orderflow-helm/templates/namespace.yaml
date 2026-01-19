@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: {{ .Values.namespace }}
+  name: {{ include "orderflow.namespace" . }}
   labels:
-    app: orderflow
-    managed-by: helm
+    {{- include "orderflow.labels" . | nindent 4 }}
+    name: {{ include "orderflow.namespace" . }}

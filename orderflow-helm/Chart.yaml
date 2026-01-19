@@ -1,6 +1,6 @@
 apiVersion: v2
 name: orderflow
-description: A Helm chart for OrderFlow microservices deployment on Kubernetes
+description: OrderFlow Microservices Helm Chart for Kubernetes
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
@@ -9,5 +9,7 @@ keywords:
   - spring-boot
   - kafka
   - postgresql
+  - redis
 maintainers:
-  - name: OrderFlow Team
+  - name: JoJimi
+    url: https://github.com/JoJimi/OrderFlow
