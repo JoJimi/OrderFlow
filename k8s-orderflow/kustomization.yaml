@@ -15,7 +15,6 @@ commonLabels:
 resources:
   # Base configurations
   - base/namespace.yaml
-  - base/secrets.yaml
   - base/configmap.yaml
 
   # Infrastructure services
@@ -33,9 +32,9 @@ resources:
 
 # Image customization (can be overridden)
 images:
-  - name: jimineutron/user-service
+  - name: jimineutron/orderflow-user-service
     newTag: latest
-  - name: jimineutron/product-service
+  - name: jimineutron/orderflow-product-service
     newTag: latest
-  - name: jimineutron/inventory-service
+  - name: jimineutron/orderflow-inventory-service
     newTag: latest
