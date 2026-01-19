@@ -1,0 +1,195 @@
+---
+# User Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: orderflow
+  labels:
+    app: user-service
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: v1
+    spec:
+      containers:
+        - name: user-service
+          image: jimineutron/orderflow-user-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+              name: http
+          env:
+            # Spring Profile
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: SPRING_PROFILES_ACTIVE
+            # Database Configuration
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/user_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: DB_POOL_SIZE
+            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: DB_MIN_IDLE
+            # Redis Configuration
+            - name: SPRING_DATA_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: REDIS_HOST
+            - name: SPRING_DATA_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: REDIS_PORT
+            # Kafka Configuration
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            # Eureka - DISABLED
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
+            - name: SPRING_CLOUD_DISCOVERY_ENABLED
+              value: "false"
+            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+              value: "false"
+            - name: EUREKA_CLIENT_FETCH_REGISTRY
+              value: "false"
+            # JWT Configuration
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: JWT_SECRET
+            - name: JWT_ACCESS_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: JWT_ACCESS_EXPIRATION
+            - name: JWT_REFRESH_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: JWT_REFRESH_EXPIRATION
+            # OAuth2 - Google
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: GOOGLE_CLIENT_SECRET
+            # OAuth2 - Kakao
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: KAKAO_CLIENT_ID
+            - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: KAKAO_CLIENT_SECRET
+            # Admin emails
+            - name: ADMIN_EMAILS
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: ADMIN_EMAILS
+            # Frontend URL
+            - name: FRONT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: FRONT_BASE_URL
+            # Server port
+            - name: SERVER_PORT
+              value: "8081"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 5
+---
+# User Service ClusterIP Service (for internal communication)
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: orderflow
+  labels:
+    app: user-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+      name: http
+  selector:
+    app: user-service
+---
+# User Service NodePort Service (for external access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-nodeport
+  namespace: orderflow
+  labels:
+    app: user-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8081
+      targetPort: 8081
+      nodePort: 30081
+      protocol: TCP
+      name: http
+  selector:
+    app: user-service

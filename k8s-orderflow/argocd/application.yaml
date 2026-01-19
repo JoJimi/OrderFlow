@@ -1,0 +1,100 @@
+---
+# ArgoCD Application for OrderFlow
+# This file defines how ArgoCD should deploy the OrderFlow application
+#
+# Prerequisites:
+# 1. ArgoCD must be installed and running
+# 2. The k8s manifests must be in a Git repository
+#
+# For local testing without Git repo, you can apply manifests directly:
+# kubectl apply -k /path/to/k8s-orderflow
+#
+# To use with ArgoCD, push the k8s-orderflow folder to a Git repository
+# and update the repoURL below
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderflow
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    # Git repository URL (update this with your actual repo)
+    repoURL: https://github.com/YOUR_USERNAME/orderflow-k8s.git
+    targetRevision: HEAD
+    path: .
+
+    # Kustomize configuration
+    kustomize:
+      images:
+        - jimineutron/user-service:latest
+        - jimineutron/product-service:latest
+        - jimineutron/inventory-service:latest
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderflow
+
+  syncPolicy:
+    automated:
+      prune: true        # Delete resources that are no longer defined
+      selfHeal: true     # Auto-sync when drift is detected
+      allowEmpty: false  # Don't allow syncing empty app
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  # Health checks customization
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+
+---
+# ArgoCD Project for OrderFlow (optional, for better organization)
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: orderflow-project
+  namespace: argocd
+spec:
+  description: OrderFlow Microservices Project
+
+  # Source repositories
+  sourceRepos:
+    - '*'
+
+  # Destination clusters and namespaces
+  destinations:
+    - namespace: orderflow
+      server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+
+  # Cluster resources allowed
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: 'networking.k8s.io'
+      kind: IngressClass
+
+  # Namespace resources allowed
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: '*'
+    - group: 'apps'
+      kind: '*'
+    - group: 'networking.k8s.io'
+      kind: '*'

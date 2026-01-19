@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: orderflow-k8s
+
+namespace: orderflow
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/managed-by: argocd
+  app.kubernetes.io/part-of: orderflow-system
+
+# Resources to include
+resources:
+  # Base configurations
+  - base/namespace.yaml
+  - base/secrets.yaml
+  - base/configmap.yaml
+
+  # Infrastructure services
+  - infrastructure/postgres.yaml
+  - infrastructure/redis.yaml
+  - infrastructure/kafka.yaml
+
+  # Application services
+  - services/user-service.yaml
+  - services/product-service.yaml
+  - services/inventory-service.yaml
+
+  # Ingress
+  - base/ingress.yaml
+
+# Image customization (can be overridden)
+images:
+  - name: jimineutron/user-service
+    newTag: latest
+  - name: jimineutron/product-service
+    newTag: latest
+  - name: jimineutron/inventory-service
+    newTag: latest

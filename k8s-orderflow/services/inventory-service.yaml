@@ -1,0 +1,156 @@
+---
+# Inventory Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: orderflow
+  labels:
+    app: inventory-service
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+        version: v1
+    spec:
+      containers:
+        - name: inventory-service
+          image: jimineutron/orderflow-inventory-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8085
+              name: http
+          env:
+            # Spring Profile
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: SPRING_PROFILES_ACTIVE
+            # Database Configuration
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:5432/inventory_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: DB_POOL_SIZE
+            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: DB_MIN_IDLE
+            # Redis Configuration
+            - name: SPRING_DATA_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: REDIS_HOST
+            - name: SPRING_DATA_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: REDIS_PORT
+            # Kafka Configuration
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            # Eureka - DISABLED
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
+            - name: SPRING_CLOUD_DISCOVERY_ENABLED
+              value: "false"
+            - name: EUREKA_CLIENT_REGISTER_WITH_EUREKA
+              value: "false"
+            - name: EUREKA_CLIENT_FETCH_REGISTRY
+              value: "false"
+            # JWT Configuration (for security validation)
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: JWT_SECRET
+            - name: JWT_ACCESS_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: JWT_ACCESS_EXPIRATION
+            # Server port
+            - name: SERVER_PORT
+              value: "8085"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 5
+---
+# Inventory Service ClusterIP Service (for internal communication)
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service
+  namespace: orderflow
+  labels:
+    app: inventory-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8085
+      targetPort: 8085
+      protocol: TCP
+      name: http
+  selector:
+    app: inventory-service
+---
+# Inventory Service NodePort Service (for external access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service-nodeport
+  namespace: orderflow
+  labels:
+    app: inventory-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8085
+      targetPort: 8085
+      nodePort: 30085
+      protocol: TCP
+      name: http
+  selector:
+    app: inventory-service

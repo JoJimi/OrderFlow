@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ include "orderflow.namespace" . }}
-  labels:
-    {{- include "orderflow.labels" . | nindent 4 }}
-    name: {{ include "orderflow.namespace" . }}

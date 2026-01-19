@@ -1,0 +1,134 @@
+---
+# PostgreSQL PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: orderflow
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# PostgreSQL Init ConfigMap (Database initialization script)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: orderflow
+data:
+  init-databases.sql: |
+    -- Create databases for each microservice
+    CREATE DATABASE user_db;
+    CREATE DATABASE product_db;
+    CREATE DATABASE order_db;
+    CREATE DATABASE payment_db;
+    CREATE DATABASE inventory_db;
+    CREATE DATABASE shipping_db;
+    CREATE DATABASE notification_db;
+    CREATE DATABASE event_log_db;
+
+    -- Grant permissions
+    GRANT ALL PRIVILEGES ON DATABASE user_db TO orderflow;
+    GRANT ALL PRIVILEGES ON DATABASE product_db TO orderflow;
+    GRANT ALL PRIVILEGES ON DATABASE order_db TO orderflow;
+    GRANT ALL PRIVILEGES ON DATABASE payment_db TO orderflow;
+    GRANT ALL PRIVILEGES ON DATABASE inventory_db TO orderflow;
+    GRANT ALL PRIVILEGES ON DATABASE shipping_db TO orderflow;
+    GRANT ALL PRIVILEGES ON DATABASE notification_db TO orderflow;
+    GRANT ALL PRIVILEGES ON DATABASE event_log_db TO orderflow;
+---
+# PostgreSQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: orderflow
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "orderflow"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orderflow-secrets
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - orderflow
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - orderflow
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: orderflow
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: postgres
