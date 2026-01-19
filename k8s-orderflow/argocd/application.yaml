@@ -24,16 +24,16 @@ spec:
 
   source:
     # Git repository URL (update this with your actual repo)
-    repoURL: https://github.com/YOUR_USERNAME/orderflow-k8s.git
-    targetRevision: HEAD
-    path: .
+    repoURL: https://github.com/JoJimi/Orderflow
+    targetRevision: develop
+    path: k8s-orderflow
 
     # Kustomize configuration
     kustomize:
       images:
-        - jimineutron/user-service:latest
-        - jimineutron/product-service:latest
-        - jimineutron/inventory-service:latest
+        - jimineutron/orderflow-user-service:latest
+        - jimineutron/orderflow-product-service:latest
+        - jimineutron/orderflow-inventory-service:latest
 
   destination:
     server: https://kubernetes.default.svc
