@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: orderflow
+
+# Common labels for all monitoring resources
+commonLabels:
+  app.kubernetes.io/managed-by: argocd
+  app.kubernetes.io/part-of: orderflow-monitoring
+
+# Resources to include
+resources:
+  - prometheus-configmap.yaml
+  - prometheus.yaml
+  - grafana.yaml
+
+# Enable kustomization for monitoring
+replicas:
+  - name: prometheus
+    count: 1
+  - name: grafana
+    count: 1

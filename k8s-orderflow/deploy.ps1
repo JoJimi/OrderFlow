@@ -1,17 +1,12 @@
 # =====================================================
-# OrderFlow Kubernetes Deployment Script for Windows
+# OrderFlow with Monitoring Stack Deployment
 # =====================================================
-# This script deploys OrderFlow microservices to Minikube
-#
-# Prerequisites:
-# - Minikube installed and running
-# - kubectl configured
-# - Run as Administrator for hosts file modification
+# Prometheus + Grafana를 포함한 배포 스크립트
 # =====================================================
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet("deploy", "kustomize", "status", "cleanup", "logs", "tunnel")]
+    [ValidateSet("deploy", "kustomize", "status", "logs", "cleanup", "monitoring-only")]
     [string]$Command = "deploy",
 
     [Parameter(Position=1)]
@@ -19,13 +14,12 @@ param(
 )
 
 # Colors
-function Write-ColorOutput($ForegroundColor) {
-    $fc = $host.UI.RawUI.ForegroundColor
-    $host.UI.RawUI.ForegroundColor = $ForegroundColor
-    if ($args) {
-        Write-Output $args
-    }
-    $host.UI.RawUI.ForegroundColor = $fc
+function Write-Success($message) {
+    Write-Host "✓ $message" -ForegroundColor Green
+}
+
+function Write-Warning($message) {
+    Write-Host "⚠ $message" -ForegroundColor Yellow
 }
 
 function Write-Header($message) {
@@ -36,244 +30,133 @@ function Write-Header($message) {
     Write-Host ""
 }
 
-function Write-Success($message) {
-    Write-Host "✓ $message" -ForegroundColor Green
+function Show-Status {
+    Write-Header "OrderFlow + Monitoring Deployment Status"
+
+    Write-Host "`n📦 Pods:" -ForegroundColor Yellow
+    kubectl get pods -n orderflow -o wide
+
+    Write-Host "`n🌐 Services:" -ForegroundColor Yellow
+    kubectl get svc -n orderflow
+
+    Write-Host "`n🌍 Ingress:" -ForegroundColor Yellow
+    kubectl get ingress -n orderflow
+
+    $MinikubeIP = minikube ip
+
+    Write-Header "📊 Monitoring Stack Access"
+    Write-Host "Prometheus:  http://${MinikubeIP}:30090" -ForegroundColor Green
+    Write-Host "Grafana:     http://${MinikubeIP}:30300" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Grafana Login:" -ForegroundColor Cyan
+    Write-Host "  Username: admin"
+    Write-Host "  Password: admin123"
 }
 
-function Write-Warning($message) {
-    Write-Host "⚠ $message" -ForegroundColor Yellow
-}
-
-function Write-Error($message) {
-    Write-Host "✗ $message" -ForegroundColor Red
-}
-
-# Get script directory
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-# Check prerequisites
-function Check-Prerequisites {
-    Write-Header "Checking Prerequisites"
-
-    # Check kubectl
-    if (Get-Command kubectl -ErrorAction SilentlyContinue) {
-        Write-Success "kubectl is installed"
-    } else {
-        Write-Error "kubectl is not installed"
-        exit 1
-    }
-
-    # Check minikube
-    if (Get-Command minikube -ErrorAction SilentlyContinue) {
-        Write-Success "minikube is installed"
-
-        $status = minikube status 2>&1
-        if ($status -match "Running") {
-            Write-Success "minikube is running"
-        } else {
-            Write-Warning "minikube is not running. Starting with 4 CPUs and 8GB RAM..."
-            minikube start --cpus=4 --memory=8192
-        }
-    } else {
-        Write-Error "minikube is not installed"
-        exit 1
-    }
-}
-
-# Enable required addons
-function Enable-Addons {
-    Write-Header "Enabling Minikube Addons"
-
-    Write-Host "Enabling ingress addon..."
-    minikube addons enable ingress
-    Write-Success "Ingress addon enabled"
-
-    Write-Host "Enabling metrics-server addon..."
-    minikube addons enable metrics-server
-    Write-Success "Metrics-server addon enabled"
-}
-
-# Deploy directly with kubectl
-function Deploy-Direct {
-    Write-Header "Deploying OrderFlow Services"
-
-    Write-Host "Step 1: Creating namespace..."
-    kubectl apply -f "$ScriptDir\base\namespace.yaml"
-    Write-Success "Namespace created"
-
-    Write-Host "Step 2: Creating secrets and configmap..."
-    kubectl apply -f "$ScriptDir\base\secrets.yaml"
-    kubectl apply -f "$ScriptDir\base\configmap.yaml"
-    Write-Success "Secrets and ConfigMap created"
-
-    Write-Host "Step 3: Deploying infrastructure services..."
-    kubectl apply -f "$ScriptDir\infrastructure\postgres.yaml"
-    kubectl apply -f "$ScriptDir\infrastructure\redis.yaml"
-    kubectl apply -f "$ScriptDir\infrastructure\kafka.yaml"
-    Write-Success "Infrastructure services deployed"
-
-    Write-Host "Step 4: Waiting for infrastructure to be ready..."
-    Write-Host "Waiting for PostgreSQL (this may take a while)..."
-    kubectl wait --for=condition=ready pod -l app=postgres -n orderflow --timeout=300s
-    Write-Success "PostgreSQL is ready"
-
-    Write-Host "Waiting for Redis..."
-    kubectl wait --for=condition=ready pod -l app=redis -n orderflow --timeout=120s
-    Write-Success "Redis is ready"
-
-    Write-Host "Waiting for Kafka (this may take a while)..."
-    kubectl wait --for=condition=ready pod -l app=kafka -n orderflow --timeout=300s
-    Write-Success "Kafka is ready"
-
-    Write-Host "Step 5: Deploying application services..."
-    kubectl apply -f "$ScriptDir\services\user-service.yaml"
-    kubectl apply -f "$ScriptDir\services\product-service.yaml"
-    kubectl apply -f "$ScriptDir\services\inventory-service.yaml"
-    Write-Success "Application services deployed"
-
-    Write-Host "Step 6: Creating Ingress..."
-    kubectl apply -f "$ScriptDir\base\ingress.yaml"
-    Write-Success "Ingress created"
-
-    Write-Host "Step 7: Waiting for application services to be ready..."
-    Write-Host "This may take a few minutes as services start up..."
-
-    Start-Sleep -Seconds 30
-
-    kubectl wait --for=condition=ready pod -l app=user-service -n orderflow --timeout=300s 2>$null
-    kubectl wait --for=condition=ready pod -l app=product-service -n orderflow --timeout=300s 2>$null
-    kubectl wait --for=condition=ready pod -l app=inventory-service -n orderflow --timeout=300s 2>$null
-}
-
-# Deploy with Kustomize
 function Deploy-Kustomize {
-    Write-Header "Deploying OrderFlow Services with Kustomize"
+    Write-Header "Deploying with Kustomize (Application + Monitoring)"
+    kubectl apply -k .
+    Write-Success "Applied kustomization"
 
-    Write-Host "Applying all resources with kustomize..."
-    kubectl apply -k $ScriptDir
-
-    Write-Host "Waiting for all pods to be ready..."
+    Write-Host "Waiting for all pods..."
     Start-Sleep -Seconds 30
 
     # Wait for infrastructure
-    kubectl wait --for=condition=ready pod -l app=postgres -n orderflow --timeout=300s 2>$null
-    kubectl wait --for=condition=ready pod -l app=redis -n orderflow --timeout=120s 2>$null
-    kubectl wait --for=condition=ready pod -l app=kafka -n orderflow --timeout=300s 2>$null
+    kubectl wait --for=condition=ready pod -l app=postgres -n orderflow --timeout=300s -ErrorAction SilentlyContinue
+    kubectl wait --for=condition=ready pod -l app=redis -n orderflow --timeout=120s -ErrorAction SilentlyContinue
+    kubectl wait --for=condition=ready pod -l app=kafka -n orderflow --timeout=300s -ErrorAction SilentlyContinue
 
-    # Wait for services
-    kubectl wait --for=condition=ready pod -l app=user-service -n orderflow --timeout=300s 2>$null
-    kubectl wait --for=condition=ready pod -l app=product-service -n orderflow --timeout=300s 2>$null
-    kubectl wait --for=condition=ready pod -l app=inventory-service -n orderflow --timeout=300s 2>$null
+    # Wait for monitoring
+    kubectl wait --for=condition=ready pod -l app=prometheus -n orderflow --timeout=120s -ErrorAction SilentlyContinue
+    kubectl wait --for=condition=ready pod -l app=grafana -n orderflow --timeout=120s -ErrorAction SilentlyContinue
+
+    Write-Success "All services deployed!"
 }
 
-# Show status
-function Show-Status {
-    Write-Header "Deployment Status"
+function Deploy-Monitoring-Only {
+    Write-Header "Deploying Monitoring Stack Only"
+    kubectl apply -k ./monitoring
+    Write-Success "Monitoring stack deployed!"
 
-    Write-Host "`nPods:" -ForegroundColor Yellow
-    kubectl get pods -n orderflow -o wide
-
-    Write-Host "`nServices:" -ForegroundColor Yellow
-    kubectl get svc -n orderflow
-
-    Write-Host "`nIngress:" -ForegroundColor Yellow
-    kubectl get ingress -n orderflow
-
-    # Get Minikube IP
-    $MinikubeIP = minikube ip
-
-    Write-Header "Access Information"
-    Write-Host "Minikube IP: $MinikubeIP" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "NodePort Access (direct):"
-    Write-Host "  - User Service:      http://${MinikubeIP}:30081"
-    Write-Host "  - Product Service:   http://${MinikubeIP}:30082"
-    Write-Host "  - Inventory Service: http://${MinikubeIP}:30085"
-    Write-Host ""
-    Write-Host "Ingress Access (via nginx):"
-    Write-Host "  Add this line to C:\Windows\System32\drivers\etc\hosts (as Administrator):"
-    Write-Host "  $MinikubeIP orderflow.local" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "  Or run: 'minikube tunnel' in a separate terminal for LoadBalancer access"
-    Write-Host ""
-    Write-Host "  Then access via:"
-    Write-Host "  - User API:      http://orderflow.local/api/users"
-    Write-Host "  - Auth API:      http://orderflow.local/api/auth"
-    Write-Host "  - Product API:   http://orderflow.local/api/products"
-    Write-Host "  - Inventory API: http://orderflow.local/api/inventory"
-    Write-Host ""
-    Write-Host "Health Check Endpoints:"
-    Write-Host "  - User Service:      http://${MinikubeIP}:30081/actuator/health"
-    Write-Host "  - Product Service:   http://${MinikubeIP}:30082/actuator/health"
-    Write-Host "  - Inventory Service: http://${MinikubeIP}:30085/actuator/health"
+    Write-Host "Waiting for monitoring pods..."
+    kubectl wait --for=condition=ready pod -l part-of=orderflow-monitoring -n orderflow --timeout=120s -ErrorAction SilentlyContinue
+    Write-Success "Monitoring ready!"
 }
 
-# Cleanup
-function Invoke-Cleanup {
-    Write-Header "Cleaning Up"
-
-    Write-Host "Deleting orderflow namespace and all resources..."
-    kubectl delete namespace orderflow --ignore-not-found=true
-
-    Write-Success "Cleanup completed"
-}
-
-# View logs
 function View-Logs {
     param([string]$Service)
 
     if ([string]::IsNullOrEmpty($Service)) {
         Write-Host "Usage: .\deploy.ps1 logs <service-name>"
-        Write-Host "Available services: user-service, product-service, inventory-service, postgres, redis, kafka"
+        Write-Host ""
+        Write-Host "Application Services:"
+        Write-Host "  - user-service"
+        Write-Host "  - product-service"
+        Write-Host "  - inventory-service"
+        Write-Host ""
+        Write-Host "Infrastructure:"
+        Write-Host "  - postgres, redis, kafka"
+        Write-Host ""
+        Write-Host "Monitoring:"
+        Write-Host "  - prometheus, grafana"
         exit 1
     }
 
     kubectl logs -f -l app=$Service -n orderflow --all-containers=true
 }
 
-# Start tunnel
-function Start-Tunnel {
-    Write-Header "Starting Minikube Tunnel"
-    Write-Host "This will require Administrator privileges..."
-    Write-Host "Press Ctrl+C to stop the tunnel"
-    minikube tunnel
-}
-
 # Main
+Write-Header "OrderFlow Kubernetes Deployment"
+
 switch ($Command) {
     "deploy" {
-        Check-Prerequisites
-        Enable-Addons
-        Deploy-Direct
+        kubectl apply -f base/namespace.yaml
+        kubectl apply -f base/configmap.yaml
+        kubectl apply -f infrastructure/postgres.yaml
+        kubectl apply -f infrastructure/redis.yaml
+        kubectl apply -f infrastructure/kafka.yaml
+        Start-Sleep -Seconds 30
+        kubectl wait --for=condition=ready pod -l app=postgres -n orderflow --timeout=300s -ErrorAction SilentlyContinue
+        kubectl wait --for=condition=ready pod -l app=redis -n orderflow --timeout=120s -ErrorAction SilentlyContinue
+        kubectl wait --for=condition=ready pod -l app=kafka -n orderflow --timeout=300s -ErrorAction SilentlyContinue
+        kubectl apply -f services/user-service.yaml
+        kubectl apply -f services/product-service.yaml
+        kubectl apply -f services/inventory-service.yaml
+        kubectl apply -f monitoring/prometheus-configmap.yaml
+        kubectl apply -f monitoring/prometheus.yaml
+        kubectl apply -f monitoring/grafana.yaml
+        kubectl apply -f base/ingress.yaml
+        Write-Success "Deployment completed!"
         Show-Status
     }
     "kustomize" {
-        Check-Prerequisites
-        Enable-Addons
         Deploy-Kustomize
+        Show-Status
+    }
+    "monitoring-only" {
+        Deploy-Monitoring-Only
         Show-Status
     }
     "status" {
         Show-Status
     }
-    "cleanup" {
-        Invoke-Cleanup
-    }
     "logs" {
         View-Logs -Service $ServiceName
     }
-    "tunnel" {
-        Start-Tunnel
+    "cleanup" {
+        Write-Header "Cleaning Up"
+        kubectl delete namespace orderflow --ignore-not-found=true
+        Write-Success "Cleanup completed"
     }
     default {
-        Write-Host "Usage: .\deploy.ps1 {deploy|kustomize|status|cleanup|logs|tunnel} [service-name]"
+        Write-Host "Usage: .\deploy.ps1 {deploy|kustomize|monitoring-only|status|logs|cleanup} [service-name]"
         Write-Host ""
         Write-Host "Commands:"
-        Write-Host "  deploy    - Deploy services step by step"
-        Write-Host "  kustomize - Deploy using kustomize"
-        Write-Host "  status    - Show deployment status"
-        Write-Host "  cleanup   - Remove all resources"
-        Write-Host "  logs      - View logs for a service"
-        Write-Host "  tunnel    - Start minikube tunnel for LoadBalancer"
+        Write-Host "  deploy          - Deploy all services step by step"
+        Write-Host "  kustomize       - Deploy all using kustomize (recommended)"
+        Write-Host "  monitoring-only - Deploy only Prometheus + Grafana"
+        Write-Host "  status          - Show deployment status"
+        Write-Host "  logs            - View logs for a service"
+        Write-Host "  cleanup         - Remove all resources"
     }
 }

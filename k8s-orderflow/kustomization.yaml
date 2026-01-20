@@ -27,6 +27,11 @@ resources:
   - services/product-service.yaml
   - services/inventory-service.yaml
 
+  # Monitoring stack
+  - monitoring/prometheus-configmap.yaml
+  - monitoring/prometheus.yaml
+  - monitoring/grafana.yaml
+
   # Ingress
   - base/ingress.yaml
 
@@ -37,4 +42,8 @@ images:
   - name: jimineutron/orderflow-product-service
     newTag: latest
   - name: jimineutron/orderflow-inventory-service
+    newTag: latest
+  - name: prom/prometheus
+    newTag: latest
+  - name: grafana/grafana
     newTag: latest
