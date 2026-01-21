@@ -1,5 +1,4 @@
 ---
-# Loki Deployment (수정됨: initContainer로 디렉토리 생성 및 권한 설정)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,22 +32,7 @@ spec:
         fsGroup: 10001
         runAsUser: 10001
         runAsNonRoot: true
-
-      # ✅ initContainers로 디렉토리 생성 및 권한 설정
-      initContainers:
-        - name: setup
-          image: busybox:latest
-          command:
-            - /bin/sh
-            - -c
-            - |
-              mkdir -p /loki/chunks
-              mkdir -p /loki/boltdb-shipper-active
-              mkdir -p /loki/boltdb-shipper-cache
-              chmod -R 777 /loki
-          volumeMounts:
-            - name: loki-storage
-              mountPath: /loki
+        runAsGroup: 10001
 
       containers:
         - name: loki
@@ -79,7 +63,7 @@ spec:
             httpGet:
               path: /ready
               port: 3100
-            initialDelaySeconds: 45
+            initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
@@ -87,7 +71,7 @@ spec:
             httpGet:
               path: /ready
               port: 3100
-            initialDelaySeconds: 45
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
@@ -113,7 +97,6 @@ spec:
       terminationGracePeriodSeconds: 30
 
 ---
-# Loki Service (ClusterIP - Internal)
 apiVersion: v1
 kind: Service
 metadata:
@@ -133,7 +116,6 @@ spec:
     app: loki
 
 ---
-# Loki Service (NodePort - External)
 apiVersion: v1
 kind: Service
 metadata:

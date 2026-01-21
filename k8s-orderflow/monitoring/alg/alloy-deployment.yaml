@@ -1,5 +1,4 @@
 ---
-# Alloy ServiceAccount (이미 존재)
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -10,7 +9,6 @@ metadata:
     part-of: alg-monitoring
 
 ---
-# Alloy ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -54,7 +52,6 @@ rules:
     verbs: ["get"]
 
 ---
-# Alloy ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -72,7 +69,6 @@ subjects:
     namespace: orderflow
 
 ---
-# Alloy Deployment (수정됨: readOnlyRootFilesystem = false)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -105,7 +101,8 @@ spec:
       securityContext:
         fsGroup: 65534
         runAsUser: 65534
-        runAsNonRoot: true
+        runAsNonRoot: false  # ✅ false로 변경 (alloy 실행 권한)
+        runAsGroup: 65534
 
       containers:
         - name: alloy
@@ -160,7 +157,7 @@ spec:
             failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: false  # ✅ false로 변경
             capabilities:
               drop:
                 - ALL
@@ -177,7 +174,6 @@ spec:
       terminationGracePeriodSeconds: 30
 
 ---
-# Alloy Service (ClusterIP - Internal)
 apiVersion: v1
 kind: Service
 metadata:
@@ -201,7 +197,6 @@ spec:
     app: alloy
 
 ---
-# Alloy Service (NodePort - External)
 apiVersion: v1
 kind: Service
 metadata:
