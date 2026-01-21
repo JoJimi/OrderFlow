@@ -373,7 +373,7 @@ jobs:
   # 7. 배포 알림 (Slack)
   # ========================================
   notify:
-    needs: [build, build-and-push-user-service, build-and-push-product-service, build-and-push-inventory-service]
+    needs: [ build, build-and-push-user-service, build-and-push-product-service, build-and-push-inventory-service ]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -406,4 +406,6 @@ jobs:
             📌 Branch: ${{ github.ref_name }}
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           fields: repo,message,commit,author,action,eventName,ref,workflow
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
