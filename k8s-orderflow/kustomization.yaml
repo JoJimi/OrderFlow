@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 metadata:
-  name: orderflow-k8s
+  name: orderflow-alg-k8s
 
 namespace: orderflow
 
@@ -27,10 +27,17 @@ resources:
   - services/product-service.yaml
   - services/inventory-service.yaml
 
-  # Monitoring stack
+  # Monitoring stack - Traditional (Prometheus)
   - monitoring/prometheus-configmap.yaml
   - monitoring/prometheus.yaml
-  - monitoring/grafana.yaml
+
+  # ALG Stack (Alloy, Loki, Grafana)
+  - monitoring/alg/loki-pvc.yaml
+  - monitoring/alg/loki-configmap.yaml
+  - monitoring/alg/loki-deployment.yaml
+  - monitoring/alg/alloy-configmap.yaml
+  - monitoring/alg/alloy-deployment.yaml
+  - monitoring/alg/grafana-alg.yaml
 
   # Ingress
   - base/ingress.yaml
@@ -43,6 +50,10 @@ images:
     newTag: latest
   - name: jimineutron/orderflow-inventory-service
     newTag: latest
+  - name: grafana/alloy
+    newTag: v1.0.0
+  - name: grafana/loki
+    newTag: 2.9.4
   - name: prom/prometheus
     newTag: latest
   - name: grafana/grafana

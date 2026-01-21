@@ -1,0 +1,222 @@
+---
+# Alloy ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alloy
+  namespace: orderflow
+  labels:
+    app: alloy
+    part-of: alg-monitoring
+
+---
+# Alloy ClusterRole (for Kubernetes service discovery)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: alloy
+  labels:
+    app: alloy
+    part-of: alg-monitoring
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - nodes/metrics
+      - services
+      - endpoints
+      - pods
+      - events
+      - namespaces
+      - persistentvolumes
+      - persistentvolumeclaims
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources:
+      - statefulsets
+      - daemonsets
+      - deployments
+      - replicasets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs:
+      - /metrics
+      - /metrics/cadvisor
+    verbs: ["get"]
+
+---
+# Alloy ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: alloy
+  labels:
+    app: alloy
+    part-of: alg-monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: alloy
+subjects:
+  - kind: ServiceAccount
+    name: alloy
+    namespace: orderflow
+
+---
+# Alloy Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alloy
+  namespace: orderflow
+  labels:
+    app: alloy
+    part-of: alg-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alloy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: alloy
+        part-of: alg-monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "12345"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: alloy
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
+        runAsNonRoot: true
+
+      containers:
+        - name: alloy
+          image: grafana/alloy:v1.0.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - /etc/alloy/alloy-config.alloy
+            - --server.http.listen-addr=0.0.0.0:12345
+            - --storage.path=/var/lib/alloy
+          ports:
+            - name: metrics
+              containerPort: 12345
+              protocol: TCP
+            - name: http-sd
+              containerPort: 8888
+              protocol: TCP
+          env:
+            - name: TZ
+              value: "Asia/Seoul"
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: alloy-config
+              mountPath: /etc/alloy
+            - name: alloy-storage
+              mountPath: /var/lib/alloy
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 12345
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 12345
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+      volumes:
+        - name: alloy-config
+          configMap:
+            name: alloy-config
+        - name: alloy-storage
+          emptyDir:
+            sizeLimit: 1Gi
+
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+
+---
+# Alloy Service (ClusterIP - Internal)
+apiVersion: v1
+kind: Service
+metadata:
+  name: alloy
+  namespace: orderflow
+  labels:
+    app: alloy
+    part-of: alg-monitoring
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 12345
+      targetPort: 12345
+      protocol: TCP
+    - name: http-sd
+      port: 8888
+      targetPort: 8888
+      protocol: TCP
+  selector:
+    app: alloy
+
+---
+# Alloy Service (NodePort - External)
+apiVersion: v1
+kind: Service
+metadata:
+  name: alloy-nodeport
+  namespace: orderflow
+  labels:
+    app: alloy
+    part-of: alg-monitoring
+spec:
+  type: NodePort
+  ports:
+    - name: metrics
+      port: 12345
+      targetPort: 12345
+      nodePort: 30345
+      protocol: TCP
+  selector:
+    app: alloy

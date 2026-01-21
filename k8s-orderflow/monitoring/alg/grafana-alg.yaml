@@ -1,31 +1,107 @@
 ---
-# Grafana PersistentVolumeClaim
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: grafana-pvc
-  namespace: orderflow
-  labels:
-    app: grafana
-    part-of: monitoring
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2Gi
-  storageClassName: standard
-
----
-# Grafana ConfigMap
+# Grafana Datasource ConfigMap (Updated with Loki)
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-config
+  name: grafana-datasources
   namespace: orderflow
   labels:
     app: grafana
-    part-of: monitoring
+    part-of: alg-monitoring
+data:
+  prometheus.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus:9090
+        access: proxy
+        isDefault: true
+        editable: true
+        version: 1
+        jsonData:
+          timeInterval: 15s
+
+      - name: Loki
+        type: loki
+        url: http://loki:3100
+        access: proxy
+        isDefault: false
+        editable: true
+        version: 1
+        jsonData:
+          maxLines: 10000
+          derivedFields:
+            - datasourceUid: prometheus
+              matcherRegex: 'trace_id=(\w+)'
+              name: TraceID
+              url: '$${__value.raw}'
+
+---
+# Grafana Datasource ConfigMap for Alloy (service discovery)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources-alloy
+  namespace: orderflow
+  labels:
+    app: grafana
+    part-of: alg-monitoring
+data:
+  alloy.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Alloy
+        type: prometheus
+        url: http://alloy:12345
+        access: proxy
+        isDefault: false
+        editable: true
+        version: 1
+        jsonData:
+          timeInterval: 15s
+
+---
+# Grafana Dashboard Provider ConfigMap for ALG Stack
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+  namespace: orderflow
+  labels:
+    app: grafana
+    part-of: alg-monitoring
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: 'OrderFlow Dashboards'
+        orgId: 1
+        folder: 'OrderFlow'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+      - name: 'ALG Stack Dashboards'
+        orgId: 1
+        folder: 'ALG Monitoring'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/alg
+
+---
+# Grafana Config ConfigMap (Updated)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config-alg
+  namespace: orderflow
+  labels:
+    app: grafana
+    part-of: alg-monitoring
 data:
   grafana.ini: |
     [paths]
@@ -39,11 +115,13 @@ data:
     serve_from_sub_path = true
     http_addr = 0.0.0.0
     http_port = 3000
+    protocol = http
 
     [security]
     admin_user = admin
     admin_password = admin123
     disable_gravatar = true
+    secret_key = orderflow-secret-key
 
     [users]
     allow_sign_up = false
@@ -61,8 +139,34 @@ data:
     check_for_updates = false
     reporting_enabled = false
 
+    [alerting]
+    enabled = true
+    execute_alerts = true
+
+    [feature_toggles]
+    lokiLogsDataplane = true
+    traceqlEditor = true
+
 ---
-# Grafana Deployment
+# Grafana PersistentVolumeClaim (if not exists)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: orderflow
+  labels:
+    app: grafana
+    part-of: alg-monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: standard
+
+---
+# Grafana Deployment (Updated)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -70,7 +174,7 @@ metadata:
   namespace: orderflow
   labels:
     app: grafana
-    part-of: monitoring
+    part-of: alg-monitoring
 spec:
   replicas: 1
   selector:
@@ -80,7 +184,7 @@ spec:
     metadata:
       labels:
         app: grafana
-        part-of: monitoring
+        part-of: alg-monitoring
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
@@ -113,12 +217,14 @@ spec:
             - name: GF_PATHS_PROVISIONING
               value: "/etc/grafana/provisioning"
             - name: GF_INSTALL_PLUGINS
-              value: "grafana-piechart-panel,grafana-worldmap-panel"
+              value: "grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel"
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
             - name: grafana-datasources
               mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-datasources-alloy
+              mountPath: /etc/grafana/provisioning/datasources/alloy
             - name: grafana-dashboards
               mountPath: /etc/grafana/provisioning/dashboards
             - name: grafana-config
@@ -160,19 +266,22 @@ spec:
         - name: grafana-datasources
           configMap:
             name: grafana-datasources
+        - name: grafana-datasources-alloy
+          configMap:
+            name: grafana-datasources-alloy
         - name: grafana-dashboards
           configMap:
             name: grafana-dashboards
             optional: true
         - name: grafana-config
           configMap:
-            name: grafana-config
+            name: grafana-config-alg
 
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
 
 ---
-# Grafana Service (ClusterIP for internal access)
+# Grafana Service (ClusterIP - Internal)
 apiVersion: v1
 kind: Service
 metadata:
@@ -180,7 +289,7 @@ metadata:
   namespace: orderflow
   labels:
     app: grafana
-    part-of: monitoring
+    part-of: alg-monitoring
 spec:
   type: ClusterIP
   selector:
@@ -192,7 +301,7 @@ spec:
       protocol: TCP
 
 ---
-# Grafana Service (NodePort for external access)
+# Grafana Service (NodePort - External)
 apiVersion: v1
 kind: Service
 metadata:
@@ -200,7 +309,7 @@ metadata:
   namespace: orderflow
   labels:
     app: grafana
-    part-of: monitoring
+    part-of: alg-monitoring
 spec:
   type: NodePort
   selector:
@@ -209,28 +318,5 @@ spec:
     - name: web
       port: 3000
       targetPort: 3000
-      nodePort: 30300
+      nodePort: 30301
       protocol: TCP
-
----
-# Grafana Dashboard ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboards
-  namespace: orderflow
-  labels:
-    app: grafana
-    part-of: monitoring
-data:
-  dashboard-provider.yml: |
-    apiVersion: 1
-    providers:
-      - name: 'OrderFlow Dashboards'
-        orgId: 1
-        folder: 'OrderFlow'
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards

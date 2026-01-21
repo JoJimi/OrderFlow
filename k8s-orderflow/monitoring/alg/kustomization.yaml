@@ -1,0 +1,78 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: orderflow-alg
+
+namespace: orderflow
+
+# Common labels for all ALG resources
+commonLabels:
+  app.kubernetes.io/managed-by: argocd
+  app.kubernetes.io/part-of: orderflow-alg-stack
+
+# Common annotations
+commonAnnotations:
+  description: "ALG Stack (Alloy, Loki, Grafana) for OrderFlow"
+
+# Resources to include
+resources:
+  # Loki - Log Aggregation
+  - loki-pvc.yaml
+  - loki-configmap.yaml
+  - loki-deployment.yaml
+
+  # Alloy - Unified Agent
+  - alloy-configmap.yaml
+  - alloy-deployment.yaml
+
+  # Grafana - Visualization
+  - grafana-alg.yaml
+
+# Replica configuration
+replicas:
+  - name: loki
+    count: 1
+  - name: alloy
+    count: 1
+  - name: grafana
+    count: 1
+
+# Image customization
+images:
+  - name: grafana/alloy
+    newTag: v1.0.0
+  - name: grafana/loki
+    newTag: 2.9.4
+  - name: grafana/grafana
+    newTag: latest
+
+# Kustomization options
+vars:
+  - name: LOKI_URL
+    objref:
+      kind: Service
+      name: loki
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+  - name: ALLOY_URL
+    objref:
+      kind: Service
+      name: alloy
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+
+# Patches
+patches:
+  - target:
+      kind: Deployment
+      name: alloy
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/securityContext
+        value:
+          fsGroup: 65534
+          runAsUser: 65534
+          runAsNonRoot: true

@@ -1,0 +1,309 @@
+---
+# Alloy ConfigMap (Agent Configuration)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-config
+  namespace: orderflow
+  labels:
+    app: alloy
+    part-of: alg-monitoring
+data:
+  alloy-config.alloy: |
+    // =================================
+    // Alloy Configuration for OrderFlow
+    // =================================
+    // This configuration collects logs and metrics from all services
+
+    // =========================================
+    // 1. KUBERNETES POD LOGS DISCOVERY
+    // =========================================
+    discovery.kubernetes "pods" {
+      role = "pod"
+    }
+
+    // =========================================
+    // 2. POD LOG COLLECTION
+    // =========================================
+    // Collect logs from Kubernetes pods
+    loki.source.kubernetes "pods" {
+      targets    = discovery.kubernetes.pods.targets
+      forward_to = [loki.process.add_resource_labels.receiver]
+      namespaces = ["orderflow"]
+    }
+
+    // =========================================
+    // 3. PROCESS & ENRICH LOGS
+    // =========================================
+    // Add resource labels to logs
+    loki.process "add_resource_labels" {
+      stage.labels {
+        values = {
+          namespace = "kube_namespace_name",
+          pod       = "pod_name",
+          container = "container_name",
+          app       = "kube_pod_label_app",
+        }
+      }
+      stage.output {
+        source = "content"
+      }
+      forward_to = [loki.write.default.receiver]
+    }
+
+    // =========================================
+    // 4. LOKI OUTPUT (Logs)
+    // =========================================
+    // Write logs to Loki
+    loki.write "default" {
+      loki_name = "default"
+    }
+
+    // Configure Loki client
+    loki.loki {
+      clients = [
+        {
+          url            = "http://loki:3100/loki/api/v1/push"
+          external_labels = {
+            "cluster"     = "orderflow-k8s",
+            "environment" = "kubernetes",
+          }
+        },
+      ]
+    }
+
+    // =========================================
+    // 5. PROMETHEUS METRICS DISCOVERY
+    // =========================================
+    discovery.relabel "kubernetes_pods" {
+      targets = discovery.kubernetes.pods.targets
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+        action        = "keep"
+        regex         = "true"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+        action        = "replace"
+        target_label  = "__metrics_path__"
+        regex         = "(.+)"
+      }
+      rule {
+        source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+        action        = "replace"
+        target_label  = "__address__"
+        regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+        replacement   = "$1:$2"
+      }
+      rule {
+        action       = "labelmap"
+        regex        = "__meta_kubernetes_pod_label_(.+)"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        action        = "replace"
+        target_label  = "kubernetes_namespace"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        action        = "replace"
+        target_label  = "kubernetes_pod_name"
+      }
+    }
+
+    // =========================================
+    // 6. STATIC TARGETS FOR SERVICES
+    // =========================================
+    // User Service metrics
+    discovery.relabel "user_service" {
+      targets = [
+        {
+          __address__ = "user-service:8081",
+          __metrics_path__ = "/actuator/prometheus",
+          job = "user-service",
+        },
+      ]
+      rule {
+        target_label = "instance"
+        replacement  = "user-service:8081"
+      }
+    }
+
+    // Product Service metrics
+    discovery.relabel "product_service" {
+      targets = [
+        {
+          __address__ = "product-service:8082",
+          __metrics_path__ = "/actuator/prometheus",
+          job = "product-service",
+        },
+      ]
+      rule {
+        target_label = "instance"
+        replacement  = "product-service:8082"
+      }
+    }
+
+    // Inventory Service metrics
+    discovery.relabel "inventory_service" {
+      targets = [
+        {
+          __address__ = "inventory-service:8085",
+          __metrics_path__ = "/actuator/prometheus",
+          job = "inventory-service",
+        },
+      ]
+      rule {
+        target_label = "instance"
+        replacement  = "inventory-service:8085"
+      }
+    }
+
+    // Prometheus self-monitoring
+    discovery.relabel "prometheus" {
+      targets = [
+        {
+          __address__ = "prometheus:9090",
+          __metrics_path__ = "/metrics",
+          job = "prometheus",
+        },
+      ]
+      rule {
+        target_label = "instance"
+        replacement  = "prometheus:9090"
+      }
+    }
+
+    // Loki self-monitoring
+    discovery.relabel "loki" {
+      targets = [
+        {
+          __address__ = "loki:3100",
+          __metrics_path__ = "/metrics",
+          job = "loki",
+        },
+      ]
+      rule {
+        target_label = "instance"
+        replacement  = "loki:3100"
+      }
+    }
+
+    // Grafana self-monitoring
+    discovery.relabel "grafana" {
+      targets = [
+        {
+          __address__ = "grafana:3000",
+          __metrics_path__ = "/metrics",
+          job = "grafana",
+        },
+      ]
+      rule {
+        target_label = "instance"
+        replacement  = "grafana:3000"
+      }
+    }
+
+    // =========================================
+    // 7. PROMETHEUS SCRAPE CONFIGS
+    // =========================================
+    // Scrape metrics from discovered pods
+    prometheus.scrape "kubernetes_pods" {
+      targets    = discovery.relabel.kubernetes_pods.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
+    // Scrape User Service
+    prometheus.scrape "user_service" {
+      targets    = discovery.relabel.user_service.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
+    // Scrape Product Service
+    prometheus.scrape "product_service" {
+      targets    = discovery.relabel.product_service.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
+    // Scrape Inventory Service
+    prometheus.scrape "inventory_service" {
+      targets    = discovery.relabel.inventory_service.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
+    // Scrape Prometheus
+    prometheus.scrape "prometheus" {
+      targets    = discovery.relabel.prometheus.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
+    // Scrape Loki
+    prometheus.scrape "loki" {
+      targets    = discovery.relabel.loki.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
+    // Scrape Grafana
+    prometheus.scrape "grafana" {
+      targets    = discovery.relabel.grafana.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
+    // =========================================
+    // 8. PROMETHEUS RELABEL & FILTERS
+    // =========================================
+    prometheus.relabel "orderflow" {
+      metric_relabel {
+        action        = "keep"
+        source_labels = ["__name__"]
+        regex         = "up|process.*|container.*|http.*|jvm.*|system.*|disk.*|network.*"
+      }
+      forward_to = [prometheus.remote_write.default.receiver]
+    }
+
+    // =========================================
+    // 9. PROMETHEUS REMOTE WRITE (to Prometheus)
+    // =========================================
+    prometheus.remote_write "default" {
+      endpoint {
+        url = "http://prometheus:9090/api/v1/write"
+        queue_config {
+          capacity = 10000
+        }
+        write_relabel_config {
+          source_labels = ["__name__"]
+          regex         = ""
+          action        = "drop"
+        }
+      }
+    }
+
+    // =========================================
+    // 10. ALLOY INTERNAL METRICS
+    // =========================================
+    // Alloy exposes its own metrics on :12345
+    prometheus.scrape "alloy_internal" {
+      targets = [
+        {
+          __address__ = "localhost:12345",
+          __metrics_path__ = "/metrics",
+          job = "alloy",
+        },
+      ]
+      forward_to = [prometheus.remote_write.default.receiver]
+      scrape_interval = "15s"
+    }
