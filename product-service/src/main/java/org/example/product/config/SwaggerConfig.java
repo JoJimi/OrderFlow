@@ -52,4 +52,5 @@ public class SwaggerConfig {
                         .addSecuritySchemes("Bearer Authentication", securityScheme))
                 .addSecurityItem(securityRequirement);
     }
+
 }
