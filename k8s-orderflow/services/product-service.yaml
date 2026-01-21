@@ -73,6 +73,22 @@ spec:
                 configMapKeyRef:
                   name: orderflow-config
                   key: KAFKA_BOOTSTRAP_SERVERS
+            # ✅ Elasticsearch Configuration (NEW)
+            - name: SPRING_ELASTICSEARCH_REST_URIS
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: ELASTICSEARCH_URL
+            - name: ELASTICSEARCH_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: ELASTICSEARCH_HOST
+            - name: ELASTICSEARCH_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: orderflow-config
+                  key: ELASTICSEARCH_PORT
             # Eureka - DISABLED
             - name: EUREKA_CLIENT_ENABLED
               value: "false"

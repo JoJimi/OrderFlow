@@ -159,6 +159,21 @@ data:
       }
     }
 
+    // ✅ Elasticsearch metrics (NEW)
+    discovery.relabel "elasticsearch" {
+      targets = [
+        {
+          __address__ = "elasticsearch:9200",
+          __metrics_path__ = "/_prometheus/metrics",
+          job = "elasticsearch",
+        },
+      ]
+      rule {
+        target_label = "instance"
+        replacement  = "elasticsearch:9200"
+      }
+    }
+
     // Prometheus self-monitoring
     discovery.relabel "prometheus" {
       targets = [
@@ -239,6 +254,14 @@ data:
       scrape_timeout  = "10s"
     }
 
+    // ✅ Scrape Elasticsearch (NEW)
+    prometheus.scrape "elasticsearch" {
+      targets    = discovery.relabel.elasticsearch.output
+      forward_to = [prometheus.relabel.orderflow.receiver]
+      scrape_interval = "15s"
+      scrape_timeout  = "10s"
+    }
+
     // Scrape Prometheus
     prometheus.scrape "prometheus" {
       targets    = discovery.relabel.prometheus.output
@@ -270,7 +293,7 @@ data:
       metric_relabel {
         action        = "keep"
         source_labels = ["__name__"]
-        regex         = "up|process.*|container.*|http.*|jvm.*|system.*|disk.*|network.*"
+        regex         = "up|process.*|container.*|http.*|jvm.*|system.*|disk.*|network.*|elasticsearch.*"
       }
       forward_to = [prometheus.remote_write.default.receiver]
     }

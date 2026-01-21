@@ -1,0 +1,242 @@
+---
+# Elasticsearch PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-pvc
+  namespace: orderflow
+  labels:
+    app: elasticsearch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Elasticsearch ConfigMap (for elasticsearch.yml)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-config
+  namespace: orderflow
+  labels:
+    app: elasticsearch
+data:
+  elasticsearch.yml: |
+    # Cluster configuration
+    cluster.name: orderflow-cluster
+    node.name: orderflow-node-1
+    
+    # Network
+    network.host: 0.0.0.0
+    http.port: 9200
+    transport.port: 9300
+    
+    # Discovery (single node mode)
+    discovery.type: single-node
+    
+    # Bootstrap configuration
+    xpack.security.enabled: false
+    xpack.ml.enabled: false
+    
+    # Path configuration
+    path.data: /usr/share/elasticsearch/data
+    path.logs: /usr/share/elasticsearch/logs
+    
+    # Ingest pipeline
+    ingest.geoip.cache_size: 200
+    
+    # Log level
+    logger.level: info
+
+---
+# Elasticsearch Deployment (Single Node - Development)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  namespace: orderflow
+  labels:
+    app: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9200"
+        prometheus.io/path: "/_prometheus/metrics"
+    spec:
+      # Init Container: Set vm.max_map_count for Elasticsearch
+      initContainers:
+        - name: sysctl
+          image: busybox:1.35
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count=262144
+          securityContext:
+            privileged: true
+            runAsUser: 0
+
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: rest
+              containerPort: 9200
+              protocol: TCP
+            - name: node-comm
+              containerPort: 9300
+              protocol: TCP
+          env:
+            # JVM Heap Size (for Minikube: 512MB, adjust for production)
+            - name: "ES_JAVA_OPTS"
+              value: "-Xms512m -Xmx512m"
+
+            # Elasticsearch node name
+            - name: "node.name"
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            # Cluster name
+            - name: "cluster.name"
+              value: "orderflow-cluster"
+
+            # Discovery type
+            - name: "discovery.type"
+              value: "single-node"
+
+            # Security disabled (for development only)
+            - name: "xpack.security.enabled"
+              value: "false"
+
+            - name: "xpack.security.authc.api_key.enabled"
+              value: "false"
+
+            - name: "xpack.security.enrollment.enabled"
+              value: "false"
+
+            # TZ
+            - name: "TZ"
+              value: "Asia/Seoul"
+
+          volumeMounts:
+            - name: elasticsearch-data
+              mountPath: /usr/share/elasticsearch/data
+            - name: elasticsearch-config
+              mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+              subPath: elasticsearch.yml
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+
+          # Health checks
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /_cluster/health
+              port: 9200
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /_cluster/health
+              port: 9200
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - NET_BIND_SERVICE
+
+      volumes:
+        - name: elasticsearch-data
+          persistentVolumeClaim:
+            claimName: elasticsearch-pvc
+        - name: elasticsearch-config
+          configMap:
+            name: elasticsearch-config
+
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+
+---
+# Elasticsearch Service (ClusterIP - Internal)
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: orderflow
+  labels:
+    app: elasticsearch
+spec:
+  type: ClusterIP
+  ports:
+    - name: rest
+      port: 9200
+      targetPort: 9200
+      protocol: TCP
+    - name: node-comm
+      port: 9300
+      targetPort: 9300
+      protocol: TCP
+  selector:
+    app: elasticsearch
+
+---
+# Elasticsearch Service (NodePort - External Access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-nodeport
+  namespace: orderflow
+  labels:
+    app: elasticsearch
+spec:
+  type: NodePort
+  ports:
+    - name: rest
+      port: 9200
+      targetPort: 9200
+      nodePort: 30200
+      protocol: TCP
+    - name: node-comm
+      port: 9300
+      targetPort: 9300
+      nodePort: 30300
+      protocol: TCP
+  selector:
+    app: elasticsearch

@@ -21,6 +21,7 @@ resources:
   - infrastructure/postgres.yaml
   - infrastructure/redis.yaml
   - infrastructure/kafka.yaml
+  - infrastructure/elasticsearch.yaml
 
   # Application services
   - services/user-service.yaml
@@ -50,6 +51,8 @@ images:
     newTag: latest
   - name: jimineutron/orderflow-inventory-service
     newTag: latest
+  - name: docker.elastic.co/elasticsearch/elasticsearch
+    newTag: 8.12.0
   - name: grafana/alloy
     newTag: v1.0.0
   - name: grafana/loki

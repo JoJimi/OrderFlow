@@ -25,6 +25,12 @@ data:
   # Kafka Configuration
   KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
 
+  # ✅ Elasticsearch Configuration (NEW)
+  ELASTICSEARCH_HOST: "elasticsearch"
+  ELASTICSEARCH_PORT: "9200"
+  ELASTICSEARCH_SCHEME: "http"
+  ELASTICSEARCH_URL: "http://elasticsearch:9200"
+
   # Eureka Configuration - DISABLED for Kubernetes
   EUREKA_CLIENT_ENABLED: "false"
   SPRING_CLOUD_DISCOVERY_ENABLED: "false"
