@@ -1,5 +1,5 @@
 ---
-# Loki ConfigMap
+# Loki ConfigMap (Loki 2.9.4 호환)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -17,8 +17,7 @@ data:
       chunk_retain_period: 1m
       max_chunk_age: 1h
       chunk_encoding: snappy
-      # Increase max_streams_matchers_cache_bytes to cache label matching results
-      max_streams_matchers_cache_bytes: 134217728
+      # 제거: max_streams_matchers_cache_bytes는 Loki 2.9.4에서 지원 안함
 
     limits_config:
       reject_old_samples: true
@@ -57,10 +56,9 @@ data:
       filesystem:
         directory: /loki/chunks
 
-    # Query configuration
+    # Query configuration (제거: max_samples는 Loki 2.9.4에서 지원 안함)
     querier:
       max_concurrent: 10
-      max_samples: 1000000
 
 ---
 # Loki ServiceAccount

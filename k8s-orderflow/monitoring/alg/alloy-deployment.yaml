@@ -1,5 +1,5 @@
 ---
-# Alloy ServiceAccount
+# Alloy ServiceAccount (이미 존재)
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -10,7 +10,7 @@ metadata:
     part-of: alg-monitoring
 
 ---
-# Alloy ClusterRole (for Kubernetes service discovery)
+# Alloy ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -72,7 +72,7 @@ subjects:
     namespace: orderflow
 
 ---
-# Alloy Deployment
+# Alloy Deployment (수정됨: readOnlyRootFilesystem = false)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -160,7 +160,7 @@ spec:
             failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false  # ✅ 수정: true → false
             capabilities:
               drop:
                 - ALL

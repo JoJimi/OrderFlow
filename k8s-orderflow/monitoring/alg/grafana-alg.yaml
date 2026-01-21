@@ -93,7 +93,7 @@ data:
           path: /var/lib/grafana/dashboards/alg
 
 ---
-# Grafana Config ConfigMap (Updated)
+# Grafana Config ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -139,9 +139,11 @@ data:
     check_for_updates = false
     reporting_enabled = false
 
-    [alerting]
+    # ✅ 수정: [alerting] 제거, [unified_alerting] 사용
+    [unified_alerting]
     enabled = true
     execute_alerts = true
+    max_attempts = 3
 
     [feature_toggles]
     lokiLogsDataplane = true
