@@ -6,7 +6,6 @@ import org.example.product.document.ProductDocument;
 import org.example.product.dto.response.ProductResponse;
 import org.example.product.repository.elasticsearch.ProductElasticsearchRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 

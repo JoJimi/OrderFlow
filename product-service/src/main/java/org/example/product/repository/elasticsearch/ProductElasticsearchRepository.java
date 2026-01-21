@@ -8,7 +8,7 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Optional;
 
 /**
  * Elasticsearch Repository
@@ -112,7 +112,7 @@ public interface ProductElasticsearchRepository extends ElasticsearchRepository<
     /**
      * 특정 상품 ID로 조회
      */
-    org.springframework.data.domain.Optional<ProductDocument> findByProductIdAndDeletedFalse(String productId);
+    Optional<ProductDocument> findByProductIdAndDeletedFalse(String productId);
 
     /**
      * 카테고리별 상품 수

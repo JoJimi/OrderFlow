@@ -16,8 +16,9 @@ dependencies {
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 
     // Elasticsearch
-    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
-    implementation("org.elasticsearch.client:elasticsearch-rest-client:8.12.0")
+    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch:3.2.0")
+    implementation("org.elasticsearch.client:elasticsearch-java:8.12.0")
+    implementation("co.elastic.logging:logback-ecs-formatter:1.5.0")
 
     // Test
     testImplementation("org.springframework.kafka:spring-kafka-test")
