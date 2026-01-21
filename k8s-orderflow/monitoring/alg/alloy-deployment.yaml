@@ -160,7 +160,7 @@ spec:
             failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false  # ✅ 수정: true → false
+            readOnlyRootFilesystem: false
             capabilities:
               drop:
                 - ALL
