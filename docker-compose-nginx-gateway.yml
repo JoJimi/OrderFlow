@@ -520,22 +520,34 @@ services:
     container_name: orderFlow-elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false  # 개발 환경에서만 비활성화
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m  # 메모리 설정
-      - indices.memory.index_buffer_size=40%
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - "9200:9200"
+      - "9300:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
       - orderFlow-network
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'" ]
-      interval: 30s
+      test: [ "CMD-SHELL", "curl -s http://localhost:9200/_cluster/health" ]
+      interval: 10s
       timeout: 10s
-      retries: 5
-      start_period: 60s
+      retries: 10
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: orderFlow-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - orderFlow-network
+    restart: unless-stopped
 
 volumes:
   redis_data:
