@@ -1,6 +1,6 @@
-ARG SERVICE_NAME
-
 FROM eclipse-temurin:21-jre-alpine
+
+ARG SERVICE_NAME
 
 WORKDIR /app
 
