@@ -406,4 +406,4 @@ jobs:
             📌 Branch: ${{ github.ref_name }}
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           fields: repo,message,commit,author,action,eventName,ref,workflow
-        if: always()
+        if: always() && secrets.SLACK_WEBHOOK_URL != ''

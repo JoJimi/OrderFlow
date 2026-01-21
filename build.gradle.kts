@@ -110,6 +110,10 @@ listOf(
 			implementation("org.springframework.boot:spring-boot-starter-cache")
 
 			runtimeOnly("org.postgresql:postgresql")
+
+			// Jakarta 관련 의존성 추가 (Elasticsearch 필요)
+			implementation("jakarta.activation:jakarta.activation-api:2.1.2")
+			implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.1")
 		}
 	}
 }
