@@ -1,9 +1,11 @@
+ARG SERVICE_NAME
+
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
 # 로컬에서 빌드된 jar 파일 복사
-COPY build/libs/*.jar app.jar
+COPY ${SERVICE_NAME}/build/libs/*.jar app.jar
 
 RUN apk add --no-cache curl
 
