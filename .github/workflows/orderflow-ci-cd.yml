@@ -274,18 +274,9 @@ jobs:
   # 4. Kubernetes 매니페스트 업데이트 (GitOps)
   # ========================================
   update-manifests:
-    needs: detect-changes
+    needs: [detect-changes, build-and-push-user-service, build-and-push-product-service, build-and-push-inventory-service]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-    strategy:
-      matrix:
-        service:
-          - name: user-service
-            enabled: ${{ needs.detect-changes.outputs.user-service == 'true' }}
-          - name: product-service
-            enabled: ${{ needs.detect-changes.outputs.product-service == 'true' }}
-          - name: inventory-service
-            enabled: ${{ needs.detect-changes.outputs.inventory-service == 'true' }}
     steps:
       - name: Checkout k8s-orderflow repository
         uses: actions/checkout@v4
@@ -294,14 +285,28 @@ jobs:
           path: k8s-repo
           ref: develop
 
-      - name: Update manifest for ${{ matrix.service.name }}
-        if: matrix.service.enabled == 'true'
+      - name: Update user-service manifest
+        if: needs.detect-changes.outputs.user-service == 'true'
         run: |
           cd k8s-repo
           
-          # Kubernetes manifest 업데이트
-          # kustomization.yaml 또는 직접 yaml 파일 수정
-          sed -i 's|jimineutron/orderflow-${{ matrix.service.name }}:.*|jimineutron/orderflow-${{ matrix.service.name }}:${{ github.sha }}|g' k8s-orderflow/services/${{ matrix.service.name }}.yaml || true
+          # kustomization.yaml에서 이미지 태그 업데이트
+          kustomize edit set image jimineutron/orderflow-user-service:latest=jimineutron/orderflow-user-service:${{ github.sha }}
+          
+          # 또는 직접 yaml 파일 수정
+          sed -i 's|jimineutron/orderflow-user-service:.*|jimineutron/orderflow-user-service:${{ github.sha }}|g' k8s-orderflow/services/user-service.yaml
+
+      - name: Update product-service manifest
+        if: needs.detect-changes.outputs.product-service == 'true'
+        run: |
+          cd k8s-repo
+          sed -i 's|jimineutron/orderflow-product-service:.*|jimineutron/orderflow-product-service:${{ github.sha }}|g' k8s-orderflow/services/product-service.yaml
+
+      - name: Update inventory-service manifest
+        if: needs.detect-changes.outputs.inventory-service == 'true'
+        run: |
+          cd k8s-repo
+          sed -i 's|jimineutron/orderflow-inventory-service:.*|jimineutron/orderflow-inventory-service:${{ github.sha }}|g' k8s-orderflow/services/inventory-service.yaml
 
       - name: Commit and push manifest updates
         run: |
@@ -310,12 +315,13 @@ jobs:
           git config --local user.name "GitHub Action"
           
           git add k8s-orderflow/services/*.yaml
-          git diff --cached --quiet || (git commit -m "🔄 Update image tags to ${{ github.sha }}" && git push origin develop)
+          git commit -m "🔄 Update image tags to ${{ github.sha }}" || echo "No changes to commit"
+          git push origin develop
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ========================================
-  # 5. ArgoCD 동기화
+  # 5. ArgoCD 동기화 (Optional - webhook 대신)
   # ========================================
   argocd-sync:
     needs: update-manifests
@@ -325,25 +331,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install ArgoCD CLI
+      - name: ArgoCD CLI 설치
         run: |
           curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
           chmod +x /usr/local/bin/argocd
 
-      - name: Sync ArgoCD Application
+      - name: ArgoCD 애플리케이션 동기화
         run: |
           argocd app sync orderflow \
             --server ${{ secrets.ARGOCD_SERVER }} \
             --auth-token ${{ secrets.ARGOCD_AUTH_TOKEN }} \
-            --grpc-web \
-            --timeout 5m
+            --grpc-web
         continue-on-error: true
 
   # ========================================
   # 6. 배포 알림 (Slack)
   # ========================================
   notify:
-    needs: [build, detect-changes]
+    needs: [ build, build-and-push-user-service, build-and-push-product-service, build-and-push-inventory-service ]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -367,13 +372,15 @@ jobs:
             ${{ steps.status.outputs.status }}
             
             📋 변경사항:
-            • user-service: ${{ needs.detect-changes.outputs.user-service }}
-            • product-service: ${{ needs.detect-changes.outputs.product-service }}
-            • inventory-service: ${{ needs.detect-changes.outputs.inventory-service }}
+            • user-service: ${{ needs.build-and-push-user-service.result }}
+            • product-service: ${{ needs.build-and-push-product-service.result }}
+            • inventory-service: ${{ needs.build-and-push-inventory-service.result }}
             
             🔗 Commit: ${{ github.sha }}
             👤 Author: ${{ github.actor }}
             📌 Branch: ${{ github.ref_name }}
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           fields: repo,message,commit,author,action,eventName,ref,workflow
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
