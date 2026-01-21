@@ -10,8 +10,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 import java.time.Duration;
 
 /**
- * ✅ 최신 Spring Data Elasticsearch 설정
- * AbstractElasticsearchConfiguration → ElasticsearchConfiguration 사용
+ * Spring Data Elasticsearch 설정
  */
 @Configuration
 @EnableElasticsearchRepositories(

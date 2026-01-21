@@ -16,8 +16,8 @@ dependencies {
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 
     // Elasticsearch - Spring Boot 3.2.0과 호환되는 버전 사용
-    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch:3.2.0")
-    implementation("org.elasticsearch.client:elasticsearch-java:8.11.0")
+    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+    implementation("org.elasticsearch.client:elasticsearch-rest-client")
 
     // Logging
     implementation("ch.qos.logback:logback-classic")
