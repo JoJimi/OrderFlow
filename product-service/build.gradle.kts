@@ -15,6 +15,10 @@ dependencies {
     annotationProcessor("jakarta.annotation:jakarta.annotation-api")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 
+    // Elasticsearch
+    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+    implementation("org.elasticsearch.client:elasticsearch-rest-client:8.12.0")
+
     // Test
     testImplementation("org.springframework.kafka:spring-kafka-test")
 }

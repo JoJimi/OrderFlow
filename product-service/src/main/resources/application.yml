@@ -52,6 +52,12 @@ eureka:
     metadata-map:
       management.port: ${server.port}
 
+# Elasticsearch 커스텀 설정
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:localhost}
+  port: ${ELASTICSEARCH_PORT:9200}
+  enabled: ${ELASTICSEARCH_ENABLED:true}
+
 management:
   endpoints:
     web:

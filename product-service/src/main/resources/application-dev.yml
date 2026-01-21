@@ -35,6 +35,12 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${random.value}
 
+# Elasticsearch 커스텀 설정
+elasticsearch:
+  host: localhost
+  port: 9200
+  enabled: true  # Elasticsearch 활성화/비활성화
+
 management:
   endpoints:
     web:

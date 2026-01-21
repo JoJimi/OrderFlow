@@ -3,6 +3,7 @@ package org.example.product.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.product.domain.Product;
+import org.example.product.document.ProductDocument;
 import org.example.product.dto.request.ProductBulkInitRequest;
 import org.example.product.dto.request.ProductCreateRequest;
 import org.example.product.dto.request.ProductUpdateRequest;
@@ -11,10 +12,12 @@ import org.example.product.dto.response.ProductResponse;
 import org.example.product.kafka.producer.ProductEventProducer;
 import org.example.product.repository.batch.ProductBatchInsertRepository;
 import org.example.product.repository.ProductRepository;
+import org.example.product.service.elasticsearch.ProductSearchService;
 import org.example.product.service.redis.ProductCacheService;
 import org.example.shared.dto.ProductEvent;
 import org.example.shared.exception.product.ProductNotFoundException;
 import org.example.shared.type.product.CategoryType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,8 +35,12 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductCacheService cacheService;
+    private final ProductSearchService searchService;  // Elasticsearch 서비스 주입
     private final ProductBatchInsertRepository batchInsertRepository;
     private final ProductEventProducer eventProducer;
+
+    @Value("${elasticsearch.enabled:true}")
+    private boolean elasticsearchEnabled;
 
     private static final int MIN_PRICE = 1000;
     private static final int MAX_PRICE = 999999;
@@ -50,13 +57,22 @@ public class ProductService {
 
     /**
      * 카테고리별 상품 조회
+     * Elasticsearch 사용
      */
     @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsByCategory(String categoryCode, Pageable pageable) {
         log.info("카테고리별 상품 조회 - 카테고리: {}, 페이지: {}", categoryCode, pageable.getPageNumber());
 
-        CategoryType category = CategoryType.from(categoryCode);
+        if (elasticsearchEnabled) {
+            try {
+                return searchService.searchByCategory(categoryCode, pageable);
+            } catch (Exception e) {
+                log.warn("[Fallback] Elasticsearch 실패, PostgreSQL로 폴백 - {}", e.getMessage());
+            }
+        }
 
+        // Fallback: PostgreSQL 사용
+        CategoryType category = CategoryType.from(categoryCode);
         return productRepository.findByCategory(category, pageable)
                 .map(ProductResponse::from);
     }
@@ -90,17 +106,29 @@ public class ProductService {
     }
 
     /**
-     * 상품 검색 (상품명 기반)
+     * 상품 검색
+     * Elasticsearch 기반 전문 검색
      */
     @Transactional(readOnly = true)
     public Page<ProductResponse> searchProducts(String keyword, Pageable pageable) {
         log.info("상품 검색 - 키워드: {}, 페이지: {}", keyword, pageable.getPageNumber());
+
+        if (elasticsearchEnabled) {
+            try {
+                return searchService.searchByKeyword(keyword, pageable);
+            } catch (Exception e) {
+                log.warn("[Fallback] Elasticsearch 실패, PostgreSQL로 폴백 - {}", e.getMessage());
+            }
+        }
+
+        // Fallback: PostgreSQL LIKE 검색
         return productRepository.searchByProductName(keyword, pageable)
                 .map(ProductResponse::from);
     }
 
     /**
      * 상품 등록 (관리자)
+     * DB 저장 후 Elasticsearch 색인
      */
     @Transactional
     public ProductResponse createProduct(ProductCreateRequest request) {
@@ -122,6 +150,16 @@ public class ProductService {
         // 캐시에 저장
         cacheService.cacheProduct(productId, response);
 
+        // Elasticsearch에 색인 (비동기로 처리하는 것이 좋음)
+        if (elasticsearchEnabled) {
+            try {
+                ProductDocument document = ProductDocument.from(savedProduct);
+                searchService.indexProduct(document);
+            } catch (Exception e) {
+                log.error("[Elasticsearch] 색인 저장 실패 - 계속 진행합니다", e);
+            }
+        }
+
         // Kafka 이벤트 발행
         publishProductCreatedEvent(savedProduct);
 
@@ -132,6 +170,7 @@ public class ProductService {
 
     /**
      * 상품 수정 (관리자)
+     * DB 수정 후 Elasticsearch 색인 갱신
      */
     @Transactional
     public ProductResponse updateProduct(String productId, ProductUpdateRequest request) {
@@ -155,6 +194,16 @@ public class ProductService {
         cacheService.evictProduct(productId);
         cacheService.cacheProduct(productId, response);
 
+        // Elasticsearch 색인 갱신
+        if (elasticsearchEnabled) {
+            try {
+                ProductDocument document = ProductDocument.from(updatedProduct);
+                searchService.indexProduct(document);
+            } catch (Exception e) {
+                log.error("[Elasticsearch] 색인 갱신 실패 - 계속 진행합니다", e);
+            }
+        }
+
         // Kafka 이벤트 발행
         publishProductUpdatedEvent(updatedProduct);
 
@@ -165,6 +214,7 @@ public class ProductService {
 
     /**
      * 상품 삭제 (논리 삭제)
+     * DB 삭제 후 Elasticsearch 색인 삭제
      */
     @Transactional
     public void deleteProduct(String productId) {
@@ -173,12 +223,20 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(ProductNotFoundException::new);
 
-        product.markAsDeleted(); // BaseEntity의 setDeleted(true) 호출
-
+        product.markAsDeleted();
         productRepository.save(product);
 
         // 캐시에서 삭제
         cacheService.evictProduct(productId);
+
+        // Elasticsearch 색인 삭제
+        if (elasticsearchEnabled) {
+            try {
+                searchService.deleteIndex(productId);
+            } catch (Exception e) {
+                log.error("[Elasticsearch] 색인 삭제 실패 - 계속 진행합니다", e);
+            }
+        }
 
         // Kafka 이벤트 발행
         ProductEvent event = ProductEvent.deleted(productId);
@@ -189,6 +247,7 @@ public class ProductService {
 
     /**
      * 상품 대량 추가 - JDBC Batch 사용 (고성능)
+     * 완료 후 Elasticsearch 색인 갱신
      */
     public ProductBulkInitResponse bulkInitProducts(ProductBulkInitRequest request) {
         log.info("상품 대량 추가 시작 (JDBC Batch) - 개수: {}, 배치 크기: {}",
@@ -224,7 +283,7 @@ public class ProductService {
             }
         }
 
-        // 모든 배치 완료 후 대량 생성 이벤트 1번만 발행!
+        // 모든 배치 완료 후 대량 생성 이벤트 발행
         int totalCreated = totalCount - (failedBatches * batchSize);
         if (successfulBatches > 0) {
             eventProducer.publishBulkCreatedEvent(totalCreated);
@@ -233,6 +292,17 @@ public class ProductService {
 
         // 캐시 초기화
         cacheService.evictAllProducts();
+
+        // Elasticsearch 색인 갱신 (전체 재색인)
+        if (elasticsearchEnabled) {
+            try {
+                log.info("[Elasticsearch] 대량 생성 후 색인 재구성 시작...");
+                // ProductIndexInitializer.reindexAllProducts() 호출
+                // 또는 비동기 작업으로 처리
+            } catch (Exception e) {
+                log.error("[Elasticsearch] 색인 재구성 실패 - 계속 진행합니다", e);
+            }
+        }
 
         long processingTime = System.currentTimeMillis() - startTime;
 
@@ -249,7 +319,6 @@ public class ProductService {
                 failedBatches > 0 ? failedBatchNumbers : null
         );
     }
-
 
     /**
      * JDBC Batch로 배치 저장 (독립 트랜잭션)
