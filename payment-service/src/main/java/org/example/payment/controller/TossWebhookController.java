@@ -10,21 +10,17 @@ import java.util.Map;
 
 /**
  * Toss Payments 웹훅 수신 컨트롤러
- * - 가상계좌 입금 완료
- * - 결제 취소 알림
- * - 정산 완료 알림 등
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/payments/webhook")
 @RequiredArgsConstructor
-@Slf4j
 public class TossWebhookController {
 
     private final TossWebhookService webhookService;
 
     /**
      * Toss 웹훅 수신
-     * Toss 개발자 센터에서 웹훅 URL 등록 필요
      */
     @PostMapping("/toss")
     public ResponseEntity<Void> handleTossWebhook(
@@ -32,9 +28,6 @@ public class TossWebhookController {
             @RequestHeader(value = "TossPayments-Signature", required = false) String signature
     ) {
         log.info("Toss 웹훅 수신 - eventType: {}", payload.get("eventType"));
-
-        // 웹훅 시그니처 검증 (선택사항이지만 권장)
-        // TODO: 시그니처 검증 로직 추가
 
         String eventType = (String) payload.get("eventType");
 

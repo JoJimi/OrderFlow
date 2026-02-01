@@ -72,8 +72,6 @@ management:
 # Toss Payments 설정
 toss:
   payments:
-    secret-key: ${TOSS_SECRET_KEY}
-    client-key: ${TOSS_CLIENT_KEY}
     base-url: https://api.tosspayments.com
     connect-timeout: 5000
     read-timeout: 30000

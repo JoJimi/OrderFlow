@@ -26,9 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
@@ -37,8 +37,6 @@ public class PaymentService {
 
     /**
      * 결제 레코드 생성 (OrderCreated 이벤트 수신 시 호출)
-     * - Toss 결제 위젯에서 사용할 orderId 생성
-     * - 프론트엔드에서 이 정보로 결제 위젯 초기화
      */
     @Transactional
     public PaymentResponse createPaymentRecord(String orderId, String userId, BigDecimal amount) {
@@ -50,7 +48,6 @@ public class PaymentService {
             return PaymentResponse.from(paymentRepository.findByOrderId(orderId).get());
         }
 
-        // 결제 ID 및 Toss용 orderId 생성
         String paymentId = IdGenerator.generatePaymentId();
         String tossOrderId = generateTossOrderId(orderId);
         String idempotencyKey = UUID.randomUUID().toString();
@@ -61,10 +58,9 @@ public class PaymentService {
                 .userId(userId)
                 .amount(amount)
                 .paymentStatus(PaymentStatus.PAYMENT_PENDING)
+                .tossOrderId(tossOrderId)
+                .idempotencyKey(idempotencyKey)
                 .build();
-
-        payment.setTossOrderId(tossOrderId);
-        payment.setIdempotencyKey(idempotencyKey);
 
         Payment saved = paymentRepository.save(payment);
         log.info("결제 레코드 생성 완료 - paymentId: {}, tossOrderId: {}", paymentId, tossOrderId);
@@ -74,10 +70,6 @@ public class PaymentService {
 
     /**
      * Toss 결제 승인 (프론트엔드에서 결제 완료 후 호출)
-     *
-     * 보안 체크:
-     * 1. 서버에 저장된 금액과 요청 금액 비교 (클라이언트 조작 방지)
-     * 2. 멱등성 키로 중복 결제 방지
      */
     @Transactional
     public PaymentResponse confirmPayment(String userId, TossPaymentConfirmRequest request) {
@@ -105,7 +97,7 @@ public class PaymentService {
             throw new PaymentAlreadyCompletedException();
         }
 
-        // 4. ⚠️ 금액 검증 (클라이언트 조작 방지 - 매우 중요!)
+        // 4. 금액 검증 (클라이언트 조작 방지)
         BigDecimal requestAmount = BigDecimal.valueOf(request.amount());
         if (payment.getAmount().compareTo(requestAmount) != 0) {
             log.error("결제 금액 불일치! 서버: {}, 요청: {} - 조작 시도 의심",
@@ -114,7 +106,7 @@ public class PaymentService {
                     "결제 금액이 일치하지 않습니다.");
         }
 
-        // 5. Toss Payments API 호출 (멱등성 키 사용)
+        // 5. Toss Payments API 호출
         try {
             TossPaymentResponse tossResponse = tossPaymentsClient.confirmPayment(
                     request,
@@ -125,18 +117,14 @@ public class PaymentService {
             if (tossResponse.isSuccess()) {
                 handlePaymentSuccess(payment, tossResponse);
             } else if (tossResponse.isWaitingForDeposit()) {
-                // 가상계좌 입금 대기
                 log.info("가상계좌 입금 대기 - orderId: {}", request.orderId());
-                // 별도 웹훅으로 입금 완료 처리
             } else {
-                // 예상치 못한 상태
                 log.warn("예상치 못한 결제 상태 - status: {}", tossResponse.status());
             }
 
             return PaymentResponse.from(payment);
 
         } catch (TossPaymentException e) {
-            // 7. 결제 실패 처리
             handlePaymentFailure(payment, e.getTossErrorCode(), e.getUserFriendlyMessage());
             throw e;
         }
@@ -149,7 +137,6 @@ public class PaymentService {
         log.info("결제 성공 처리 - paymentKey: {}, approvedAt: {}",
                 response.paymentKey(), response.approvedAt());
 
-        // 카드 정보 추출
         String cardCompany = null;
         String cardNumber = null;
         Integer installmentMonths = null;
@@ -160,13 +147,9 @@ public class PaymentService {
             installmentMonths = response.card().installmentPlanMonths();
         }
 
-        // 결제 방법 결정
         PaymentMethod method = determinePaymentMethod(response.method());
-
-        // 영수증 URL
         String receiptUrl = response.receipt() != null ? response.receipt().url() : null;
 
-        // 결제 완료 처리
         payment.completeWithToss(
                 response.paymentKey(),
                 response.lastTransactionKey(),
@@ -179,8 +162,6 @@ public class PaymentService {
         );
 
         paymentRepository.save(payment);
-
-        // Kafka 이벤트 발행
         eventProducer.publishPaymentCompletedEvent(payment);
 
         log.info("결제 성공 처리 완료 - paymentId: {}, orderId: {}",
@@ -196,11 +177,17 @@ public class PaymentService {
 
         payment.fail(failureCode, failureReason);
         paymentRepository.save(payment);
-
-        // Kafka 이벤트 발행
         eventProducer.publishPaymentFailedEvent(payment);
 
         log.info("결제 실패 처리 완료 - paymentId: {}", payment.getPaymentId());
+    }
+
+    /**
+     * 결제 취소 (이벤트 기반 - 기본 취소 사유 사용)
+     */
+    @Transactional
+    public void cancelPayment(String orderId) {
+        cancelPayment(orderId, "주문 취소에 의한 결제 취소");
     }
 
     /**
@@ -266,7 +253,6 @@ public class PaymentService {
         try {
             TossPaymentResponse response = tossPaymentsClient.getPayment(payment.getTossPaymentKey());
 
-            // 상태 동기화
             if (response.isSuccess() && !payment.isCompleted()) {
                 handlePaymentSuccess(payment, response);
             } else if (response.isCanceled() && payment.isCompleted()) {
@@ -297,8 +283,6 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    // ===== 기존 메서드들 =====
-
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentByOrderId(String orderId, String userId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
@@ -323,22 +307,11 @@ public class PaymentService {
                 .map(PaymentResponse::from);
     }
 
-    // ===== Helper 메서드 =====
-
-    /**
-     * Toss 결제용 orderId 생성
-     * - Toss 규격: 영문 대소문자, 숫자, 특수문자 -, _ 만 허용
-     * - 최소 6자, 최대 64자
-     */
     private String generateTossOrderId(String orderId) {
-        // ORDER-ULID 형식에서 특수문자 제거 후 사용
         String sanitized = orderId.replace("-", "");
         return "ORD_" + sanitized + "_" + System.currentTimeMillis();
     }
 
-    /**
-     * Toss 결제 방법을 내부 PaymentMethod로 변환
-     */
     private PaymentMethod determinePaymentMethod(String tossMethod) {
         if (tossMethod == null) return PaymentMethod.CREDIT_CARD;
 

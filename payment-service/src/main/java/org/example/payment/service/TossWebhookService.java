@@ -13,17 +13,14 @@ import java.util.Map;
 /**
  * Toss Payments 웹훅 처리 서비스
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TossWebhookService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentEventProducer eventProducer;
 
-    /**
-     * 결제 상태 변경 웹훅 처리
-     */
     @Transactional
     public void handlePaymentStatusChanged(Map<String, Object> payload) {
         String paymentKey = (String) payload.get("paymentKey");
@@ -39,27 +36,21 @@ public class TossWebhookService {
             return;
         }
 
-        // 상태에 따른 처리
         switch (status) {
             case "DONE" -> {
                 if (!payment.isCompleted()) {
-                    // TODO: 결제 완료 처리 (syncPaymentStatus 활용)
                     log.info("웹훅: 결제 완료 - paymentKey: {}", paymentKey);
                 }
             }
             case "CANCELED" -> {
                 if (payment.isCompleted()) {
                     log.info("웹훅: 결제 취소됨 - paymentKey: {}", paymentKey);
-                    // 취소 처리
                 }
             }
             default -> log.info("웹훅: 기타 상태 - status: {}", status);
         }
     }
 
-    /**
-     * 가상계좌 입금 완료 웹훅 처리
-     */
     @Transactional
     public void handleVirtualAccountDeposit(Map<String, Object> payload) {
         String paymentKey = (String) payload.get("paymentKey");
@@ -72,21 +63,14 @@ public class TossWebhookService {
                     .orElse(null);
 
             if (payment != null && payment.isPending()) {
-                // 입금 완료 처리
-                // TODO: 실제 Toss API 조회 후 상세 정보 업데이트
                 log.info("가상계좌 입금 완료 - orderId: {}", payment.getOrderId());
             }
         }
     }
 
-    /**
-     * 취소 상태 변경 웹훅 처리
-     */
     @Transactional
     public void handleCancelStatusChanged(Map<String, Object> payload) {
         String paymentKey = (String) payload.get("paymentKey");
-
         log.info("취소 상태 변경 웹훅 - paymentKey: {}", paymentKey);
-        // TODO: 취소 처리 로직
     }
 }

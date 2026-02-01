@@ -11,13 +11,14 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "payments", indexes = {
-        @Index(name = "idx_order_id", columnList = "order_id"),
-        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_payment_order_id", columnList = "order_id"),
+        @Index(name = "idx_payment_user_id", columnList = "user_id"),
         @Index(name = "idx_payment_status", columnList = "payment_status"),
-        @Index(name = "idx_toss_payment_key", columnList = "toss_payment_key"),
-        @Index(name = "idx_created_at", columnList = "created_at")
+        @Index(name = "idx_payment_toss_payment_key", columnList = "toss_payment_key"),
+        @Index(name = "idx_payment_created_at", columnList = "created_at")
 })
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
@@ -80,8 +81,11 @@ public class Payment extends BaseEntity {
     @Column(name = "idempotency_key", length = 100)
     private String idempotencyKey;
 
-    // ===== 상태 변경 메서드 =====
+    // ===== 비즈니스 메서드 =====
 
+    /**
+     * 결제 상태 변경
+     */
     public void updateStatus(PaymentStatus newStatus) {
         if (!this.paymentStatus.canTransitionTo(newStatus)) {
             throw new IllegalStateException(
@@ -121,20 +125,6 @@ public class Payment extends BaseEntity {
         this.paymentStatus = PaymentStatus.PAYMENT_FAILED;
         this.failureCode = failureCode;
         this.failureReason = failureReason;
-    }
-
-    /**
-     * 멱등성 키 설정
-     */
-    public void setIdempotencyKey(String idempotencyKey) {
-        this.idempotencyKey = idempotencyKey;
-    }
-
-    /**
-     * Toss orderId 설정 (결제 위젯용)
-     */
-    public void setTossOrderId(String tossOrderId) {
-        this.tossOrderId = tossOrderId;
     }
 
     /**

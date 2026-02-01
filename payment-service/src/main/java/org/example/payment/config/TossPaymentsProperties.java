@@ -1,12 +1,12 @@
 package org.example.payment.config;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@Getter
-@Setter
+import java.util.Base64;
+
+@Data
 @Component
 @ConfigurationProperties(prefix = "toss.payments")
 public class TossPaymentsProperties {
@@ -23,6 +23,6 @@ public class TossPaymentsProperties {
      */
     public String getAuthorizationHeader() {
         String credentials = secretKey + ":";
-        return "Basic " + java.util.Base64.getEncoder().encodeToString(credentials.getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes());
     }
 }

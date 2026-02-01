@@ -54,6 +54,7 @@ public class TossPaymentException extends BusinessException {
             case "NOT_FOUND_PAYMENT" -> "결제 정보를 찾을 수 없습니다.";
             case "ALREADY_PROCESSED_PAYMENT" -> "이미 처리된 결제입니다.";
             case "PROVIDER_ERROR" -> "결제사 연동 오류입니다. 잠시 후 다시 시도해주세요.";
+            case "CIRCUIT_BREAKER_OPEN" -> tossErrorMessage;
             default -> tossErrorMessage != null ? tossErrorMessage : "결제 처리 중 오류가 발생했습니다.";
         };
     }

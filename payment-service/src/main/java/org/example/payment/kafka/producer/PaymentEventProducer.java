@@ -14,16 +14,13 @@ import java.util.concurrent.CompletableFuture;
 /**
  * 결제 이벤트 발행자
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class PaymentEventProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    /**
-     * PaymentCompleted 이벤트 발행
-     */
     public void publishPaymentCompletedEvent(Payment payment) {
         PaymentEvent event = PaymentEvent.completed(
                 payment.getPaymentId(),
@@ -37,9 +34,6 @@ public class PaymentEventProducer {
         publishEvent(event, "결제 완료");
     }
 
-    /**
-     * PaymentCancelled 이벤트 발행
-     */
     public void publishPaymentCancelledEvent(Payment payment) {
         PaymentEvent event = PaymentEvent.cancelled(
                 payment.getPaymentId(),
@@ -51,9 +45,6 @@ public class PaymentEventProducer {
         publishEvent(event, "결제 취소");
     }
 
-    /**
-     * PaymentFailed 이벤트 발행
-     */
     public void publishPaymentFailedEvent(Payment payment) {
         PaymentEvent event = PaymentEvent.failed(
                 payment.getPaymentId(),
@@ -66,9 +57,6 @@ public class PaymentEventProducer {
         publishEvent(event, "결제 실패");
     }
 
-    /**
-     * Kafka 이벤트 발행
-     */
     private void publishEvent(PaymentEvent event, String eventDescription) {
         CompletableFuture<SendResult<String, Object>> future =
                 kafkaTemplate.send(KafkaTopics.PAYMENT_EVENT, event.orderId(), event);

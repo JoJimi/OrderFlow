@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Payment", description = "결제 관리 API")
 public class PaymentController {
 
