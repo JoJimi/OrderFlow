@@ -32,6 +32,16 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     }
 
     @Override
+    public Optional<Payment> findByTossOrderId(String tossOrderId) {
+        return jpaRepository.findByTossOrderId(tossOrderId);
+    }
+
+    @Override
+    public Optional<Payment> findByTossPaymentKey(String tossPaymentKey) {
+        return jpaRepository.findByTossPaymentKey(tossPaymentKey);
+    }
+
+    @Override
     public Page<Payment> findByUserId(String userId, Pageable pageable) {
         return jpaRepository.findByUserId(userId, pageable);
     }

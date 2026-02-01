@@ -57,6 +57,13 @@ management:
     health:
       show-details: always
 
+# Toss Payments 테스트 환경
+toss:
+  payments:
+    secret-key: test_sk_xxxxxxxxxxxxxxx  # 테스트 시크릿 키
+    client-key: test_ck_xxxxxxxxxxxxxxx  # 테스트 클라이언트 키
+    base-url: https://api.tosspayments.com
+
 logging:
   level:
     root: INFO

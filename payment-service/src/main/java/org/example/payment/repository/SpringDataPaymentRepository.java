@@ -14,6 +14,12 @@ public interface SpringDataPaymentRepository extends JpaRepository<Payment, Stri
     @Query("SELECT p FROM Payment p WHERE p.orderId = :orderId AND p.deleted = false")
     Optional<Payment> findByOrderId(@Param("orderId") String orderId);
 
+    @Query("SELECT p FROM Payment p WHERE p.tossOrderId = :tossOrderId AND p.deleted = false")
+    Optional<Payment> findByTossOrderId(@Param("tossOrderId") String tossOrderId);
+
+    @Query("SELECT p FROM Payment p WHERE p.tossPaymentKey = :tossPaymentKey AND p.deleted = false")
+    Optional<Payment> findByTossPaymentKey(@Param("tossPaymentKey") String tossPaymentKey);
+
     @Query("SELECT p FROM Payment p WHERE p.userId = :userId AND p.deleted = false")
     Page<Payment> findByUserId(@Param("userId") String userId, Pageable pageable);
 }

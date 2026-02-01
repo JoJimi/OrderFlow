@@ -2,11 +2,17 @@ package org.example.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.payment.client.TossPaymentsClient;
 import org.example.payment.domain.Payment;
 import org.example.payment.dto.response.PaymentResponse;
+import org.example.payment.dto.toss.TossPaymentCancelRequest;
+import org.example.payment.dto.toss.TossPaymentConfirmRequest;
+import org.example.payment.dto.toss.TossPaymentResponse;
+import org.example.payment.exception.TossPaymentException;
 import org.example.payment.kafka.producer.PaymentEventProducer;
 import org.example.payment.repository.PaymentRepository;
-import org.example.payment.service.simulator.PaymentSimulator;
+import org.example.shared.exception.BusinessException;
+import org.example.shared.exception.ErrorCode;
 import org.example.shared.exception.payment.PaymentAlreadyCompletedException;
 import org.example.shared.exception.payment.PaymentNotFoundException;
 import org.example.shared.type.payment.PaymentMethod;
@@ -18,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,156 +32,264 @@ import java.math.BigDecimal;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final PaymentSimulator paymentSimulator;
+    private final TossPaymentsClient tossPaymentsClient;
     private final PaymentEventProducer eventProducer;
 
     /**
      * 결제 레코드 생성 (OrderCreated 이벤트 수신 시 호출)
-     * - 결제를 실행하지 않고 PAYMENT_PENDING 상태로만 저장
+     * - Toss 결제 위젯에서 사용할 orderId 생성
+     * - 프론트엔드에서 이 정보로 결제 위젯 초기화
      */
     @Transactional
-    public void createPaymentRecord(String orderId, String userId, BigDecimal amount) {
+    public PaymentResponse createPaymentRecord(String orderId, String userId, BigDecimal amount) {
         log.info("결제 레코드 생성 - orderId: {}, userId: {}, amount: {}", orderId, userId, amount);
 
-        // 1. 결제 ID 생성
-        String paymentId = IdGenerator.generatePaymentId();
+        // 중복 생성 방지
+        if (paymentRepository.findByOrderId(orderId).isPresent()) {
+            log.warn("이미 존재하는 결제 레코드 - orderId: {}", orderId);
+            return PaymentResponse.from(paymentRepository.findByOrderId(orderId).get());
+        }
 
-        // 2. 결제 엔티티 생성 (초기 상태: PAYMENT_PENDING)
+        // 결제 ID 및 Toss용 orderId 생성
+        String paymentId = IdGenerator.generatePaymentId();
+        String tossOrderId = generateTossOrderId(orderId);
+        String idempotencyKey = UUID.randomUUID().toString();
+
         Payment payment = Payment.builder()
                 .paymentId(paymentId)
                 .orderId(orderId)
                 .userId(userId)
                 .amount(amount)
                 .paymentStatus(PaymentStatus.PAYMENT_PENDING)
-                .paymentMethod(PaymentMethod.CREDIT_CARD)
                 .build();
 
-        // 3. DB 저장
-        paymentRepository.save(payment);
-        log.info("결제 레코드 생성 완료 - paymentId: {}, status: PAYMENT_PENDING", paymentId);
+        payment.setTossOrderId(tossOrderId);
+        payment.setIdempotencyKey(idempotencyKey);
+
+        Payment saved = paymentRepository.save(payment);
+        log.info("결제 레코드 생성 완료 - paymentId: {}, tossOrderId: {}", paymentId, tossOrderId);
+
+        return PaymentResponse.from(saved);
     }
 
     /**
-     * 결제 시작 API (사용자가 수동으로 호출)
-     * - PAYMENT_PENDING 상태의 결제를 실제로 실행
+     * Toss 결제 승인 (프론트엔드에서 결제 완료 후 호출)
+     *
+     * 보안 체크:
+     * 1. 서버에 저장된 금액과 요청 금액 비교 (클라이언트 조작 방지)
+     * 2. 멱등성 키로 중복 결제 방지
      */
     @Transactional
-    public PaymentResponse startPayment(String orderId, String userId) {
-        log.info("결제 시작 요청 - orderId: {}, userId: {}", orderId, userId);
+    public PaymentResponse confirmPayment(String userId, TossPaymentConfirmRequest request) {
+        log.info("Toss 결제 승인 시작 - orderId: {}, paymentKey: {}, amount: {}",
+                request.orderId(), request.paymentKey(), request.amount());
 
-        // 1. 결제 정보 조회
-        Payment payment = paymentRepository.findByOrderId(orderId)
-                .orElseThrow(PaymentNotFoundException::new);
+        // 1. 결제 정보 조회 (tossOrderId로 조회)
+        Payment payment = paymentRepository.findByTossOrderId(request.orderId())
+                .orElseThrow(() -> {
+                    log.error("결제 정보 없음 - tossOrderId: {}", request.orderId());
+                    return new PaymentNotFoundException();
+                });
 
         // 2. 본인 확인
         if (!payment.getUserId().equals(userId)) {
             log.warn("결제 권한 없음 - orderId: {}, requestUserId: {}, paymentUserId: {}",
-                    orderId, userId, payment.getUserId());
+                    request.orderId(), userId, payment.getUserId());
             throw new PaymentNotFoundException();
         }
 
-        // 3. 결제 상태 확인 (PAYMENT_PENDING만 결제 가능)
-        if (payment.getPaymentStatus() != PaymentStatus.PAYMENT_PENDING) {
-            log.warn("이미 처리된 결제 - orderId: {}, status: {}", orderId, payment.getPaymentStatus());
+        // 3. 상태 확인
+        if (!payment.isPending()) {
+            log.warn("결제 대기 상태가 아님 - orderId: {}, status: {}",
+                    request.orderId(), payment.getPaymentStatus());
             throw new PaymentAlreadyCompletedException();
         }
 
-        // 4. 외부 결제 API 호출 (시뮬레이션)
-        log.info("외부 결제 처리 시작 - paymentId: {}, amount: {}",
-                payment.getPaymentId(), payment.getAmount());
-
-        PaymentSimulator.PaymentResult result = paymentSimulator.process(
-                payment.getOrderId(),
-                payment.getAmount()
-        );
-
-        // 5. 결제 결과에 따른 처리
-        if (result.success()) {
-            handlePaymentSuccess(payment, result.transactionId());
-        } else {
-            handlePaymentFailure(payment, result.failureReason());
+        // 4. ⚠️ 금액 검증 (클라이언트 조작 방지 - 매우 중요!)
+        BigDecimal requestAmount = BigDecimal.valueOf(request.amount());
+        if (payment.getAmount().compareTo(requestAmount) != 0) {
+            log.error("결제 금액 불일치! 서버: {}, 요청: {} - 조작 시도 의심",
+                    payment.getAmount(), requestAmount);
+            throw new BusinessException(ErrorCode.ORDER_AMOUNT_MISMATCH,
+                    "결제 금액이 일치하지 않습니다.");
         }
 
-        // 6. 업데이트된 결제 정보 반환
-        Payment updatedPayment = paymentRepository.findById(payment.getPaymentId())
-                .orElseThrow(PaymentNotFoundException::new);
+        // 5. Toss Payments API 호출 (멱등성 키 사용)
+        try {
+            TossPaymentResponse tossResponse = tossPaymentsClient.confirmPayment(
+                    request,
+                    payment.getIdempotencyKey()
+            );
 
-        return PaymentResponse.from(updatedPayment);
-    }
+            // 6. 결제 성공 처리
+            if (tossResponse.isSuccess()) {
+                handlePaymentSuccess(payment, tossResponse);
+            } else if (tossResponse.isWaitingForDeposit()) {
+                // 가상계좌 입금 대기
+                log.info("가상계좌 입금 대기 - orderId: {}", request.orderId());
+                // 별도 웹훅으로 입금 완료 처리
+            } else {
+                // 예상치 못한 상태
+                log.warn("예상치 못한 결제 상태 - status: {}", tossResponse.status());
+            }
 
-    /**
-     * 결제 취소 처리 (OrderCancelled 이벤트 수신 시 호출)
-     */
-    @Transactional
-    public void cancelPayment(String orderId) {
-        log.info("결제 취소 처리 시작 - orderId: {}", orderId);
+            return PaymentResponse.from(payment);
 
-        Payment payment = paymentRepository.findByOrderId(orderId)
-                .orElseThrow(PaymentNotFoundException::new);
-
-        // 이미 완료된 결제는 취소 불가
-        if (payment.getPaymentStatus() == PaymentStatus.PAYMENT_COMPLETED) {
-            log.warn("이미 완료된 결제는 취소할 수 없습니다 - orderId: {}, paymentId: {}",
-                    orderId, payment.getPaymentId());
-            // TODO: 환불 프로세스 시작 (향후 구현)
-            return;
-        }
-
-        // PAYMENT_PENDING 또는 PAYMENT_FAILED 상태만 취소 가능
-        if (payment.getPaymentStatus() == PaymentStatus.PAYMENT_PENDING) {
-            payment.fail("주문 취소로 인한 결제 취소");
-            paymentRepository.save(payment);
-
-            eventProducer.publishPaymentCancelledEvent(payment);
-
-            log.info("결제 취소 완료 - orderId: {}, paymentId: {}", orderId, payment.getPaymentId());
-        } else {
-            log.info("이미 실패한 결제 - orderId: {}, status: {}",
-                    orderId, payment.getPaymentStatus());
+        } catch (TossPaymentException e) {
+            // 7. 결제 실패 처리
+            handlePaymentFailure(payment, e.getTossErrorCode(), e.getUserFriendlyMessage());
+            throw e;
         }
     }
 
     /**
      * 결제 성공 처리
      */
-    private void handlePaymentSuccess(Payment payment, String transactionId) {
-        log.info("결제 성공 처리 - paymentId: {}, transactionId: {}",
-                payment.getPaymentId(), transactionId);
+    private void handlePaymentSuccess(Payment payment, TossPaymentResponse response) {
+        log.info("결제 성공 처리 - paymentKey: {}, approvedAt: {}",
+                response.paymentKey(), response.approvedAt());
 
-        payment.complete(transactionId);
+        // 카드 정보 추출
+        String cardCompany = null;
+        String cardNumber = null;
+        Integer installmentMonths = null;
+
+        if (response.card() != null) {
+            cardCompany = response.card().issuerCode();
+            cardNumber = response.card().number();
+            installmentMonths = response.card().installmentPlanMonths();
+        }
+
+        // 결제 방법 결정
+        PaymentMethod method = determinePaymentMethod(response.method());
+
+        // 영수증 URL
+        String receiptUrl = response.receipt() != null ? response.receipt().url() : null;
+
+        // 결제 완료 처리
+        payment.completeWithToss(
+                response.paymentKey(),
+                response.lastTransactionKey(),
+                response.approvedAt(),
+                cardCompany,
+                cardNumber,
+                installmentMonths,
+                receiptUrl,
+                method
+        );
+
         paymentRepository.save(payment);
 
+        // Kafka 이벤트 발행
         eventProducer.publishPaymentCompletedEvent(payment);
 
-        log.info("결제 성공 처리 완료 - paymentId: {}", payment.getPaymentId());
+        log.info("결제 성공 처리 완료 - paymentId: {}, orderId: {}",
+                payment.getPaymentId(), payment.getOrderId());
     }
 
     /**
      * 결제 실패 처리
      */
-    private void handlePaymentFailure(Payment payment, String failureReason) {
-        log.warn("결제 실패 처리 - paymentId: {}, reason: {}",
-                payment.getPaymentId(), failureReason);
+    private void handlePaymentFailure(Payment payment, String failureCode, String failureReason) {
+        log.warn("결제 실패 처리 - paymentId: {}, code: {}, reason: {}",
+                payment.getPaymentId(), failureCode, failureReason);
 
-        payment.fail(failureReason);
+        payment.fail(failureCode, failureReason);
         paymentRepository.save(payment);
 
+        // Kafka 이벤트 발행
         eventProducer.publishPaymentFailedEvent(payment);
 
         log.info("결제 실패 처리 완료 - paymentId: {}", payment.getPaymentId());
     }
 
     /**
-     * 주문별 결제 조회
+     * 결제 취소 (관리자 또는 주문 취소 시)
      */
-    @Transactional(readOnly = true)
-    public PaymentResponse getPaymentByOrderId(String orderId, String userId) {
-        log.info("결제 조회 - orderId: {}, userId: {}", orderId, userId);
+    @Transactional
+    public PaymentResponse cancelPayment(String orderId, String cancelReason) {
+        log.info("결제 취소 요청 - orderId: {}, reason: {}", orderId, cancelReason);
 
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(PaymentNotFoundException::new);
 
-        // 본인 결제인지 확인
+        // PENDING 상태면 Toss API 호출 없이 취소
+        if (payment.isPending()) {
+            payment.fail("CANCELLED", cancelReason);
+            paymentRepository.save(payment);
+            eventProducer.publishPaymentCancelledEvent(payment);
+            return PaymentResponse.from(payment);
+        }
+
+        // 완료된 결제는 Toss API로 취소
+        if (payment.isCompleted() && payment.getTossPaymentKey() != null) {
+            try {
+                String cancelIdempotencyKey = UUID.randomUUID().toString();
+                TossPaymentResponse response = tossPaymentsClient.cancelPayment(
+                        payment.getTossPaymentKey(),
+                        TossPaymentCancelRequest.fullCancel(cancelReason),
+                        cancelIdempotencyKey
+                );
+
+                if (response.isCanceled()) {
+                    payment.fail("CANCELLED", cancelReason);
+                    paymentRepository.save(payment);
+                    eventProducer.publishPaymentCancelledEvent(payment);
+                }
+
+                return PaymentResponse.from(payment);
+
+            } catch (TossPaymentException e) {
+                log.error("Toss 결제 취소 실패 - orderId: {}, error: {}",
+                        orderId, e.getMessage());
+                throw e;
+            }
+        }
+
+        log.warn("취소할 수 없는 결제 상태 - orderId: {}, status: {}",
+                orderId, payment.getPaymentStatus());
+        return PaymentResponse.from(payment);
+    }
+
+    /**
+     * 결제 정보 조회 (Toss에서 최신 정보 동기화)
+     */
+    @Transactional
+    public PaymentResponse syncPaymentStatus(String orderId) {
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(PaymentNotFoundException::new);
+
+        if (payment.getTossPaymentKey() == null) {
+            return PaymentResponse.from(payment);
+        }
+
+        try {
+            TossPaymentResponse response = tossPaymentsClient.getPayment(payment.getTossPaymentKey());
+
+            // 상태 동기화
+            if (response.isSuccess() && !payment.isCompleted()) {
+                handlePaymentSuccess(payment, response);
+            } else if (response.isCanceled() && payment.isCompleted()) {
+                payment.fail("CANCELLED", "Toss에서 취소됨");
+                paymentRepository.save(payment);
+            }
+
+            return PaymentResponse.from(payment);
+
+        } catch (TossPaymentException e) {
+            log.warn("결제 상태 동기화 실패 - orderId: {}", orderId);
+            return PaymentResponse.from(payment);
+        }
+    }
+
+    /**
+     * 프론트엔드 결제 위젯 초기화용 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public PaymentResponse getPaymentForWidget(String orderId, String userId) {
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(PaymentNotFoundException::new);
+
         if (!payment.getUserId().equals(userId)) {
             throw new PaymentNotFoundException();
         }
@@ -182,23 +297,58 @@ public class PaymentService {
         return PaymentResponse.from(payment);
     }
 
-    /**
-     * 사용자별 결제 목록 조회
-     */
+    // ===== 기존 메서드들 =====
+
+    @Transactional(readOnly = true)
+    public PaymentResponse getPaymentByOrderId(String orderId, String userId) {
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .orElseThrow(PaymentNotFoundException::new);
+
+        if (!payment.getUserId().equals(userId)) {
+            throw new PaymentNotFoundException();
+        }
+
+        return PaymentResponse.from(payment);
+    }
+
     @Transactional(readOnly = true)
     public Page<PaymentResponse> getMyPayments(String userId, Pageable pageable) {
-        log.info("사용자 결제 목록 조회 - userId: {}, page: {}", userId, pageable.getPageNumber());
         return paymentRepository.findByUserId(userId, pageable)
                 .map(PaymentResponse::from);
     }
 
-    /**
-     * 전체 결제 목록 조회 (관리자)
-     */
     @Transactional(readOnly = true)
     public Page<PaymentResponse> getAllPayments(Pageable pageable) {
-        log.info("전체 결제 목록 조회 - page: {}", pageable.getPageNumber());
         return paymentRepository.findAll(pageable)
                 .map(PaymentResponse::from);
+    }
+
+    // ===== Helper 메서드 =====
+
+    /**
+     * Toss 결제용 orderId 생성
+     * - Toss 규격: 영문 대소문자, 숫자, 특수문자 -, _ 만 허용
+     * - 최소 6자, 최대 64자
+     */
+    private String generateTossOrderId(String orderId) {
+        // ORDER-ULID 형식에서 특수문자 제거 후 사용
+        String sanitized = orderId.replace("-", "");
+        return "ORD_" + sanitized + "_" + System.currentTimeMillis();
+    }
+
+    /**
+     * Toss 결제 방법을 내부 PaymentMethod로 변환
+     */
+    private PaymentMethod determinePaymentMethod(String tossMethod) {
+        if (tossMethod == null) return PaymentMethod.CREDIT_CARD;
+
+        return switch (tossMethod) {
+            case "카드" -> PaymentMethod.CREDIT_CARD;
+            case "가상계좌" -> PaymentMethod.BANK_TRANSFER;
+            case "간편결제" -> PaymentMethod.MOBILE_PAYMENT;
+            case "계좌이체" -> PaymentMethod.BANK_TRANSFER;
+            case "휴대폰" -> PaymentMethod.MOBILE_PAYMENT;
+            default -> PaymentMethod.CREDIT_CARD;
+        };
     }
 }
