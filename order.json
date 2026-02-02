@@ -1,0 +1,11 @@
+﻿{
+  "items": [
+    {
+      "productId": "SEED-1-000001",
+      "quantity": 2
+    }
+  ],
+  "shippingAddress": "Seoul",
+  "shippingCity": "Seoul",
+  "shippingPostalCode": "06234"
+}

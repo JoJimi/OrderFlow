@@ -1,0 +1,313 @@
+{
+    "kind": "NodeList",
+    "apiVersion": "v1",
+    "metadata": {
+        "resourceVersion": "72812"
+    },
+    "items": [
+        {
+            "metadata": {
+                "name": "k8s-orderflow",
+                "uid": "ee4b7ef6-3c2f-44bf-a61d-b398805d0149",
+                "resourceVersion": "72410",
+                "creationTimestamp": "2026-01-17T09:42:15Z",
+                "labels": {
+                    "beta.kubernetes.io/arch": "amd64",
+                    "beta.kubernetes.io/os": "linux",
+                    "kubernetes.io/arch": "amd64",
+                    "kubernetes.io/hostname": "k8s-orderflow",
+                    "kubernetes.io/os": "linux",
+                    "minikube.k8s.io/commit": "65318f4cfff9c12cc87ec9eb8f4cdd57b25047f3",
+                    "minikube.k8s.io/name": "k8s-orderflow",
+                    "minikube.k8s.io/primary": "true",
+                    "minikube.k8s.io/updated_at": "2026_01_17T18_42_21_0700",
+                    "minikube.k8s.io/version": "v1.37.0",
+                    "node-role.kubernetes.io/control-plane": "",
+                    "node.kubernetes.io/exclude-from-external-load-balancers": ""
+                },
+                "annotations": {
+                    "node.alpha.kubernetes.io/ttl": "0",
+                    "volumes.kubernetes.io/controller-managed-attach-detach": "true"
+                }
+            },
+            "spec": {
+                "podCIDR": "10.244.0.0/24",
+                "podCIDRs": [
+                    "10.244.0.0/24"
+                ]
+            },
+            "status": {
+                "capacity": {
+                    "cpu": "16",
+                    "ephemeral-storage": "1055762868Ki",
+                    "hugepages-1Gi": "0",
+                    "hugepages-2Mi": "0",
+                    "memory": "7934136Ki",
+                    "pods": "110"
+                },
+                "allocatable": {
+                    "cpu": "16",
+                    "ephemeral-storage": "1055762868Ki",
+                    "hugepages-1Gi": "0",
+                    "hugepages-2Mi": "0",
+                    "memory": "7934136Ki",
+                    "pods": "110"
+                },
+                "conditions": [
+                    {
+                        "type": "MemoryPressure",
+                        "status": "False",
+                        "lastHeartbeatTime": "2026-01-20T19:03:44Z",
+                        "lastTransitionTime": "2026-01-17T09:42:10Z",
+                        "reason": "KubeletHasSufficientMemory",
+                        "message": "kubelet has sufficient memory available"
+                    },
+                    {
+                        "type": "DiskPressure",
+                        "status": "False",
+                        "lastHeartbeatTime": "2026-01-20T19:03:44Z",
+                        "lastTransitionTime": "2026-01-17T09:42:10Z",
+                        "reason": "KubeletHasNoDiskPressure",
+                        "message": "kubelet has no disk pressure"
+                    },
+                    {
+                        "type": "PIDPressure",
+                        "status": "False",
+                        "lastHeartbeatTime": "2026-01-20T19:03:44Z",
+                        "lastTransitionTime": "2026-01-17T09:42:10Z",
+                        "reason": "KubeletHasSufficientPID",
+                        "message": "kubelet has sufficient PID available"
+                    },
+                    {
+                        "type": "Ready",
+                        "status": "True",
+                        "lastHeartbeatTime": "2026-01-20T19:03:44Z",
+                        "lastTransitionTime": "2026-01-17T09:42:15Z",
+                        "reason": "KubeletReady",
+                        "message": "kubelet is posting ready status"
+                    }
+                ],
+                "addresses": [
+                    {
+                        "type": "InternalIP",
+                        "address": "192.168.49.2"
+                    },
+                    {
+                        "type": "Hostname",
+                        "address": "k8s-orderflow"
+                    }
+                ],
+                "daemonEndpoints": {
+                    "kubeletEndpoint": {
+                        "Port": 10250
+                    }
+                },
+                "nodeInfo": {
+                    "machineID": "dec025a9928d4e31a404c6cd915257c2",
+                    "systemUUID": "dec025a9928d4e31a404c6cd915257c2",
+                    "bootID": "ab52258f-67df-40a0-b946-4d65b2fa2fdc",
+                    "kernelVersion": "6.6.87.2-microsoft-standard-WSL2",
+                    "osImage": "Ubuntu 22.04.5 LTS",
+                    "containerRuntimeVersion": "docker://28.4.0",
+                    "kubeletVersion": "v1.34.0",
+                    "kubeProxyVersion": "",
+                    "operatingSystem": "linux",
+                    "architecture": "amd64"
+                },
+                "images": [
+                    {
+                        "names": [
+                            "confluentinc/cp-kafka@sha256:adc392d28a1e99e8c9a1ec7f087e9e91041837b35b8b7cc8b8a691b82dd581b0",
+                            "confluentinc/cp-kafka:7.8.0"
+                        ],
+                        "sizeBytes": 1076520321
+                    },
+                    {
+                        "names": [
+                            "grafana/grafana@sha256:2175aaa91c96733d86d31cf270d5310b278654b03f5718c59de12a865380a31f",
+                            "grafana/grafana:latest"
+                        ],
+                        "sizeBytes": 746202937
+                    },
+                    {
+                        "names": [
+                            "quay.io/argoproj/argocd@sha256:090c287bdc16b4649d3fe30e2fa73633debe115cf40d182d4a0a9f125695b64a",
+                            "quay.io/argoproj/argocd:v3.2.5"
+                        ],
+                        "sizeBytes": 531611968
+                    },
+                    {
+                        "names": [
+                            "prom/prometheus@sha256:1f0f50f06acaceb0f5670d2c8a658a599affe7b0d8e78b898c1035653849a702",
+                            "prom/prometheus:latest"
+                        ],
+                        "sizeBytes": 366554836
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/ingress-nginx/controller@sha256:1f7eaeb01933e719c8a9f4acd8181e555e582330c7d50f24484fb64d2ba9b2ef"
+                        ],
+                        "sizeBytes": 323984203
+                    },
+                    {
+                        "names": [
+                            "jimineutron/orderflow-product-service@sha256:971c2337a0e9cccab81d46713e313bda7c2b0420580c80b9649bf41a6f721fc5",
+                            "jimineutron/orderflow-product-service:latest"
+                        ],
+                        "sizeBytes": 315568386
+                    },
+                    {
+                        "names": [
+                            "jimineutron/orderflow-inventory-service@sha256:7ba09c7c0f9de9d517b0872bb584ec9b5752dcdd97bf2c1858bd65569c262453",
+                            "jimineutron/orderflow-inventory-service:latest"
+                        ],
+                        "sizeBytes": 315568154
+                    },
+                    {
+                        "names": [
+                            "jimineutron/orderflow-user-service@sha256:eeaca9214ca5f4c3ed6fad1079475b1ec7ee54a9805f6a2e0f5f4cfafe8e06f3",
+                            "jimineutron/orderflow-user-service:latest"
+                        ],
+                        "sizeBytes": 302377475
+                    },
+                    {
+                        "names": [
+                            "postgres@sha256:b3968e348b48f1198cc6de6611d055dbad91cd561b7990c406c3fc28d7095b21",
+                            "postgres:15-alpine"
+                        ],
+                        "sizeBytes": 273791980
+                    },
+                    {
+                        "names": [
+                            "jimineutron/orderflow-eureka-server@sha256:f6236365b4190c709b789fd03a8ec1508540dec21f9a48fa0dbf2fb48f0933d6",
+                            "jimineutron/orderflow-eureka-server:latest"
+                        ],
+                        "sizeBytes": 264083217
+                    },
+                    {
+                        "names": [
+                            "kubernetesui/dashboard@sha256:2e500d29e9d5f4a086b908eb8dfe7ecac57d2ab09d65b24f588b1d449841ef93"
+                        ],
+                        "sizeBytes": 245710051
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/etcd@sha256:e36c081683425b5b3bc1425bc508b37e7107bb65dfa9367bf5a80125d431fa19",
+                            "registry.k8s.io/etcd:3.6.4-0"
+                        ],
+                        "sizeBytes": 194905835
+                    },
+                    {
+                        "names": [
+                            "ghcr.io/dexidp/dex@sha256:5d0656fce7d453c0e3b2706abf40c0d0ce5b371fb0b73b3cf714d05f35fa5f86",
+                            "ghcr.io/dexidp/dex:v2.44.0"
+                        ],
+                        "sizeBytes": 140601782
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/kube-apiserver@sha256:fe86fe2f64021df8efa1a939a290bc21c8c128c66fc00ebbb6b5dea4c7a06812",
+                            "registry.k8s.io/kube-apiserver:v1.34.0"
+                        ],
+                        "sizeBytes": 87968682
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/coredns/coredns@sha256:e8c262566636e6bc340ece6473b0eed193cad045384401529721ddbe6463d31c",
+                            "registry.k8s.io/coredns/coredns:v1.12.1"
+                        ],
+                        "sizeBytes": 75043396
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/kube-controller-manager@sha256:f8ba6c082136e2c85ce71628c59c6574ca4b67f162911cb200c0a51a5b9bff81",
+                            "registry.k8s.io/kube-controller-manager:v1.34.0"
+                        ],
+                        "sizeBytes": 74923320
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/kube-proxy@sha256:364da8a25c742d7a35e9635cb8cf42c1faf5b367760d0f9f9a75bdd1f9d52067",
+                            "registry.k8s.io/kube-proxy:v1.34.0"
+                        ],
+                        "sizeBytes": 71871269
+                    },
+                    {
+                        "names": [
+                            "ecr-public.aws.com/docker/library/redis@sha256:59b6e694653476de2c992937ebe1c64182af4728e54bb49e9b7a6c26614d8933",
+                            "ecr-public.aws.com/docker/library/redis:8.2.2-alpine"
+                        ],
+                        "sizeBytes": 70580649
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/ingress-nginx/kube-webhook-certgen@sha256:050a34002d5bb4966849c880c56c91f5320372564245733b33d4b3461b4dbd24"
+                        ],
+                        "sizeBytes": 70036217
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/kube-scheduler@sha256:8fbe6d18415c8af9b31e177f6e444985f3a87349e083fe6eadd36753dddb17ff",
+                            "registry.k8s.io/kube-scheduler:v1.34.0"
+                        ],
+                        "sizeBytes": 52763913
+                    },
+                    {
+                        "names": [
+                            "kubernetesui/metrics-scraper@sha256:76049887f07a0476dc93efc2d3569b9529bf982b22d29f356092ce206e98765c"
+                        ],
+                        "sizeBytes": 43815949
+                    },
+                    {
+                        "names": [
+                            "redis@sha256:ee64a64eaab618d88051c3ade8f6352d11531fcf79d9a4818b9b183d8c1d18ba",
+                            "redis:7-alpine"
+                        ],
+                        "sizeBytes": 41408712
+                    },
+                    {
+                        "names": [
+                            "gcr.io/k8s-minikube/storage-provisioner@sha256:18eb69d1418e854ad5a19e399310e52808a8321e4c441c1dddad8977a0d7a944",
+                            "gcr.io/k8s-minikube/storage-provisioner:v5"
+                        ],
+                        "sizeBytes": 31465472
+                    },
+                    {
+                        "names": [
+                            "busybox@sha256:141c253bc4c3fd0a201d32dc1f493bcf3fff003b6df416dea4f41046e0f37d47",
+                            "busybox:1.28"
+                        ],
+                        "sizeBytes": 1146369
+                    },
+                    {
+                        "names": [
+                            "registry.k8s.io/pause@sha256:278fb9dbcca9518083ad1e11276933a2e96f23de604a3a08cc3c80002767d24c",
+                            "registry.k8s.io/pause:3.10.1"
+                        ],
+                        "sizeBytes": 735760
+                    }
+                ],
+                "runtimeHandlers": [
+                    {
+                        "name": "",
+                        "features": {
+                            "recursiveReadOnlyMounts": true
+                        }
+                    },
+                    {
+                        "name": "io.containerd.runc.v2",
+                        "features": {
+                            "recursiveReadOnlyMounts": true
+                        }
+                    },
+                    {
+                        "name": "runc",
+                        "features": {
+                            "recursiveReadOnlyMounts": true
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

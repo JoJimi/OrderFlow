@@ -1,0 +1,39 @@
+{
+    "kind": "EventList",
+    "apiVersion": "v1",
+    "metadata": {
+        "resourceVersion": "72812"
+    },
+    "items": [
+        {
+            "metadata": {
+                "name": "kube-apiserver-k8s-orderflow.188b9f59a0627432",
+                "namespace": "kube-system",
+                "uid": "d4142ade-f079-4461-b40c-547f220cf03d",
+                "resourceVersion": "72634",
+                "creationTimestamp": "2026-01-20T19:03:38Z"
+            },
+            "involvedObject": {
+                "kind": "Pod",
+                "namespace": "kube-system",
+                "name": "kube-apiserver-k8s-orderflow",
+                "uid": "5ca83bf3f4e209788e83c0d8cab42bc3",
+                "apiVersion": "v1",
+                "fieldPath": "spec.containers{kube-apiserver}"
+            },
+            "reason": "Unhealthy",
+            "message": "Readiness probe failed: HTTP probe failed with statuscode: 500",
+            "source": {
+                "component": "kubelet",
+                "host": "k8s-orderflow"
+            },
+            "firstTimestamp": "2026-01-17T20:41:25Z",
+            "lastTimestamp": "2026-01-20T19:05:55Z",
+            "count": 63,
+            "type": "Warning",
+            "eventTime": null,
+            "reportingComponent": "kubelet",
+            "reportingInstance": "k8s-orderflow"
+        }
+    ]
+}

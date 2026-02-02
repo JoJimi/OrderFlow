@@ -1,0 +1,36 @@
+==== START logs for container kube-scheduler of pod kube-system/kube-scheduler-k8s-orderflow ====
+I0117 20:10:59.974488       1 serving.go:386] Generated self-signed cert in-memory
+W0117 20:11:08.242762       1 requestheader_controller.go:204] Unable to get configmap/extension-apiserver-authentication in kube-system.  Usually fixed by 'kubectl create rolebinding -n kube-system ROLEBINDING_NAME --role=extension-apiserver-authentication-reader --serviceaccount=YOUR_NS:YOUR_SA'
+W0117 20:11:08.243547       1 authentication.go:397] Error looking up in-cluster authentication configuration: configmaps "extension-apiserver-authentication" is forbidden: User "system:kube-scheduler" cannot get resource "configmaps" in API group "" in the namespace "kube-system": RBAC: [role.rbac.authorization.k8s.io "extension-apiserver-authentication-reader" not found, role.rbac.authorization.k8s.io "system::leader-locking-kube-scheduler" not found]
+W0117 20:11:08.243626       1 authentication.go:398] Continuing without authentication configuration. This may treat all requests as anonymous.
+W0117 20:11:08.243647       1 authentication.go:399] To require authentication configuration lookup to succeed, set --authentication-tolerate-lookup-failure=false
+I0117 20:11:08.838575       1 server.go:175] "Starting Kubernetes Scheduler" version="v1.34.0"
+I0117 20:11:08.838758       1 server.go:177] "Golang settings" GOGC="" GOMAXPROCS="" GOTRACEBACK=""
+I0117 20:11:08.937563       1 configmap_cafile_content.go:205] "Starting controller" name="client-ca::kube-system::extension-apiserver-authentication::client-ca-file"
+I0117 20:11:08.938117       1 shared_informer.go:349] "Waiting for caches to sync" controller="client-ca::kube-system::extension-apiserver-authentication::client-ca-file"
+I0117 20:11:08.946485       1 secure_serving.go:211] Serving securely on 127.0.0.1:10259
+I0117 20:11:08.947184       1 tlsconfig.go:243] "Starting DynamicServingCertificateController"
+I0117 20:11:09.049473       1 shared_informer.go:356] "Caches are synced" controller="client-ca::kube-system::extension-apiserver-authentication::client-ca-file"
+E0117 21:02:48.217534       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-0" status="not found"
+E0117 21:02:48.221446       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/postgres-0" status="not found"
+E0117 21:02:48.229632       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/postgres-0" status="not found"
+E0117 21:02:48.311278       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-0" status="not found"
+E0117 21:02:48.312041       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/postgres-0" status="not found"
+E0117 21:02:48.313019       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/redis-0" status="not found"
+E0117 21:02:48.407835       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/redis-0" status="not found"
+E0117 21:02:48.408018       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-0" status="not found"
+E0117 21:02:48.409370       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/postgres-0" status="not found"
+E0117 21:02:48.422139       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-0" status="not found"
+E0117 21:02:48.562558       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/redis-0" status="not found"
+E0117 21:02:48.563408       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/postgres-0" status="not found"
+E0117 21:02:48.580417       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/redis-0" status="not found"
+E0117 21:02:48.580712       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/postgres-0" status="not found"
+E0117 21:02:48.770035       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/redis-0" status="not found"
+E0117 21:02:48.780646       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/redis-0" status="not found"
+E0120 11:43:24.759448       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-55d9b77f79-v88f2" status="not found"
+E0120 11:43:25.449874       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-55d9b77f79-v88f2" status="not found"
+E0120 11:43:39.397370       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-55d9b77f79-v88f2" status="not found"
+E0120 11:43:39.415721       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-55d9b77f79-v88f2" status="not found"
+E0120 11:43:39.444296       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-55d9b77f79-v88f2" status="not found"
+E0120 11:43:39.457246       1 schedule_one.go:191] "Status after running PostFilter plugins for pod" logger="UnhandledError" pod="orderflow/kafka-55d9b77f79-v88f2" status="not found"
+==== END logs for container kube-scheduler of pod kube-system/kube-scheduler-k8s-orderflow ====
