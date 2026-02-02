@@ -83,28 +83,38 @@ const initPaymentWidget = async () => {
   error.value = null
 
   try {
-    // 1. 백엔드에서 결제 위젯 정보 조회
+    // 1. Toss SDK 로드 확인
+    if (typeof PaymentWidget === 'undefined') {
+      console.error('Toss PaymentWidget SDK가 로드되지 않았습니다')
+      error.value = 'Toss 결제 SDK 로드 실패. 페이지를 새로고침해주세요.'
+      loading.value = false
+      return
+    }
+
+    // 2. 백엔드에서 결제 위젯 정보 조회
     const data = await paymentStore.fetchWidgetInfo(props.orderId)
     widgetInfo.value = data
 
-    // 2. Toss 결제 위젯 초기화
-    // 환경변수의 클라이언트 키 사용, 없으면 백엔드에서 받은 키 사용
+    // 3. Toss 결제 위젯 초기화
     const clientKey = import.meta.env.VITE_TOSS_CLIENT_KEY || data.clientKey
-    
+
     // PaymentWidget 인스턴스 생성
     paymentWidget = PaymentWidget(clientKey, PaymentWidget.ANONYMOUS)
 
-    // 결제 수단 위젯 렌더링
+    // 4. DOM이 준비될 때까지 대기
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // 5. 결제 수단 위젯 렌더링
     paymentMethodWidget = paymentWidget.renderPaymentMethods(
-      '#payment-method',
-      { value: data.amount },
-      { variantKey: 'DEFAULT' }
+        '#payment-method',
+        { value: data.amount },
+        { variantKey: 'DEFAULT' }
     )
 
-    // 이용약관 위젯 렌더링
+    // 6. 이용약관 위젯 렌더링
     agreementWidget = paymentWidget.renderAgreement(
-      '#agreement',
-      { variantKey: 'AGREEMENT' }
+        '#agreement',
+        { variantKey: 'AGREEMENT' }
     )
 
     console.log('✅ 결제 위젯 초기화 완료')
