@@ -1,0 +1,35 @@
+{
+  "properties": {
+    "productId": {
+      "type": "keyword"
+    },
+    "productName": {
+      "type": "text",
+      "analyzer": "standard",
+      "search_analyzer": "standard"
+    },
+    "productNameKeyword": {
+      "type": "keyword"
+    },
+    "description": {
+      "type": "text",
+      "analyzer": "standard"
+    },
+    "price": {
+      "type": "scaled_float",
+      "scaling_factor": 100
+    },
+    "category": {
+      "type": "keyword"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "updatedAt": {
+      "type": "date"
+    },
+    "deleted": {
+      "type": "boolean"
+    }
+  }
+}
